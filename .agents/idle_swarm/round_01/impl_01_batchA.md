@@ -4,7 +4,7 @@
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
 **Sources:** `review_02_batchA_cps.md` (+ prestige/production overlaps from reviews 04/05)  
-**Commit:** local only (no push)
+**Commit:** `57910f7` (local only, no push)
 
 ---
 
