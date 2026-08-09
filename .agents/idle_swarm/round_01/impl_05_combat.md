@@ -3,7 +3,7 @@
 **Agent:** implement 5/10  
 **Source review:** `.agents/idle_swarm/round_01/review_03_combat.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
-**Commit:** local only (never push)
+**Commit:** `b6e5b37132a9d2362e1992e33c0baed69b86f4e4` (local only — never push)
 
 ---
 
