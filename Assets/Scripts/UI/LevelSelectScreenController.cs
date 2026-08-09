@@ -5,6 +5,11 @@ using HyperCasualRunner.ECS.Components;
 
 namespace HyperCasualRunner.UI
 {
+    /// <summary>
+    /// Runner-only level grid (21 toolkit slices via LevelSequenceComponent / GameProgressData).
+    /// Idle archetypes (19 under ToolkitExamples/Idle/) are NOT routed here — use Idle slice
+    /// prefabs or ToolkitHub. // TODO: [STUB] idle browser / archetype list if product needs it.
+    /// </summary>
     [ExecuteAlways]
     [RequireComponent(typeof(UIDocument))]
     public class LevelSelectScreenController : MonoBehaviour
@@ -12,6 +17,7 @@ namespace HyperCasualRunner.UI
         [SerializeField] private UIDocument _uiDocument;
         [SerializeField] private VisualTreeAsset _levelSelectScreenAsset;
         [SerializeField] private VisualTreeAsset _levelCardItemAsset;
+        // Runner toolkit slice count — not idle archetype count (see class summary).
         [SerializeField] private int _totalLevels = 21;
 
         private VisualElement _root;

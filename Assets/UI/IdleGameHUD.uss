@@ -1,0 +1,138 @@
+/* IdleGameHUD.uss — styles for deferred sandbox IdleGameHUD.uxml
+   Live idle MVP HUD: IdleSliceUIController (code UI with // TODO: [STUB] inline styles).
+*/
+.idle-hud-root {
+    flex-grow: 1;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.idle-hud-title {
+    font-size: 36px;
+    -unity-font-style: bold;
+    color: rgb(255, 255, 255);
+    margin-bottom: 20px;
+    -unity-text-align: middle-center;
+}
+
+.idle-hud-currency-row {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.idle-hud-gold {
+    font-size: 24px;
+    color: rgb(255, 215, 0);
+    -unity-font-style: bold;
+}
+
+.idle-hud-prestige {
+    font-size: 24px;
+    color: rgb(138, 43, 226);
+    -unity-font-style: bold;
+}
+
+.idle-hud-tab-row {
+    flex-direction: row;
+    margin-bottom: 10px;
+    justify-content: space-around;
+}
+
+.idle-hud-tab {
+    flex-grow: 1;
+    font-size: 20px;
+    -unity-font-style: bold;
+    height: 40px;
+    border-radius: 5px;
+    background-color: rgb(70, 70, 70);
+    color: rgb(255, 255, 255);
+}
+
+.idle-hud-tab-left {
+    margin-right: 5px;
+}
+
+.idle-hud-tab-right {
+    margin-left: 5px;
+}
+
+.idle-hud-upgrades {
+    flex-grow: 1;
+    justify-content: flex-end;
+}
+
+.idle-hud-buy {
+    font-size: 24px;
+    -unity-font-style: bold;
+    background-color: rgb(0, 200, 0);
+    color: rgb(255, 255, 255);
+    height: 60px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.idle-hud-ascend {
+    font-size: 24px;
+    -unity-font-style: bold;
+    background-color: rgb(138, 43, 226);
+    color: rgb(255, 255, 255);
+    height: 60px;
+    border-radius: 10px;
+}
+
+.idle-hud-cosmetics {
+    flex-grow: 1;
+    display: none;
+}
+
+.idle-hud-cosmetics-scroll {
+    flex-grow: 1;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.idle-hud-skin-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+}
+
+.idle-hud-skin-label {
+    font-size: 18px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
+.idle-hud-skin-btn {
+    font-size: 16px;
+    color: rgb(255, 255, 255);
+    width: 140px;
+    height: 40px;
+}
+
+.idle-hud-skin-btn-0 {
+    background-color: rgb(0, 122, 255);
+}
+
+.idle-hud-skin-btn-1 {
+    background-color: rgb(200, 0, 0);
+}
+
+.idle-hud-skin-btn-2 {
+    background-color: rgb(218, 165, 32);
+}
+
+.idle-hud-skin-btn-3 {
+    background-color: rgb(46, 139, 87);
+}

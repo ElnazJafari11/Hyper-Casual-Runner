@@ -7,17 +7,31 @@ using HyperCasualRunner.ECS.Components;
 namespace HyperCasualRunner.UI
 {
     /// <summary>
-    /// Adaptive UI Toolkit HUD for one idle MVP slice. Builds controls from IdleArchetype.
+    /// Sole live idle-slice HUD (UI Toolkit). Adaptive archetype controls + cosmetics.
+    /// IdleGameHUD.uxml / IdleUIManagerSystem are deferred sandbox-only (see IdleGameHudBinder).
     /// </summary>
     [RequireComponent(typeof(UIDocument))]
     [RequireComponent(typeof(IdleSliceBootstrap))]
     public class IdleSliceUIController : MonoBehaviour
     {
+        private static readonly (string Label, int SkinIndex, double Cost)[] SkinRows =
+        {
+            ("Classic Blue", 0, 0.0),
+            ("Crimson Red", 1, 5.0),
+            ("Solid Gold", 2, 15.0),
+            ("Emerald Neon", 3, 30.0),
+        };
+
         private UIDocument _doc;
         private IdleSliceBootstrap _bootstrap;
         private Label _title;
         private Label _howto;
         private Label _stats;
+        private VisualElement _actionsContainer;
+        private VisualElement _cosmeticsContainer;
+        private Button _actionsTabButton;
+        private Button _cosmeticsTabButton;
+        private readonly Button[] _skinButtons = new Button[4];
         private bool _built;
 
         private PanelSettings _runtimePanel;
@@ -52,6 +66,7 @@ namespace HyperCasualRunner.UI
         {
             EnsureUi();
             RefreshStats();
+            RefreshSkinButtons();
         }
 
         private void EnsureUi()
@@ -61,6 +76,7 @@ namespace HyperCasualRunner.UI
             if (root == null) return;
 
             root.Clear();
+            // TODO: [STUB] inline styles — prefer USS classes when idle HUD graduates past prototype
             root.style.flexGrow = 1;
             root.style.paddingTop = 16;
             root.style.paddingLeft = 16;
@@ -88,13 +104,145 @@ namespace HyperCasualRunner.UI
             _stats.style.marginBottom = 12;
             root.Add(_stats);
 
-            var row = new VisualElement();
-            row.style.flexDirection = FlexDirection.Row;
-            row.style.flexWrap = Wrap.Wrap;
-            root.Add(row);
+            var tabRow = new VisualElement { name = "TabRow" };
+            tabRow.style.flexDirection = FlexDirection.Row;
+            tabRow.style.marginBottom = 10;
+            root.Add(tabRow);
 
-            AddButtonsForArchetype(row, _bootstrap.Archetype);
+            _actionsTabButton = TabBtn(tabRow, "Actions", true);
+            _cosmeticsTabButton = TabBtn(tabRow, "Cosmetics", false);
+            _actionsTabButton.clicked += ShowActionsTab;
+            _cosmeticsTabButton.clicked += ShowCosmeticsTab;
+
+            _actionsContainer = new VisualElement { name = "ActionsContainer" };
+            _actionsContainer.style.flexDirection = FlexDirection.Row;
+            _actionsContainer.style.flexWrap = Wrap.Wrap;
+            root.Add(_actionsContainer);
+            AddButtonsForArchetype(_actionsContainer, _bootstrap.Archetype);
+
+            _cosmeticsContainer = new VisualElement { name = "CosmeticsContainer" };
+            _cosmeticsContainer.style.display = DisplayStyle.None;
+            root.Add(_cosmeticsContainer);
+            BuildCosmeticsPanel(_cosmeticsContainer);
+
             _built = true;
+        }
+
+        private static Button TabBtn(VisualElement parent, string text, bool selected)
+        {
+            var b = new Button { text = text, name = text + "TabButton" };
+            // TODO: [STUB] inline tab styles
+            b.style.flexGrow = 1;
+            b.style.height = 40;
+            b.style.marginRight = 4;
+            b.style.fontSize = 18;
+            b.style.unityFontStyleAndWeight = FontStyle.Bold;
+            b.style.color = Color.white;
+            b.style.backgroundColor = selected
+                ? new Color(0.35f, 0.35f, 0.4f)
+                : new Color(0.2f, 0.2f, 0.22f);
+            parent.Add(b);
+            return b;
+        }
+
+        private void ShowActionsTab()
+        {
+            if (_actionsContainer != null) _actionsContainer.style.display = DisplayStyle.Flex;
+            if (_cosmeticsContainer != null) _cosmeticsContainer.style.display = DisplayStyle.None;
+            SetTabSelected(_actionsTabButton, true);
+            SetTabSelected(_cosmeticsTabButton, false);
+        }
+
+        private void ShowCosmeticsTab()
+        {
+            if (_actionsContainer != null) _actionsContainer.style.display = DisplayStyle.None;
+            if (_cosmeticsContainer != null) _cosmeticsContainer.style.display = DisplayStyle.Flex;
+            SetTabSelected(_actionsTabButton, false);
+            SetTabSelected(_cosmeticsTabButton, true);
+        }
+
+        private static void SetTabSelected(Button btn, bool selected)
+        {
+            if (btn == null) return;
+            btn.style.backgroundColor = selected
+                ? new Color(0.35f, 0.35f, 0.4f)
+                : new Color(0.2f, 0.2f, 0.22f);
+        }
+
+        private void BuildCosmeticsPanel(VisualElement parent)
+        {
+            for (int i = 0; i < SkinRows.Length; i++)
+            {
+                var rowDef = SkinRows[i];
+                var row = new VisualElement();
+                // TODO: [STUB] inline cosmetics row styles
+                row.style.flexDirection = FlexDirection.Row;
+                row.style.justifyContent = Justify.SpaceBetween;
+                row.style.alignItems = Align.Center;
+                row.style.marginBottom = 8;
+                row.style.paddingLeft = 8;
+                row.style.paddingRight = 8;
+                row.style.paddingTop = 6;
+                row.style.paddingBottom = 6;
+                row.style.backgroundColor = new Color(1f, 1f, 1f, 0.1f);
+
+                var label = new Label(rowDef.Cost <= 0
+                    ? $"{rowDef.Label} (Default)"
+                    : $"{rowDef.Label} ({rowDef.Cost:N0} P)");
+                label.style.fontSize = 16;
+                label.style.color = Color.white;
+                label.style.flexGrow = 1;
+                row.Add(label);
+
+                int skinIndex = rowDef.SkinIndex;
+                double cost = rowDef.Cost;
+                var btn = new Button(() => FireCosmetic(skinIndex, cost))
+                {
+                    name = skinIndex == 0 ? "EquipSkin0Button" : $"BuySkin{skinIndex}Button"
+                };
+                btn.style.width = 140;
+                btn.style.height = 40;
+                btn.style.fontSize = 14;
+                btn.style.color = Color.white;
+                _skinButtons[i] = btn;
+                row.Add(btn);
+                parent.Add(row);
+            }
+
+            RefreshSkinButtons();
+        }
+
+        private void RefreshSkinButtons()
+        {
+            if (!_built) return;
+            for (int i = 0; i < SkinRows.Length; i++)
+            {
+                UpdateSkinButtonState(_skinButtons[i], SkinRows[i].SkinIndex, SkinRows[i].Cost);
+            }
+        }
+
+        private static void UpdateSkinButtonState(Button btn, int skinIndex, double cost)
+        {
+            if (btn == null) return;
+
+            int currentEquipped = GameProgressData.CurrentSkinIndex;
+            bool isUnlocked = GameProgressData.IsSkinUnlocked(skinIndex);
+
+            if (currentEquipped == skinIndex)
+            {
+                btn.text = "EQUIPPED";
+                btn.style.backgroundColor = new StyleColor(new Color(0.3f, 0.3f, 0.3f, 1f));
+            }
+            else if (isUnlocked)
+            {
+                btn.text = "EQUIP";
+                btn.style.backgroundColor = new StyleColor(new Color(0f, 0.48f, 1f, 1f));
+            }
+            else
+            {
+                btn.text = $"BUY ({cost:N0} P)";
+                btn.style.backgroundColor = new StyleColor(new Color(0.55f, 0.15f, 0.15f, 1f));
+            }
         }
 
         private void AddButtonsForArchetype(VisualElement row, IdleArchetype arch)
@@ -159,12 +307,13 @@ namespace HyperCasualRunner.UI
                     Btn(row, "New Mine", FirePrestige);
                     break;
                 case IdleArchetype.IdleHeroes:
-                    Btn(row, "Auto Fight", () => FireClick(1f));
+                    // Auto-combat is passive (IdleCombatState DPS) — no click-for-gold button.
                     Btn(row, "Gacha Pull", FireGacha);
                     Btn(row, "Claim AFK", FireClaim);
                     break;
                 case IdleArchetype.AfkArena:
-                    Btn(row, "Push Campaign", () => FireClick(1f));
+                    // Chest-only MVP: campaign push advances stage/chest, no flat gold.
+                    Btn(row, "Campaign Progress", () => FireClick(1f));
                     Btn(row, "Open AFK Chest", FireClaim);
                     break;
                 case IdleArchetype.LegendOfMushroom:
@@ -181,6 +330,7 @@ namespace HyperCasualRunner.UI
                     break;
                 case IdleArchetype.NekoAtsume:
                     Btn(row, "Place Food", () => FireNarrative(0));
+                    Btn(row, "Place Toys", () => FireNarrative(1));
                     Btn(row, "Check In", FireClaim);
                     break;
                 case IdleArchetype.FalloutShelter:
@@ -199,6 +349,7 @@ namespace HyperCasualRunner.UI
         private static void Btn(VisualElement parent, string text, System.Action onClick)
         {
             var b = new Button(onClick) { text = text };
+            // TODO: [STUB] inline action button styles
             b.style.height = 48;
             b.style.marginRight = 8;
             b.style.marginBottom = 8;
@@ -228,7 +379,8 @@ namespace HyperCasualRunner.UI
                 $"Lv/Zone: {s.ProgressionLevel} | CPS: {s.PassiveRate:N2} | " +
                 $"Gens: {s.OwnedGenerators} | Mult: {s.GlobalMultiplier:N2}\n" +
                 $"Click: {s.ClickPower:N1} | Workers: {s.AssignedWorkers}/{s.MaxWorkers} | " +
-                $"HP: {s.EnemyHp}/{s.EnemyMaxHp} | Cats: {s.CheckInCats} | Chest: {s.AfkChestSeconds:N0}s";
+                $"HP: {s.EnemyHp}/{s.EnemyMaxHp} | Cats: {s.CheckInCats} | " +
+                $"Chest: {s.AfkChestSeconds:N0}s | Pending: {s.PendingClaim:N1}";
         }
 
         private static bool TryGetEm(out EntityManager em)
@@ -309,10 +461,21 @@ namespace HyperCasualRunner.UI
 
         private void FirePrestige()
         {
-            FirePhase();
+            // Single prestige path — do not also FirePhase (double conversion).
             if (!TryGetEm(out var em)) return;
             var e = em.CreateEntity();
             em.AddComponentData(e, new PrestigeEventComponent());
+        }
+
+        private void FireCosmetic(int skinIndex, double cost)
+        {
+            if (!TryGetEm(out var em)) return;
+            var e = em.CreateEntity();
+            em.AddComponentData(e, new CosmeticPurchaseEventComponent
+            {
+                TargetSkinIndex = skinIndex,
+                PrestigeCost = cost
+            });
         }
     }
 }
