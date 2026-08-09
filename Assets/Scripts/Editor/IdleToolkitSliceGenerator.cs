@@ -140,5 +140,22 @@ namespace HyperCasualRunner.Editor
                 EditorGUIUtility.PingObject(obj);
             }
         }
+
+        /// <summary>Human Play Mode checklist (MCP cannot play-smoke while editor is on another project).</summary>
+        [MenuItem("IdleToolkit/Human Play-Smoke Instructions")]
+        public static void HumanPlaySmokeInstructions()
+        {
+            Debug.Log(
+                "[IdleToolkit] HUMAN PLAY-SMOKE (marks Playable in docs/idle-toolkit-progress.md):\n" +
+                "STATUS: EditMode-verified 19/19 · Play Mode 0/19 (needs this project open in Unity).\n" +
+                "1) Open D:\\Git\\Hyper-Casual-Runner in Unity 6000.5.5f1 (not pcg-toolkit).\n" +
+                "2) IdleToolkit/Open Idle Prefab Folder → drag 01_CookieClicker_* into an empty scene.\n" +
+                "3) Enter Play → Click Cookie → Buy Generator → Prestige; currency/CPS/prestige must move.\n" +
+                "4) Repeat for Batch A: 02 ClickerHeroes, 03 AdventureCapitalist, 04 Paperclips, 06 Antimatter.\n" +
+                "5) Optional Batch B/C: any other Idle/*_Slice.prefab — one core HUD verb + one progression beat.\n" +
+                "6) Update docs/idle-toolkit-progress.md Play column to Playable for each smoked title.\n" +
+                "EditMode (no Play): IdleToolkit/Run Batch A Smoke And Exit or RunAllIdleSmokeAndExit via batchmode.");
+            OpenIdleFolder();
+        }
     }
 }
