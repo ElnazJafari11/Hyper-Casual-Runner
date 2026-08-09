@@ -4,7 +4,7 @@
 **Source review:** `review_06_gacha_narrative.md`  
 **Date:** 2026-08-10  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
-**Commit:** local only (never push) — code already in tree at `1e2d9df` (+ receipt/HowTo commit below)
+**Commit:** local only (never push) — `acc3f74` (receipt + LoM HowTo); core code already in tree (e.g. `1e2d9df`)
 
 ---
 
