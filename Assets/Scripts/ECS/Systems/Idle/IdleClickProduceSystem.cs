@@ -16,6 +16,7 @@ namespace HyperCasualRunner.ECS.Systems
         public void OnUpdate(ref SystemState state)
         {
             var ecb = new EntityCommandBuffer(Allocator.Temp);
+            double latestGold = -1;
 
             foreach (var (click, entity) in SystemAPI.Query<RefRO<IdleClickEvent>>().WithEntityAccess())
             {
@@ -29,7 +30,6 @@ namespace HyperCasualRunner.ECS.Systems
                     switch (slice.ValueRO.Archetype)
                     {
                         case IdleArchetype.EggInc:
-                            // Hatch burst: primary eggs + slight passive unlock
                             slice.ValueRW.PrimaryCurrency += gain;
                             slice.ValueRW.OwnedGenerators = System.Math.Max(slice.ValueRO.OwnedGenerators, 1);
                             slice.ValueRW.PassiveRate = System.Math.Max(slice.ValueRO.PassiveRate, 0.5);
@@ -40,22 +40,29 @@ namespace HyperCasualRunner.ECS.Systems
                             break;
                         case IdleArchetype.AdventureCapitalist:
                         case IdleArchetype.IdleMinerTycoon:
-                            // Manual collect before manager automation graduates the labor
                             double owned = System.Math.Max(1, slice.ValueRO.OwnedGenerators);
-                            slice.ValueRW.PrimaryCurrency += owned * System.Math.Max(1, slice.ValueRO.ClickPower) * mult *
-                                                             slice.ValueRO.GlobalMultiplier;
+                            slice.ValueRW.PrimaryCurrency += owned * System.Math.Max(1, slice.ValueRO.ClickPower) *
+                                                             mult * slice.ValueRO.GlobalMultiplier;
                             break;
                         default:
                             slice.ValueRW.PrimaryCurrency += gain;
                             break;
                     }
 
-                    SyncRunStats(ref state, slice.ValueRO.PrimaryCurrency);
+                    latestGold = slice.ValueRO.PrimaryCurrency;
                 }
 
                 var sfx = ecb.CreateEntity();
                 ecb.AddComponent(sfx, new PlaySoundEventComponent { SoundToPlay = SoundType.Pickup });
                 SystemAPI.SetComponentEnabled<IdleClickEvent>(entity, false);
+            }
+
+            if (latestGold >= 0)
+            {
+                foreach (var run in SystemAPI.Query<RefRW<CurrentRunStats>>())
+                {
+                    run.ValueRW.CurrentGold = latestGold;
+                }
             }
 
             ecb.Playback(state.EntityManager);
@@ -64,7 +71,6 @@ namespace HyperCasualRunner.ECS.Systems
 
         private static void ApplyTapDamage(ref IdleSliceState slice, double damage)
         {
-            // Combat slices store HP in EnemyHp ints when IdleCombatState absent on same entity.
             if (slice.EnemyMaxHp <= 0)
             {
                 slice.EnemyMaxHp = 10 + slice.ProgressionLevel * 15;
@@ -79,15 +85,7 @@ namespace HyperCasualRunner.ECS.Systems
                 slice.ProgressionLevel += 1;
                 slice.EnemyMaxHp = 10 + slice.ProgressionLevel * 15;
                 slice.EnemyHp = slice.EnemyMaxHp;
-                slice.ClickPower += 0.25; // soft progression beat
-            }
-        }
-
-        private static void SyncRunStats(ref SystemState state, double gold)
-        {
-            foreach (var run in SystemAPI.Query<RefRW<CurrentRunStats>>())
-            {
-                run.ValueRW.CurrentGold = gold;
+                slice.ClickPower += 0.25;
             }
         }
     }

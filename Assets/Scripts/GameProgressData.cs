@@ -146,5 +146,73 @@ namespace HyperCasualRunner
         {
             return currentLevel * 50; // simple linear scaling for MVP
         }
+
+        // --- Idle toolkit slice persistence (lightweight PlayerPrefs) ---
+
+        private static string IdleKey(int archetype, string field) => $"HCR_Idle_{(int)archetype}_{field}";
+
+        public static void SaveIdleSlice(
+            int archetype,
+            double primaryCurrency,
+            double prestigeCurrency,
+            float globalMultiplier,
+            int progressionLevel,
+            double clickPower,
+            double passiveRate,
+            int ownedGenerators)
+        {
+            PlayerPrefs.SetString(IdleKey(archetype, "Primary"), primaryCurrency.ToString("R"));
+            PlayerPrefs.SetString(IdleKey(archetype, "Prestige"), prestigeCurrency.ToString("R"));
+            PlayerPrefs.SetFloat(IdleKey(archetype, "Mult"), globalMultiplier);
+            PlayerPrefs.SetInt(IdleKey(archetype, "Level"), progressionLevel);
+            PlayerPrefs.SetString(IdleKey(archetype, "Click"), clickPower.ToString("R"));
+            PlayerPrefs.SetString(IdleKey(archetype, "Passive"), passiveRate.ToString("R"));
+            PlayerPrefs.SetInt(IdleKey(archetype, "Gens"), ownedGenerators);
+            LastIdleUpdateTime = System.DateTime.UtcNow.ToString("O");
+            Save();
+        }
+
+        public static bool TryLoadIdleSlice(
+            int archetype,
+            out double primaryCurrency,
+            out double prestigeCurrency,
+            out float globalMultiplier,
+            out int progressionLevel,
+            out double clickPower,
+            out double passiveRate,
+            out int ownedGenerators)
+        {
+            primaryCurrency = 0;
+            prestigeCurrency = 0;
+            globalMultiplier = 1f;
+            progressionLevel = 0;
+            clickPower = 1;
+            passiveRate = 0;
+            ownedGenerators = 0;
+
+            string primaryKey = IdleKey(archetype, "Primary");
+            if (!PlayerPrefs.HasKey(primaryKey)) return false;
+
+            double.TryParse(PlayerPrefs.GetString(primaryKey, "0"), out primaryCurrency);
+            double.TryParse(PlayerPrefs.GetString(IdleKey(archetype, "Prestige"), "0"), out prestigeCurrency);
+            globalMultiplier = PlayerPrefs.GetFloat(IdleKey(archetype, "Mult"), 1f);
+            progressionLevel = PlayerPrefs.GetInt(IdleKey(archetype, "Level"), 0);
+            double.TryParse(PlayerPrefs.GetString(IdleKey(archetype, "Click"), "1"), out clickPower);
+            double.TryParse(PlayerPrefs.GetString(IdleKey(archetype, "Passive"), "0"), out passiveRate);
+            ownedGenerators = PlayerPrefs.GetInt(IdleKey(archetype, "Gens"), 0);
+            return true;
+        }
+
+        public static void ClearIdleSlice(int archetype)
+        {
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "Primary"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "Prestige"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "Mult"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "Level"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "Click"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "Passive"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "Gens"));
+            Save();
+        }
     }
 }

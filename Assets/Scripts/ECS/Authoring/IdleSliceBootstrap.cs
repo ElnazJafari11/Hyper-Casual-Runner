@@ -23,9 +23,11 @@ namespace HyperCasualRunner.ECS.Authoring
         public double ManagerHireCost = 100;
         public int MaxWorkers = 5;
         public double PullCost = 10;
+        public bool LoadPersistedProgress = true;
 
         private Entity _sliceEntity;
         private bool _spawned;
+        private float _saveTimer;
 
         private void Start()
         {
@@ -35,6 +37,15 @@ namespace HyperCasualRunner.ECS.Authoring
         private void Update()
         {
             if (!_spawned) TrySpawn();
+            else
+            {
+                _saveTimer += Time.unscaledDeltaTime;
+                if (_saveTimer >= 2f)
+                {
+                    _saveTimer = 0f;
+                    PersistNow();
+                }
+            }
         }
 
         private void TrySpawn()
@@ -45,21 +56,22 @@ namespace HyperCasualRunner.ECS.Authoring
 
             var em = world.EntityManager;
             _sliceEntity = em.CreateEntity();
-            em.AddComponentData(_sliceEntity, BuildInitialState());
+            var initial = BuildInitialState();
+            em.AddComponentData(_sliceEntity, initial);
             em.AddComponentData(_sliceEntity, new IdleSliceTag { Archetype = Archetype });
             em.AddBuffer<ResourceWallet>(_sliceEntity);
 
             em.AddComponentData(_sliceEntity, new PersistentPlayerStats
             {
-                PrestigeCurrency = 0,
+                PrestigeCurrency = initial.PrestigeCurrency,
                 PermanentDamageMultiplier = 1f,
                 PermanentGoldMultiplier = 1f
             });
             em.AddComponentData(_sliceEntity, new CurrentRunStats
             {
                 CurrentDistance = 0,
-                CurrentGold = StartingCurrency,
-                BaseDamage = (float)ClickPower
+                CurrentGold = initial.PrimaryCurrency,
+                BaseDamage = (float)initial.ClickPower
             });
             em.AddComponent<PrestigeEventComponent>(_sliceEntity);
             em.SetComponentEnabled<PrestigeEventComponent>(_sliceEntity, false);
@@ -119,7 +131,47 @@ namespace HyperCasualRunner.ECS.Authoring
                     break;
             }
 
+            if (LoadPersistedProgress &&
+                GameProgressData.TryLoadIdleSlice(
+                    (int)Archetype,
+                    out var primary,
+                    out var prestige,
+                    out var mult,
+                    out var level,
+                    out var click,
+                    out var passive,
+                    out var gens))
+            {
+                state.PrimaryCurrency = primary;
+                state.PrestigeCurrency = prestige;
+                state.GlobalMultiplier = mult > 0f ? mult : 1f;
+                state.ProgressionLevel = level;
+                state.ClickPower = click > 0 ? click : state.ClickPower;
+                state.PassiveRate = passive;
+                state.OwnedGenerators = gens;
+            }
+
             return state;
+        }
+
+        public void PersistNow()
+        {
+            if (!_spawned) return;
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (!em.Exists(_sliceEntity) || !em.HasComponent<IdleSliceState>(_sliceEntity)) return;
+
+            var s = em.GetComponentData<IdleSliceState>(_sliceEntity);
+            GameProgressData.SaveIdleSlice(
+                (int)s.Archetype,
+                s.PrimaryCurrency,
+                s.PrestigeCurrency,
+                s.GlobalMultiplier,
+                s.ProgressionLevel,
+                s.ClickPower,
+                s.PassiveRate,
+                s.OwnedGenerators);
         }
 
         private void AttachArchetypeExtras(EntityManager em, Entity slice)
@@ -143,7 +195,8 @@ namespace HyperCasualRunner.ECS.Authoring
                         RequiresManager = GeneratorRequiresManager || Archetype == IdleArchetype.AdventureCapitalist,
                         IsAutomated = !(GeneratorRequiresManager || Archetype == IdleArchetype.AdventureCapitalist)
                     });
-                    if (Archetype == IdleArchetype.AdventureCapitalist)
+                    if (Archetype == IdleArchetype.AdventureCapitalist ||
+                        Archetype == IdleArchetype.IdleMinerTycoon)
                     {
                         em.AddComponentData(slice, new IdleManager
                         {
@@ -159,11 +212,21 @@ namespace HyperCasualRunner.ECS.Authoring
                     em.AddComponentData(slice, new IdleCombatState
                     {
                         TapDamage = ClickPower,
-                        HeroDps = 1,
+                        HeroDps = System.Math.Max(1.0, statePassiveFromEntity(em, slice)),
                         Zone = 1,
                         GoldPerKill = 5,
                         EnemyHp = 20,
                         EnemyMaxHp = 20
+                    });
+                    em.AddComponentData(slice, new BuyableGenerator
+                    {
+                        GeneratorId = 1,
+                        OwnedCount = 0,
+                        BaseCost = 20,
+                        CostGrowth = 1.2f,
+                        BaseCps = 1,
+                        RequiresManager = false,
+                        IsAutomated = true
                     });
                     break;
 
@@ -236,8 +299,26 @@ namespace HyperCasualRunner.ECS.Authoring
             }
         }
 
+        private static double statePassiveFromEntity(EntityManager em, Entity slice)
+        {
+            if (em.HasComponent<IdleSliceState>(slice))
+                return System.Math.Max(1, em.GetComponentData<IdleSliceState>(slice).PassiveRate);
+            return 1;
+        }
+
+        private void OnApplicationPause(bool pauseStatus)
+        {
+            if (pauseStatus) PersistNow();
+        }
+
+        private void OnApplicationQuit()
+        {
+            PersistNow();
+        }
+
         private void OnDestroy()
         {
+            PersistNow();
             // TODO: [STUB] entity cleanup on domain reload / destroy
         }
     }

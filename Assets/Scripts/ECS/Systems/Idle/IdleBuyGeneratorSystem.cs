@@ -3,7 +3,7 @@ using HyperCasualRunner.ECS.Components;
 
 namespace HyperCasualRunner.ECS.Systems
 {
-    /// <summary>Buy generators / businesses / dimensions / shafts. Cost = base * growth^owned.</summary>
+    /// <summary>Buy generators / businesses / dimensions / shafts / hero DPS.</summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct IdleBuyGeneratorSystem : ISystem
     {
@@ -18,19 +18,37 @@ namespace HyperCasualRunner.ECS.Systems
             {
                 int genId = buyEvt.ValueRO.GeneratorId;
                 int amount = buyEvt.ValueRO.Amount <= 0 ? 1 : buyEvt.ValueRO.Amount;
-
-                // Prefer co-located BuyableGenerator + IdleSliceState
                 bool handled = false;
+
                 foreach (var (gen, slice) in SystemAPI.Query<RefRW<BuyableGenerator>, RefRW<IdleSliceState>>())
                 {
                     if (genId != 0 && gen.ValueRO.GeneratorId != genId) continue;
                     handled = true;
                     Purchase(ref gen.ValueRW, ref slice.ValueRW, amount);
+                    ApplyCombatHeroBoost(ref slice.ValueRW);
                 }
 
                 if (!handled)
                 {
-                    BuyOnSeparateEntities(ref state, genId, amount);
+                    foreach (var slice in SystemAPI.Query<RefRW<IdleSliceState>>())
+                    {
+                        bool boughtViaGen = false;
+                        foreach (var gen in SystemAPI.Query<RefRW<BuyableGenerator>>())
+                        {
+                            if (genId != 0 && gen.ValueRO.GeneratorId != genId) continue;
+                            Purchase(ref gen.ValueRW, ref slice.ValueRW, amount);
+                            boughtViaGen = true;
+                            handled = true;
+                        }
+
+                        if (!boughtViaGen)
+                        {
+                            // Combat / fallback: spend gold to raise passive DPS
+                            handled |= PurchaseHeroDpsFallback(ref slice.ValueRW, amount);
+                        }
+
+                        if (handled) ApplyCombatHeroBoost(ref slice.ValueRW);
+                    }
                 }
 
                 foreach (var run in SystemAPI.Query<RefRW<CurrentRunStats>>())
@@ -66,15 +84,31 @@ namespace HyperCasualRunner.ECS.Systems
             }
         }
 
-        private static void BuyOnSeparateEntities(ref SystemState state, int genId, int amount)
+        private static bool PurchaseHeroDpsFallback(ref IdleSliceState slice, int amount)
         {
-            foreach (var slice in SystemAPI.Query<RefRW<IdleSliceState>>())
+            bool any = false;
+            for (int n = 0; n < amount; n++)
             {
-                foreach (var gen in SystemAPI.Query<RefRW<BuyableGenerator>>())
-                {
-                    if (genId != 0 && gen.ValueRO.GeneratorId != genId) continue;
-                    Purchase(ref gen.ValueRW, ref slice.ValueRW, amount);
-                }
+                double cost = 20.0 * System.Math.Pow(1.2, slice.OwnedGenerators);
+                if (slice.PrimaryCurrency < cost) break;
+                slice.PrimaryCurrency -= cost;
+                slice.OwnedGenerators += 1;
+                slice.PassiveRate += 1.0 * slice.GlobalMultiplier;
+                slice.ClickPower += 0.5;
+                any = true;
+            }
+            return any;
+        }
+
+        private static void ApplyCombatHeroBoost(ref IdleSliceState slice)
+        {
+            // Mirror PassiveRate into combat path used by IdleSliceSimulationSystem
+            if (slice.Archetype == IdleArchetype.ClickerHeroes ||
+                slice.Archetype == IdleArchetype.TapTitans2 ||
+                slice.Archetype == IdleArchetype.IdleHeroes)
+            {
+                if (slice.PassiveRate < slice.OwnedGenerators)
+                    slice.PassiveRate = System.Math.Max(slice.PassiveRate, slice.OwnedGenerators);
             }
         }
     }

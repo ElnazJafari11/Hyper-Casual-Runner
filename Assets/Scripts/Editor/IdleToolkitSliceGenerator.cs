@@ -115,5 +115,30 @@ namespace HyperCasualRunner.Editor
             if (guids.Length == 0) return null;
             return AssetDatabase.LoadAssetAtPath<PanelSettings>(AssetDatabase.GUIDToAssetPath(guids[0]));
         }
+
+        [MenuItem("IdleToolkit/Smoke Batch A (instructions)")]
+        public static void SmokeBatchA()
+        {
+            Debug.Log(
+                "[IdleToolkit] Batch A smoke path:\n" +
+                "1) IdleToolkit/Run Batch A Smoke And Exit  (or batchmode -executeMethod IdleBatchATestRunner.RunAndExit)\n" +
+                "2) Prefabs: Assets/ToolkitExamples/Idle/01..06 (Cookie/ClickerHeroes/Adventure/Paperclips/Antimatter)\n" +
+                "3) Play: drop prefab → Play → HUD buttons for core verb + progression beat.");
+            EditorApplication.ExecuteMenuItem("Window/General/Test Runner");
+        }
+
+        [MenuItem("IdleToolkit/Run Batch A Smoke And Exit")]
+        public static void RunBatchASmokeMenu() => IdleBatchATestRunner.RunAndExit();
+
+        [MenuItem("IdleToolkit/Open Idle Prefab Folder")]
+        public static void OpenIdleFolder()
+        {
+            var obj = AssetDatabase.LoadAssetAtPath<Object>("Assets/ToolkitExamples/Idle");
+            if (obj != null)
+            {
+                Selection.activeObject = obj;
+                EditorGUIUtility.PingObject(obj);
+            }
+        }
     }
 }

@@ -10,53 +10,73 @@ Matrix source: `docs/idle_mechanics_matrix.md` (19 titles)
 | Idle slice components / archetypes | Done | `Assets/Scripts/ECS/Components/IdleSliceComponents.cs` |
 | Click / buy / manager / sim / actions | Done | `Assets/Scripts/ECS/Systems/Idle/*` |
 | Prestige hooks IdleSliceState | Done | `Assets/Scripts/ECS/Systems/Idle/PrestigeSystem.cs` |
-| Runtime bootstrap (no SubScene) | Done | `Assets/Scripts/ECS/Authoring/IdleSliceBootstrap.cs` |
+| Runtime bootstrap + persistence load/save | Done | `Assets/Scripts/ECS/Authoring/IdleSliceBootstrap.cs` |
+| `GameProgressData` idle keys | Done | `Assets/Scripts/GameProgressData.cs` |
 | Adaptive UI Toolkit controller | Done | `Assets/Scripts/UI/IdleSliceUIController.cs` |
 | Prefab generator menu | Done | `Assets/Scripts/Editor/IdleToolkitSliceGenerator.cs` |
-| Legacy sandbox (pre-matrix) | Exists | `Assets/Prefabs/IdleSandboxToolkit.prefab` |
+| Batch A EditMode runner | Done | `Assets/Scripts/Editor/IdleBatchATestRunner.cs` |
+
+## Verification evidence (this loop)
+
+| Check | Result |
+|-------|--------|
+| `compile_check` Assembly-CSharp + Editor | **PASS** (0 errors) |
+| Prefab regenerate `IdleToolkit/Generate All Idle MVP Slices` | **PASS** (19 slices) |
+| EditMode `IdleBatchASmokeTests` via `IdleBatchATestRunner.RunAndExit` | **PASS** `6/6` (`result=Passed pass=6 fail=0`) |
+| Play Mode / MCP Hyper-Casual-Runner editor | **UNVERIFIED** (MCP still on `thepcgtoolkit` only) |
+
+Batch A EditMode covers: Cookie Clicker, AdVenture Capitalist, Clicker Heroes, Universal Paperclips, Antimatter Dimensions, + GameProgressData round-trip.
 
 ## Per-game MVP checklist
 
-| # | Game | Core verb + progression beat | Prefab | Playable verify |
-|---|------|------------------------------|--------|-----------------|
-| 1 | Cookie Clicker | Click → buy gens → prestige | `Idle/01_CookieClicker_Generators_Slice.prefab` | UNVERIFIED |
-| 2 | Clicker Heroes | Tap kill → zones → prestige | `Idle/02_ClickerHeroes_TapKill_Slice.prefab` | UNVERIFIED |
-| 3 | AdVenture Capitalist | Collect → buy → manager → angels | `Idle/03_AdventureCapitalist_Managers_Slice.prefab` | UNVERIFIED |
-| 4 | Universal Paperclips | Make → autoclip → phase shift | `Idle/04_UniversalPaperclips_Phase_Slice.prefab` | UNVERIFIED |
-| 5 | A Dark Room | Stoke → explore → craft | `Idle/05_ADarkRoom_Narrative_Slice.prefab` | UNVERIFIED |
-| 6 | Antimatter Dimensions | Buy dims → nested prestige | `Idle/06_AntimatterDimensions_Layers_Slice.prefab` | UNVERIFIED |
-| 7 | Realm Grinder | Build → faction align | `Idle/07_RealmGrinder_Factions_Slice.prefab` | UNVERIFIED |
-| 8 | NGU Idle | Allocate energy → rebirth | `Idle/08_NGUIdle_Energy_Slice.prefab` | UNVERIFIED |
-| 9 | Melvor Idle | Skill grind → offline claim | `Idle/09_MelvorIdle_Skills_Slice.prefab` | UNVERIFIED |
-| 10 | Egg, Inc. | Hatch burst → habitats → souls | `Idle/10_EggInc_Hatch_Slice.prefab` | UNVERIFIED |
-| 11 | Idle Miner Tycoon | Shaft → manager → new mine | `Idle/11_IdleMinerTycoon_Shafts_Slice.prefab` | UNVERIFIED |
-| 12 | Tap Titans 2 | Tap + DPS → relics | `Idle/12_TapTitans2_TapDps_Slice.prefab` | UNVERIFIED |
-| 13 | Idle Heroes | Auto combat → gacha → AFK | `Idle/13_IdleHeroes_GachaCombat_Slice.prefab` | UNVERIFIED |
-| 14 | AFK Arena | Campaign drip → AFK chest | `Idle/14_AFKArena_Chest_Slice.prefab` | UNVERIFIED |
-| 15 | Legend of Mushroom | Rub lamp → stage push | `Idle/15_LegendOfMushroom_Lamp_Slice.prefab` | UNVERIFIED |
-| 16 | Capybara Go! | Step narrative → milestones | `Idle/16_CapybaraGo_Steps_Slice.prefab` | UNVERIFIED |
-| 17 | Cats & Soup | Assign cats → passive cook | `Idle/17_CatsAndSoup_Assign_Slice.prefab` | UNVERIFIED |
-| 18 | Neko Atsume | Place food → check-in cats | `Idle/18_NekoAtsume_CheckIn_Slice.prefab` | UNVERIFIED |
-| 19 | Fallout Shelter | Assign dwellers → claim | `Idle/19_FalloutShelter_Dwellers_Slice.prefab` | UNVERIFIED |
+| # | Game | Prefab | Status |
+|---|------|--------|--------|
+| 1 | Cookie Clicker | `Idle/01_CookieClicker_Generators_Slice.prefab` | **EditMode-verified** (Batch A) |
+| 2 | Clicker Heroes | `Idle/02_ClickerHeroes_TapKill_Slice.prefab` | **EditMode-verified** (Batch A) |
+| 3 | AdVenture Capitalist | `Idle/03_AdventureCapitalist_Managers_Slice.prefab` | **EditMode-verified** (Batch A) |
+| 4 | Universal Paperclips | `Idle/04_UniversalPaperclips_Phase_Slice.prefab` | **EditMode-verified** (Batch A) |
+| 5 | A Dark Room | `Idle/05_ADarkRoom_Narrative_Slice.prefab` | Code+prefab (play UNVERIFIED) |
+| 6 | Antimatter Dimensions | `Idle/06_AntimatterDimensions_Layers_Slice.prefab` | **EditMode-verified** (Batch A) |
+| 7 | Realm Grinder | `Idle/07_RealmGrinder_Factions_Slice.prefab` | Code+prefab (play UNVERIFIED) |
+| 8 | NGU Idle | `Idle/08_NGUIdle_Energy_Slice.prefab` | Code+prefab (play UNVERIFIED) |
+| 9 | Melvor Idle | `Idle/09_MelvorIdle_Skills_Slice.prefab` | Code+prefab (play UNVERIFIED) |
+| 10 | Egg, Inc. | `Idle/10_EggInc_Hatch_Slice.prefab` | Code+prefab (play UNVERIFIED) |
+| 11 | Idle Miner Tycoon | `Idle/11_IdleMinerTycoon_Shafts_Slice.prefab` | Code+prefab (play UNVERIFIED) |
+| 12 | Tap Titans 2 | `Idle/12_TapTitans2_TapDps_Slice.prefab` | Code+prefab (play UNVERIFIED) |
+| 13 | Idle Heroes | `Idle/13_IdleHeroes_GachaCombat_Slice.prefab` | Code+prefab (play UNVERIFIED) |
+| 14 | AFK Arena | `Idle/14_AFKArena_Chest_Slice.prefab` | Code+prefab (play UNVERIFIED) |
+| 15 | Legend of Mushroom | `Idle/15_LegendOfMushroom_Lamp_Slice.prefab` | Code+prefab (play UNVERIFIED) |
+| 16 | Capybara Go! | `Idle/16_CapybaraGo_Steps_Slice.prefab` | Code+prefab (play UNVERIFIED) |
+| 17 | Cats & Soup | `Idle/17_CatsAndSoup_Assign_Slice.prefab` | Code+prefab (play UNVERIFIED) |
+| 18 | Neko Atsume | `Idle/18_NekoAtsume_CheckIn_Slice.prefab` | Code+prefab (play UNVERIFIED) |
+| 19 | Fallout Shelter | `Idle/19_FalloutShelter_Dwellers_Slice.prefab` | Code+prefab (play UNVERIFIED) |
 
-**MVP code + prefab assets:** 19/19  
-**Play-mode verified:** 0/19 (MCP editor is `thepcgtoolkit`, not Hyper-Casual-Runner)
+**Counts:** prefabs 19/19 · EditMode-verified core beats **5/19** (Batch A) · Play Mode **0/19**
 
-## How to play
+## How to verify
 
-1. Open this repo in Unity 6000.5.5f1.
-2. Drop any `Assets/ToolkitExamples/Idle/*_Slice.prefab` into a scene.
-3. Play; use HUD buttons (PanelSettings auto-created at runtime if missing).
-4. Optional: re-bake via `IdleToolkit/Generate All Idle MVP Slices`.
+```text
+# Compile pre-gate (MCP or local):
+compile_check project_path=D:/Git/Hyper-Casual-Runner
+
+# EditMode Batch A (no -quit; runner exits itself):
+Unity.exe -batchmode -nographics -projectPath D:\Git\Hyper-Casual-Runner ^
+  -executeMethod HyperCasualRunner.Editor.IdleBatchATestRunner.RunAndExit ^
+  -logFile Logs/IdleBatchA-api.log
+# Expect Logs/IdleBatchA-Summary.txt → pass=6 fail=0
+
+# Play smoke (needs Hyper-Casual-Runner editor):
+# Drop Assets/ToolkitExamples/Idle/0X_*_Slice.prefab → Play → HUD buttons
+```
 
 ## Next batch (loop)
 
-1. Connect Hyper-Casual-Runner Unity to MCP → `compile_check` + fix errors.
-2. Play-smoke Batch A: Cookie, AdvCap, Clicker Heroes, Paperclips, Antimatter.
-3. Persist `IdleSliceState` via `GameProgressData` keys per archetype.
-4. Mark Playable when smoke passes; deepen combat/gacha numbers only if needed.
+1. Add `IdleBatchBSmokeTests` (Dark Room, Realm, NGU, Melvor, Egg, Miner).
+2. Add `IdleBatchCSmokeTests` (Tap Titans, Idle Heroes, AFK, Mushroom, Capybara, Cats, Neko, Shelter).
+3. When Hyper-Casual-Runner is on MCP: play-smoke Batch A HUD once; mark Playable.
+4. Optional: persist OwnedGenerators onto BuyableGenerator on load.
 
 ## Blockers
 
-- No Hyper-Casual-Runner Unity instance on MCP this tick → compile/play UNVERIFIED.
-- Hand-authored prefab YAML may need one Unity import refresh / menu regenerate.
+- MCP Unity instance remains `thepcgtoolkit` — cannot play-mode smoke this repo via MCP.
+- Plain `-runTests -quit` exits before Test Runner starts on this project; use `IdleBatchATestRunner.RunAndExit` instead.
