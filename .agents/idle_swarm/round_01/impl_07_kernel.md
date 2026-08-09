@@ -4,7 +4,7 @@
 **Source review:** `.agents/idle_swarm/round_01/review_01_kernel.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
-**Commit:** _(filled after local commit)_  
+**Commit:** `6f86cf1e56ea2e9a42b63b38da367a0bcfda6b49` (local only — never push)  
 **Push:** never
 
 ---
