@@ -20,10 +20,32 @@ namespace HyperCasualRunner.UI
         private Label _stats;
         private bool _built;
 
+        private PanelSettings _runtimePanel;
+
         private void Awake()
         {
             _doc = GetComponent<UIDocument>();
             _bootstrap = GetComponent<IdleSliceBootstrap>();
+            EnsurePanelSettings();
+        }
+
+        private void EnsurePanelSettings()
+        {
+            if (_doc == null || _doc.panelSettings != null) return;
+            // TODO: [STUB] runtime PanelSettings so slices play without a project PanelSettings asset
+            _runtimePanel = ScriptableObject.CreateInstance<PanelSettings>();
+            _runtimePanel.scaleMode = PanelScaleMode.ScaleWithScreenSize;
+            _runtimePanel.referenceResolution = new Vector2Int(1920, 1080);
+            _doc.panelSettings = _runtimePanel;
+        }
+
+        private void OnDestroy()
+        {
+            if (_runtimePanel != null)
+            {
+                Destroy(_runtimePanel);
+                _runtimePanel = null;
+            }
         }
 
         private void Update()
