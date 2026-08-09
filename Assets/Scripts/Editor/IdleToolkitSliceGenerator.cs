@@ -43,7 +43,7 @@ namespace HyperCasualRunner.Editor
             new SliceDef { FileName = "13_IdleHeroes_GachaCombat", Archetype = IdleArchetype.IdleHeroes, DisplayName = "Idle Heroes", HowTo = "Auto-combat → gacha pull for power → claim AFK chest.", StartCurrency = 50, ClickPower = 2 },
             new SliceDef { FileName = "14_AFKArena_Chest", Archetype = IdleArchetype.AfkArena, DisplayName = "AFK Arena", HowTo = "Campaign drip fills AFK chest → open chest for offline fantasy.", StartCurrency = 0, ClickPower = 1 },
             new SliceDef { FileName = "15_LegendOfMushroom_Lamp", Archetype = IdleArchetype.LegendOfMushroom, DisplayName = "Legend of Mushroom", HowTo = "Rub lamp (gacha gear) → unlock auto-lamp at stage 1 → farm gold.", StartCurrency = 30, ClickPower = 1 },
-            new SliceDef { FileName = "16_CapybaraGo_Steps", Archetype = IdleArchetype.CapybaraGo, DisplayName = "Capybara Go!", HowTo = "Advance narrative steps → lucky finds → milestone mult beats.", StartCurrency = 0, ClickPower = 1 },
+            new SliceDef { FileName = "16_CapybaraGo_Steps", Archetype = IdleArchetype.CapybaraGo, DisplayName = "Capybara Go!", HowTo = "Auto-tiles advance steps → lucky finds → milestone mult beats.", StartCurrency = 0, ClickPower = 1 },
             new SliceDef { FileName = "17_CatsAndSoup_Assign", Archetype = IdleArchetype.CatsAndSoup, DisplayName = "Cats & Soup", HowTo = "Assign cats to stations → station ticks cook into currency → unassign freely.", StartCurrency = 0, ClickPower = 1 },
             new SliceDef { FileName = "18_NekoAtsume_CheckIn", Archetype = IdleArchetype.NekoAtsume, DisplayName = "Neko Atsume", HowTo = "Place food/toys → wait for cats → check in clears cats and pays (zen idle).", StartCurrency = 20, ClickPower = 1 },
             new SliceDef { FileName = "19_FalloutShelter_Dwellers", Archetype = IdleArchetype.FalloutShelter, DisplayName = "Fallout Shelter", HowTo = "Assign dwellers → room ticks buffer Pending → Claim Production drains it.", StartCurrency = 0, ClickPower = 1 },
@@ -157,7 +157,7 @@ namespace HyperCasualRunner.Editor
             Debug.Log(
                 "[IdleToolkit/MVP] HUMAN PLAY-SMOKE checklist written to:\n" +
                 absolutePath + "\n" +
-                $"STATUS: EditMode-verified 19/19 · Play Mode 0/19 (needs THIS project open in Unity {unityVersion}).\n" +
+                $"STATUS: EditMode fixtures 19/19 present · AllSmoke NUnit green ≠ full matrix verb closure (~17/19 OK; see docs/idle-toolkit-progress.md) · Play Mode 0/19 (needs THIS project open in Unity {unityVersion}).\n" +
                 $"Project root: {projectRoot}\n" +
                 "1) IdleToolkit/MVP/Open Idle Prefab Folder → drag 01_CookieClicker_* into an empty scene.\n" +
                 "2) Enter Play → exercise expected HUD verbs (see checklist).\n" +
@@ -197,7 +197,8 @@ namespace HyperCasualRunner.Editor
             sb.AppendLine();
             sb.AppendLine("## Status (honest)");
             sb.AppendLine();
-            sb.AppendLine("- EditMode-verified: **19/19** (`IdleBatchASmokeTests` + `IdleBatchBCSmokeTests`)");
+            sb.AppendLine("- EditMode fixtures: **19/19** present (`IdleBatchASmokeTests` + `IdleBatchBCSmokeTests`)");
+            sb.AppendLine("- Matrix core-verb scorecard: **~17/19 OK** (Antimatter + AFK Arena PARTIAL) — see `docs/idle-toolkit-progress.md`; AllSmoke green ≠ verb closure");
             sb.AppendLine("- Play Mode: **0/19** until each row below is smoked in **this** project and `docs/idle-toolkit-progress.md` Play column is updated");
             sb.AppendLine("- Piece catalog: `docs/idle-toolkit-compose.md`");
             sb.AppendLine("- Menus: `IdleToolkit/MVP/…` (idle) vs `IdleToolkit/RunnerSlices/…` (21 runner slices)");
@@ -227,19 +228,19 @@ namespace HyperCasualRunner.Editor
             sb.AppendLine("| Prefab | Expected HUD verbs | Done? |");
             sb.AppendLine("|--------|--------------------|-------|");
             sb.AppendLine("| `05_ADarkRoom_Narrative_Slice` | Stoke Fire → Explore → Craft | [ ] |");
-            sb.AppendLine("| `07_RealmGrinder_Factions_Slice` | Build → Align Good / Align Evil | [ ] |");
+            sb.AppendLine("| `07_RealmGrinder_Factions_Slice` | Build → Align Good / Align Evil → Rebirth | [ ] |");
             sb.AppendLine("| `08_NGUIdle_Energy_Slice` | Allocate Energy → Idle Tick Boost → Rebirth | [ ] |");
             sb.AppendLine("| `09_MelvorIdle_Skills_Slice` | Train Skill → Claim Offline | [ ] |");
             sb.AppendLine("| `10_EggInc_Hatch_Slice` | Hatch Burst → Upgrade Habitat → Soul Prestige | [ ] |");
             sb.AppendLine("| `11_IdleMinerTycoon_Shafts_Slice` | Collect Shaft → Upgrade Shaft → Hire Super-Manager → New Mine | [ ] |");
             sb.AppendLine("| `12_TapTitans2_TapDps_Slice` | Tap / Attack → Buy Hero DPS → Prestige | [ ] |");
-            sb.AppendLine("| `13_IdleHeroes_GachaCombat_Slice` | Auto Fight → Gacha Pull → Claim AFK | [ ] |");
-            sb.AppendLine("| `14_AFKArena_Chest_Slice` | Push Campaign → Open AFK Chest | [ ] |");
+            sb.AppendLine("| `13_IdleHeroes_GachaCombat_Slice` | Gacha Pull → Claim AFK (auto-combat passive) | [ ] |");
+            sb.AppendLine("| `14_AFKArena_Chest_Slice` | Campaign Progress → Open AFK Chest | [ ] |");
             sb.AppendLine("| `15_LegendOfMushroom_Lamp_Slice` | Rub Lamp → Farm Stage Gold | [ ] |");
-            sb.AppendLine("| `16_CapybaraGo_Steps_Slice` | Next Step → Lucky Find | [ ] |");
+            sb.AppendLine("| `16_CapybaraGo_Steps_Slice` | Take Step → Next Step → Lucky Find | [ ] |");
             sb.AppendLine("| `17_CatsAndSoup_Assign_Slice` | Assign Cat → Unassign | [ ] |");
             sb.AppendLine("| `18_NekoAtsume_CheckIn_Slice` | Place Food → Place Toys → Check In | [ ] |");
-            sb.AppendLine("| `19_FalloutShelter_Dwellers_Slice` | Assign Dweller → wait Pending → Claim Production | [ ] |");
+            sb.AppendLine("| `19_FalloutShelter_Dwellers_Slice` | Assign Dweller → Unassign → Claim Production | [ ] |");
             sb.AppendLine();
             sb.AppendLine("## Marking Playable");
             sb.AppendLine();

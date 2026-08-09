@@ -36,18 +36,18 @@ Note: `05_ADarkRoom_*` is Batch B/C, not Batch A.
 | Prefab | Expected HUD verbs | Done? |
 |--------|--------------------|-------|
 | `05_ADarkRoom_Narrative_Slice` | Stoke Fire → Explore → Craft | [ ] |
-| `07_RealmGrinder_Factions_Slice` | Build → Align Good / Align Evil | [ ] |
+| `07_RealmGrinder_Factions_Slice` | Build → Align Good / Align Evil → Rebirth | [ ] |
 | `08_NGUIdle_Energy_Slice` | Allocate Energy → Idle Tick Boost → Rebirth | [ ] |
 | `09_MelvorIdle_Skills_Slice` | Train Skill → Claim Offline | [ ] |
 | `10_EggInc_Hatch_Slice` | Hatch Burst → Upgrade Habitat → Soul Prestige | [ ] |
 | `11_IdleMinerTycoon_Shafts_Slice` | Collect Shaft → Upgrade Shaft → Hire Super-Manager → New Mine | [ ] |
 | `12_TapTitans2_TapDps_Slice` | Tap / Attack → Buy Hero DPS → Prestige | [ ] |
-| `13_IdleHeroes_GachaCombat_Slice` | Auto Fight → Gacha Pull → Claim AFK | [ ] |
-| `14_AFKArena_Chest_Slice` | Push Campaign → Open AFK Chest | [ ] |
+| `13_IdleHeroes_GachaCombat_Slice` | Gacha Pull → Claim AFK (auto-combat passive) | [ ] |
+| `14_AFKArena_Chest_Slice` | Campaign Progress → Open AFK Chest | [ ] |
 | `15_LegendOfMushroom_Lamp_Slice` | Rub Lamp → Farm Stage Gold | [ ] |
-| `16_CapybaraGo_Steps_Slice` | Next Step → Lucky Find | [ ] |
+| `16_CapybaraGo_Steps_Slice` | Take Step → Next Step → Lucky Find | [ ] |
 | `17_CatsAndSoup_Assign_Slice` | Assign Cat → Unassign | [ ] |
-| `18_NekoAtsume_CheckIn_Slice` | Place Food → Check In | [ ] |
+| `18_NekoAtsume_CheckIn_Slice` | Place Food → Place Toys → Check In | [ ] |
 | `19_FalloutShelter_Dwellers_Slice` | Assign Dweller → Unassign → Claim Production | [ ] |
 
 ## Marking Playable

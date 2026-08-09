@@ -4,25 +4,25 @@ Branch: `antigravity/toolkit-persist`
 Matrix: `docs/idle_mechanics_matrix.md` (19 titles + candidate #20 Synergism deferred)  
 Compose: `docs/idle-toolkit-compose.md`
 
-## Evidence (latest — impl_09)
+## Evidence (latest — round_02 impl_09)
 
 | Check | Result |
 |-------|--------|
 | Prefabs `Assets/ToolkitExamples/Idle/*` | 19/19 present |
-| EditMode AllSmoke (`IdleBatchA` + `IdleBatchBC`) | **PASS 46/46** — `Logs/IdleAllSmoke-Summary.txt` (`result=Passed pass=46 fail=0`, 2026-08-10 02:44) |
+| EditMode AllSmoke (`IdleBatchA` + `IdleBatchBC`) | see `Logs/IdleAllSmoke-Summary.txt` after impl_09 reconfirm |
 | Fixture presence (1 named smoke per matrix title) | **19/19** |
 | Play Mode (MCP Hyper-Casual-Runner) | UNVERIFIED — MCP still on `thepcgtoolkit` |
 
-**Do not equate fixture green with verb proof.** After review_09 / impl_09 the 19 matrix titles have strengthened EditMode paths (spend asserts, causal chains, `IdleSliceSimulationSystem` beats where fantasy is passive/AFK/skill/DPS). Extra tests beyond the 19 (kernel/prestige/combat harden) are included in the 46 count.
+**Do not equate fixture / NUnit green with full matrix verb closure.** AllSmoke proves EditMode asserts; the scorecard below is the verb bar (review_09 / round_02 review_09).
 
 | Claim | Value |
 |-------|--------|
 | Fixture presence | **19/19** |
-| EditMode NUnit green (AllSmoke) | **46/46** (includes extras beyond matrix 19) |
-| Matrix core-verb + causal beat (review_09 bar) | **19/19 targeted in impl_09** — see scorecard below |
+| EditMode NUnit green (AllSmoke) | see latest summary (includes extras beyond matrix 19) |
+| Matrix core-verb + causal beat | **~17/19 OK** — Antimatter + AFK Arena remain PARTIAL (see scorecard) |
 | Play-mode verified | **0/19** |
 
-## Per-game EditMode verb status (impl_09)
+## Per-game EditMode verb status (round_02 impl_09)
 
 | # | Game | Matrix core verb | Verb score |
 |---|------|------------------|------------|
@@ -31,22 +31,22 @@ Compose: `docs/idle-toolkit-compose.md`
 | 3 | AdVenture Capitalist | Buy Businesses (+ managers) | OK — buy then hire; no pre-owned; hire spend |
 | 4 | Universal Paperclips | Manufacture → Phase-Shift | OK — manufacture then phase |
 | 5 | A Dark Room | Stoke → Explore | OK — wood/stoke + explore |
-| 6 | Antimatter Dimensions | Buy Dimensions | OK — buy + spend |
+| 6 | Antimatter Dimensions | Buy Dimensions | PARTIAL — buy + spend only; no nested layer/eternity; Cookie-like |
 | 7 | Realm Grinder | Build & Align | OK — buy then faction |
-| 8 | NGU Idle | Allocate Energy | OK — allocate then TickEnergy sim |
+| 8 | NGU Idle | Allocate Energy | OK — allocate then TickEnergy; SkillXp/level beyond free alloc=1 |
 | 9 | Melvor Idle | Grind Skills | OK — IdleSkillNode + sim (not click) |
 | 10 | Egg, Inc. | Hatch (Tap Burst) | OK — hatch + CPS tick |
 | 11 | Idle Miner Tycoon | Upgrade Shafts (+ managers) | OK — buy then hire |
-| 12 | Tap Titans 2 | Tap / Hero DPS | OK — kill + gold + respawn |
+| 12 | Tap Titans 2 | Tap / Hero DPS | OK — tap-kill + gold + respawn + Hero DPS fractional sim |
 | 13 | Idle Heroes | Auto-Combat | OK — IdleCombatState DPS (not gacha stand-in) |
-| 14 | AFK Arena | Auto-Combat (+ AFK chest) | OK — sim fills chest then claim |
+| 14 | AFK Arena | Auto-Combat (+ AFK chest) | PARTIAL — Campaign + AFK Chest (compose); not IdleCombatState auto-combat |
 | 15 | Legend of Mushroom | Rub Lamp | OK — 3 pulls from 0; spend; stage |
-| 16 | Capybara Go! | Step-based Narrative | OK — steps then advance; no ExploreUnlocked seed |
+| 16 | Capybara Go! | Step-based Narrative | OK — advance gated on earned steps; fail-closed + success paths |
 | 17 | Cats & Soup | Assign Cats | OK — assign + station + sim output |
 | 18 | Neko Atsume | Place Food/Toys | OK — spend + attract |
 | 19 | Fallout Shelter | Assign Dwellers | OK — station + PendingClaim sim |
 
-Still **out of scope** for “19/19 verb verified” marketing: Play Mode, prefab↔bootstrap wiring, multi-slice crosstalk stress, full Soul Eggs / nested eternity layers.
+Still **out of scope** for “verb verified” marketing: Play Mode, prefab↔bootstrap wiring, multi-slice crosstalk stress, full Soul Eggs / nested eternity layers, AFK combat path.
 
 ## Persistence
 
@@ -64,12 +64,13 @@ Separate: `RunAndExit` → `Logs/IdleBatchA-Summary.txt`; `RunBatchBCAndExit` �
 
 ## Human Play-Smoke
 
-Unity menu: **IdleToolkit → Human Play-Smoke Instructions**
+Unity menu: **IdleToolkit → MVP → Human Play-Smoke Instructions**  
+Checklist artifact: `docs/idle-play-smoke-checklist.md` (also written by that menu).
 
 ## Next
 
 1. Bridge MCP to Hyper-Casual-Runner → play-smoke → Play column.
-2. Optional: multi-slice isolation + prefab bootstrap EditMode.
+2. Optional: multi-slice isolation + prefab bootstrap EditMode; AFK combat or rename matrix marketing; Antimatter nested layer beat.
 
 ## Blockers
 

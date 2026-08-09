@@ -41,26 +41,27 @@ Authoring / UI / persist: `IdleSliceBootstrap`, `IdleSliceUIController`, `IdleSa
 | # | Game | Archetype | Extra components | UI verbs (HUD) | Smoke test |
 |---|------|-----------|------------------|----------------|------------|
 | 01 | Cookie Clicker | `CookieClicker` | `BuyableGenerator` | Click Cookie, Buy Generator, Prestige | `IdleBatchASmokeTests.CookieClicker_ClickThenBuy_RaisesCurrencyAndOwnedGens` |
-| 02 | Clicker Heroes | `ClickerHeroes` | `IdleCombatState`, `BuyableGenerator` | Tap / Attack, Buy Hero DPS, Prestige | `IdleBatchASmokeTests.ClickerHeroes_TapKill_AdvancesZone` |
-| 03 | AdVenture Capitalist | `AdventureCapitalist` | `BuyableGenerator`, `IdleManager` | Collect, Buy Business, Hire Manager, Angel Reset | `IdleBatchASmokeTests.AdventureCapitalist_HireManager_AutomatesPassiveRate` |
-| 04 | Universal Paperclips | `UniversalPaperclips` | `BuyableGenerator` | Make Paperclip, Buy Autoclipper, Phase Shift | `IdleBatchASmokeTests.Paperclips_PhaseShift_ConvertsToPrestige` |
+| 02 | Clicker Heroes | `ClickerHeroes` | `IdleCombatState`, `BuyableGenerator` | Tap / Attack, Buy Hero DPS, Prestige | `IdleBatchASmokeTests.ClickerHeroes_TapKillThenBuyHero_AdvancesZoneAndDps` |
+| 03 | AdVenture Capitalist | `AdventureCapitalist` | `BuyableGenerator`, `IdleManager` | Collect, Buy Business, Hire Manager, Angel Reset | `IdleBatchASmokeTests.AdventureCapitalist_BuyThenHireManager_AutomatesPassiveRate` |
+| 04 | Universal Paperclips | `UniversalPaperclips` | `BuyableGenerator` | Make Paperclip, Buy Autoclipper, Phase Shift | `IdleBatchASmokeTests.Paperclips_ManufactureThenPhaseShift_ConvertsToPrestige` |
 | 05 | A Dark Room | `ADarkRoom` | `IdleNarrativeState` | Stoke Fire, Explore, Craft | `IdleBatchBCSmokeTests.ADarkRoom_StokeThenExplore_AdvancesProgression` |
 | 06 | Antimatter Dimensions | `AntimatterDimensions` | `BuyableGenerator` | Buy Dimension, Click Antimatter, Prestige Layer | `IdleBatchASmokeTests.Antimatter_BuyDimension_RaisesOwnedAndCps` |
-| 07 | Realm Grinder | `RealmGrinder` | `BuyableGenerator` | Build, Align Good, Align Evil | `IdleBatchBCSmokeTests.RealmGrinder_AlignFaction_RaisesMultAndLevel` |
-| 08 | NGU Idle | `NguIdle` | (energy on state) | Allocate Energy, Idle Tick Boost, Rebirth | `IdleBatchBCSmokeTests.NguIdle_AllocateEnergy_SetsAllocation` |
-| 09 | Melvor Idle | `MelvorIdle` | `IdleSkillNode` | Train Skill, Claim Offline | `IdleBatchBCSmokeTests.MelvorIdle_TrainSkillClick_GainsCurrency` |
+| 07 | Realm Grinder | `RealmGrinder` | `BuyableGenerator` | Build, Align Good, Align Evil, Rebirth | `IdleBatchBCSmokeTests.RealmGrinder_BuildThenAlignFaction_RaisesMultAndLevel` |
+| 08 | NGU Idle | `NguIdle` | (energy on state) | Allocate Energy, Idle Tick Boost, Rebirth | `IdleBatchBCSmokeTests.NguIdle_AllocateEnergyThenTick_ProducesFromSpend` |
+| 09 | Melvor Idle | `MelvorIdle` | `IdleSkillNode` | Train Skill, Claim Offline | `IdleBatchBCSmokeTests.MelvorIdle_GrindSkillNode_LevelsViaSimTick` |
 | 10 | Egg, Inc. | `EggInc` | `BuyableGenerator` | Hatch Burst, Upgrade Habitat, Soul Prestige | `IdleBatchBCSmokeTests.EggInc_HatchBurst_RaisesCurrencyAndPassive` |
-| 11 | Idle Miner Tycoon | `IdleMinerTycoon` | `BuyableGenerator`, `IdleManager` | Collect Shaft, Upgrade Shaft, Hire Super-Manager, New Mine | `IdleBatchBCSmokeTests.IdleMiner_HireManager_AutomatesShaft` |
-| 12 | Tap Titans 2 | `TapTitans2` | `IdleCombatState`, `BuyableGenerator` | Tap / Attack, Buy Hero DPS, Prestige | `IdleBatchBCSmokeTests.TapTitans2_TapKill_AdvancesZone` |
-| 13 | Idle Heroes | `IdleHeroes` | `IdleCombatState`, `IdleGachaState` | Auto Fight, Gacha Pull, Claim AFK | `IdleBatchBCSmokeTests.IdleHeroes_GachaPull_RaisesStageOrPower` |
-| 14 | AFK Arena | `AfkArena` | (AFK chest on state) | Push Campaign, Open AFK Chest | `IdleBatchBCSmokeTests.AfkArena_ClaimChest_GrantsCurrency` |
-| 15 | Legend of Mushroom | `LegendOfMushroom` | `IdleGachaState` | Rub Lamp, Farm Stage Gold | `IdleBatchBCSmokeTests.LegendOfMushroom_RubLamp_AdvancesStage` |
-| 16 | Capybara Go! | `CapybaraGo` | `IdleNarrativeState` | Next Step, Lucky Find | `IdleBatchBCSmokeTests.CapybaraGo_NextStep_AdvancesLevel` |
-| 17 | Cats & Soup | `CatsAndSoup` | `IdleAssignmentStation` | Assign Cat, Unassign | `IdleBatchBCSmokeTests.CatsAndSoup_AssignCat_IncreasesWorkers` |
-| 18 | Neko Atsume | `NekoAtsume` | (check-in on state) | Place Food, Check In | `IdleBatchBCSmokeTests.NekoAtsume_PlaceFood_AttractsCats` |
-| 19 | Fallout Shelter | `FalloutShelter` | `IdleAssignmentStation` | Assign Dweller, Unassign, Claim Production | `IdleBatchBCSmokeTests.FalloutShelter_AssignDweller_FillsStation` |
+| 11 | Idle Miner Tycoon | `IdleMinerTycoon` | `BuyableGenerator`, `IdleManager` | Collect Shaft, Upgrade Shaft, Hire Super-Manager, New Mine | `IdleBatchBCSmokeTests.IdleMiner_BuyShaftThenHireManager_AutomatesShaft` |
+| 12 | Tap Titans 2 | `TapTitans2` | `IdleCombatState`, `BuyableGenerator` | Tap / Attack, Buy Hero DPS, Prestige | `IdleBatchBCSmokeTests.TapTitans2_TapKill_AdvancesZoneAndGrantsGold` |
+| 13 | Idle Heroes | `IdleHeroes` | `IdleCombatState`, `IdleGachaState` | Gacha Pull, Claim AFK | `IdleBatchBCSmokeTests.IdleHeroes_GachaPull_RaisesHeroDps` |
+| 14 | AFK Arena | `AfkArena` | (AFK chest on state) | Campaign Progress, Open AFK Chest | `IdleBatchBCSmokeTests.AfkArena_SimFillsChestThenClaim_GrantsCurrency` |
+| 15 | Legend of Mushroom | `LegendOfMushroom` | `IdleGachaState` | Rub Lamp, Farm Stage Gold | `IdleBatchBCSmokeTests.LegendOfMushroom_RubLampThreeTimes_SpendsAndAdvancesStage` |
+| 16 | Capybara Go! | `CapybaraGo` | `IdleNarrativeState` | Take Step, Next Step, Lucky Find | `IdleBatchBCSmokeTests.CapybaraGo_StepsThenAdvance_RaisesLevel` |
+| 17 | Cats & Soup | `CatsAndSoup` | `IdleAssignmentStation` | Assign Cat, Unassign | `IdleBatchBCSmokeTests.CatsAndSoup_AssignCatThenSim_ProducesOutput` |
+| 18 | Neko Atsume | `NekoAtsume` | (check-in on state) | Place Food, Place Toys, Check In | `IdleBatchBCSmokeTests.NekoAtsume_PlaceFood_SpendsAndAttractsCats` |
+| 19 | Fallout Shelter | `FalloutShelter` | `IdleAssignmentStation` | Assign Dweller, Unassign, Claim Production | `IdleBatchBCSmokeTests.FalloutShelter_AssignDwellerThenSim_FillsStationAndAccrues` |
 
-Batch A EditMode = 01–04 + 06 (+ persist round-trip). Batch B/C = remaining 14. Persist smoke: `IdleBatchASmokeTests.GameProgressData_IdleSlice_RoundTrip`.
+Batch A EditMode = 01–04 + 06 (+ persist round-trip). Batch B/C = remaining 14. Persist smoke: `IdleBatchASmokeTests.GameProgressData_IdleSlice_RoundTripTwoArchetypes_NoKeyCollision`.
+Note: Idle Heroes auto-combat is passive (`IdleCombatState` DPS) — no Auto Fight HUD button.
 
 ## Authoring loop (add a 20th matrix MVP)
 
