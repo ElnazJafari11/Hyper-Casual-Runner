@@ -4,61 +4,73 @@ Branch: `antigravity/toolkit-persist`
 Matrix: `docs/idle_mechanics_matrix.md` (19 titles + candidate #20 Synergism deferred)  
 Compose: `docs/idle-toolkit-compose.md`
 
-## Evidence (latest)
+## Evidence (latest — impl_09)
 
 | Check | Result |
 |-------|--------|
 | Prefabs `Assets/ToolkitExamples/Idle/*` | 19/19 present |
-| EditMode AllSmoke (`RunAllIdleSmokeAndExit`) | **PASS 46/46** — `Logs/IdleAllSmoke-Summary.txt` / `Logs/IdleKernel-impl07.log` |
-| EditMode Batch BC | **PASS 29/29** — `Logs/IdleBatchBC-Summary.txt` |
-| Play Mode (MCP Hyper-Casual-Runner) | UNVERIFIED — MCP instance is `thepcgtoolkit` only |
+| EditMode AllSmoke (`IdleBatchA` + `IdleBatchBC`) | **PASS 46/46** — `Logs/IdleAllSmoke-Summary.txt` (`result=Passed pass=46 fail=0`, 2026-08-10 02:44) |
+| Fixture presence (1 named smoke per matrix title) | **19/19** |
+| Play Mode (MCP Hyper-Casual-Runner) | UNVERIFIED — MCP still on `thepcgtoolkit` |
 
-**EditMode-verified matrix coverage: 19/19** (fixtures + green AllSmoke)  
-**Play-mode verified: 0/19**
+**Do not equate fixture green with verb proof.** After review_09 / impl_09 the 19 matrix titles have strengthened EditMode paths (spend asserts, causal chains, `IdleSliceSimulationSystem` beats where fantasy is passive/AFK/skill/DPS). Extra tests beyond the 19 (kernel/prestige/combat harden) are included in the 46 count.
 
-## Per-game status
+| Claim | Value |
+|-------|--------|
+| Fixture presence | **19/19** |
+| EditMode NUnit green (AllSmoke) | **46/46** (includes extras beyond matrix 19) |
+| Matrix core-verb + causal beat (review_09 bar) | **19/19 targeted in impl_09** — see scorecard below |
+| Play-mode verified | **0/19** |
 
-| # | Game | EditMode | Play Mode | Prefab |
-|---|------|----------|-----------|--------|
-| 1 | Cookie Clicker | PASS | Pending | `01_CookieClicker_Generators_Slice` |
-| 2 | Clicker Heroes | PASS | Pending | `02_ClickerHeroes_TapKill_Slice` |
-| 3 | AdVenture Capitalist | PASS | Pending | `03_AdventureCapitalist_Managers_Slice` |
-| 4 | Universal Paperclips | PASS | Pending | `04_UniversalPaperclips_Phase_Slice` |
-| 5 | A Dark Room | PASS | Pending | `05_ADarkRoom_Narrative_Slice` |
-| 6 | Antimatter Dimensions | PASS | Pending | `06_AntimatterDimensions_Layers_Slice` |
-| 7 | Realm Grinder | PASS | Pending | `07_RealmGrinder_Factions_Slice` |
-| 8 | NGU Idle | PASS | Pending | `08_NGUIdle_Energy_Slice` |
-| 9 | Melvor Idle | PASS | Pending | `09_MelvorIdle_Skills_Slice` |
-| 10 | Egg, Inc. | PASS | Pending | `10_EggInc_Hatch_Slice` |
-| 11 | Idle Miner Tycoon | PASS | Pending | `11_IdleMinerTycoon_Shafts_Slice` |
-| 12 | Tap Titans 2 | PASS | Pending | `12_TapTitans2_TapDps_Slice` |
-| 13 | Idle Heroes | PASS | Pending | `13_IdleHeroes_GachaCombat_Slice` |
-| 14 | AFK Arena | PASS | Pending | `14_AFKArena_Chest_Slice` |
-| 15 | Legend of Mushroom | PASS | Pending | `15_LegendOfMushroom_Lamp_Slice` |
-| 16 | Capybara Go! | PASS | Pending | `16_CapybaraGo_Steps_Slice` |
-| 17 | Cats & Soup | PASS | Pending | `17_CatsAndSoup_Assign_Slice` |
-| 18 | Neko Atsume | PASS | Pending | `18_NekoAtsume_CheckIn_Slice` |
-| 19 | Fallout Shelter | PASS | Pending | `19_FalloutShelter_Dwellers_Slice` |
-| 20 | Synergism (gap) | Deferred | — | see matrix § coverage gap |
+## Per-game EditMode verb status (impl_09)
+
+| # | Game | Matrix core verb | Verb score |
+|---|------|------------------|------------|
+| 1 | Cookie Clicker | Click → Buy Generators | OK — click funds buy; spend + OwnedCount + CPS sim |
+| 2 | Clicker Heroes | Tap to Kill → Buy Heroes | OK — kill then buy; gold + combat sync |
+| 3 | AdVenture Capitalist | Buy Businesses (+ managers) | OK — buy then hire; no pre-owned; hire spend |
+| 4 | Universal Paperclips | Manufacture → Phase-Shift | OK — manufacture then phase |
+| 5 | A Dark Room | Stoke → Explore | OK — wood/stoke + explore |
+| 6 | Antimatter Dimensions | Buy Dimensions | OK — buy + spend |
+| 7 | Realm Grinder | Build & Align | OK — buy then faction |
+| 8 | NGU Idle | Allocate Energy | OK — allocate then TickEnergy sim |
+| 9 | Melvor Idle | Grind Skills | OK — IdleSkillNode + sim (not click) |
+| 10 | Egg, Inc. | Hatch (Tap Burst) | OK — hatch + CPS tick |
+| 11 | Idle Miner Tycoon | Upgrade Shafts (+ managers) | OK — buy then hire |
+| 12 | Tap Titans 2 | Tap / Hero DPS | OK — kill + gold + respawn |
+| 13 | Idle Heroes | Auto-Combat | OK — IdleCombatState DPS (not gacha stand-in) |
+| 14 | AFK Arena | Auto-Combat (+ AFK chest) | OK — sim fills chest then claim |
+| 15 | Legend of Mushroom | Rub Lamp | OK — 3 pulls from 0; spend; stage |
+| 16 | Capybara Go! | Step-based Narrative | OK — steps then advance; no ExploreUnlocked seed |
+| 17 | Cats & Soup | Assign Cats | OK — assign + station + sim output |
+| 18 | Neko Atsume | Place Food/Toys | OK — spend + attract |
+| 19 | Fallout Shelter | Assign Dwellers | OK — station + PendingClaim sim |
+
+Still **out of scope** for “19/19 verb verified” marketing: Play Mode, prefab↔bootstrap wiring, multi-slice crosstalk stress, full Soul Eggs / nested eternity layers.
+
+## Persistence
+
+`GameProgressData` round-trip covers **two** archetypes with clear isolation.
 
 ## Run tests (batchmode; do not pass `-quit`)
 
 ```text
 Unity.exe -batchmode -nographics -projectPath D:\Git\Hyper-Casual-Runner ^
   -executeMethod HyperCasualRunner.Editor.IdleBatchATestRunner.RunAllIdleSmokeAndExit ^
-  -logFile Logs/IdleAllSmoke-api.log
+  -logFile Logs/IdleAllSmoke-impl09.log
 ```
+
+Separate: `RunAndExit` → `Logs/IdleBatchA-Summary.txt`; `RunBatchBCAndExit` → `Logs/IdleBatchBC-Summary.txt` (runner no longer overwrites Batch A paths when running BC/All).
 
 ## Human Play-Smoke
 
-Unity menu: **IdleToolkit → MVP → Human Play-Smoke Instructions**  
-Also: `Assets/ToolkitExamples/Idle/README_IDLE_SLICES.txt` · `docs/idle-toolkit-compose.md`
+Unity menu: **IdleToolkit → Human Play-Smoke Instructions**
 
 ## Next
 
-1. Open **Hyper-Casual-Runner** in Unity 6000.5.5f1 and connect MCP (not `thepcgtoolkit`) → play-smoke Batch A → mark Playable.
-2. Do not implement candidate #20 Synergism until Play Mode evidence exists.
+1. Bridge MCP to Hyper-Casual-Runner → play-smoke → Play column.
+2. Optional: multi-slice isolation + prefab bootstrap EditMode.
 
 ## Blockers
 
-- MCP bridge only registers `thepcgtoolkit` — Hyper-Casual-Runner editor not connected → Play Mode stuck at 0/19.
+- MCP instance is only `thepcgtoolkit` — Hyper-Casual-Runner editor not connected → Play Mode 0/19.
