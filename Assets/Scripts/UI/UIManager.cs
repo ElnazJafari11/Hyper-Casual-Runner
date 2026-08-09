@@ -1,106 +1,74 @@
-using DG.Tweening;
-using PathCreation.Examples;
-using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
+using UnityEngine.UIElements;
+using Unity.Entities;
+using HyperCasualRunner.ECS.Components;
 
-public class UIManager : MonoBehaviour
+namespace HyperCasualRunner.UI
 {
-    [SerializeField] private GameObject settingUI;
-    [SerializeField] private GameObject gameUI;
-    [SerializeField] private GameObject menuUI;
-    [SerializeField] private GameObject tutorialUI;
-    [SerializeField] private GameObject winUI;
-    [SerializeField] private GameObject loseUI;
-    [SerializeField] private TextMeshProUGUI levelText;
-    [SerializeField] private Slider process;
-
-    private void Start()
+    public class UIManager : MonoBehaviour
     {
-        settingUI.transform.localScale = Vector3.zero;
-        gameUI.SetActive(true);
-    }
+        private Label goldLabel;
+        private Label distanceLabel;
+        private Button upgradeDamageBtn;
+        private Button upgradeGoldBtn;
+        private Button prestigeBtn;
+        private VisualElement prestigeOverlay;
 
-    private void Update()
-    {
-        if (GameManager.Instance.gameStarted)
+        private EntityManager entityManager;
+        private EntityQuery currentStatsQuery;
+
+        void Start()
         {
-            DeactivateUI(menuUI);
-            DeactivateUI(tutorialUI);
+            var root = GetComponent<UIDocument>().rootVisualElement;
+            
+            goldLabel = root.Q<Label>("GoldLabel");
+            distanceLabel = root.Q<Label>("DistanceLabel");
+            upgradeDamageBtn = root.Q<Button>("UpgradeDamageButton");
+            upgradeGoldBtn = root.Q<Button>("UpgradeGoldButton");
+            prestigeBtn = root.Q<Button>("PrestigeButton");
+            prestigeOverlay = root.Q<VisualElement>("PrestigeOverlay");
+
+            upgradeDamageBtn.clicked += OnUpgradeDamage;
+            upgradeGoldBtn.clicked += OnUpgradeGold;
+            prestigeBtn.clicked += OnPrestige;
+
+            entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+            currentStatsQuery = entityManager.CreateEntityQuery(typeof(CurrentRunStats));
         }
 
-        if (GameManager.Instance.gameWon)
+        void Update()
         {
-            ActivateUI(winUI);
-        }
-        if (GameManager.Instance.gameLost)
-        {
-            ActivateUI(loseUI);
-        }
-        SetLevelText();
-        SetProcessLevel();
-    }
-
-    private void ActivateUI(GameObject menu)
-    {
-        gameUI.SetActive(false);
-        winUI.SetActive(false);
-        loseUI.SetActive(false);
-
-        menu.SetActive(true);
-    }
-
-    private void DeactivateUI(GameObject menu)
-    {
-        menu.SetActive(false);
-    }
-
-    private void SetLevelText()
-    {
-        int currentLevel = PlayerPrefs.GetInt("CurrentLevel", 1);
-        levelText.text = currentLevel.ToString();
-    }
-
-    private void SetProcessLevel()
-    {
-        process.value = PathFollower.Instance.pathProgress;
-    }
-
-    public void OpenSettings()
-    {
-        gameUI.SetActive(false);
-        winUI.SetActive(false);
-        loseUI.SetActive(false);
-
-        settingUI.SetActive(true);
-        settingUI.transform.DOScale(Vector3.one, 1);
-    }
-
-    public void CloseSettings()
-    {
-        settingUI.SetActive(false);
-        gameUI.SetActive(true);
-    }
-
-    public void Restart()
-    {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-    }
-
-    public void NextLevel()
-    {
-        int newCurrentLevel = PlayerPrefs.GetInt("CurrentLevel") + 1;
-        int newLoadingLevel = PlayerPrefs.GetInt("LoadingLevel") + 1;
-
-        if (newLoadingLevel >= SceneManager.sceneCountInBuildSettings)
-        {
-            newLoadingLevel = 1;
+            // Sync UI with ECS Data
+            if (currentStatsQuery.CalculateEntityCount() > 0)
+            {
+                var stats = currentStatsQuery.GetSingleton<CurrentRunStats>();
+                goldLabel.text = $"Gold: {stats.CurrentGold:F0}";
+                distanceLabel.text = $"Distance: {stats.CurrentDistance}m";
+            }
         }
 
-        PlayerPrefs.SetInt("CurrentLevel", newCurrentLevel);
-        PlayerPrefs.SetInt("LoadingLevel", newLoadingLevel);
+        private void OnUpgradeDamage()
+        {
+            // Event to trigger damage upgrade in DOTS
+            Debug.Log("Damage Upgrade Requested");
+        }
 
-        SceneManager.LoadScene(newLoadingLevel);
+        private void OnUpgradeGold()
+        {
+            // Event to trigger gold upgrade in DOTS
+            Debug.Log("Gold Upgrade Requested");
+        }
+
+        private void OnPrestige()
+        {
+            // Reset distance and award permanent currency
+            Debug.Log("Prestige Activated!");
+            prestigeOverlay.style.display = DisplayStyle.None;
+        }
+
+        public void ShowPrestigeScreen()
+        {
+            prestigeOverlay.style.display = DisplayStyle.Flex;
+        }
     }
 }

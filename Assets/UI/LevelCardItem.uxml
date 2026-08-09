@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ui="UnityEngine.UIElements"
+    xsi:noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
+>
+    <ui:Button name="CardButton" class="level-card-button">
+        <ui:Label name="LevelNumberLabel" text="1" class="card-level-number"/>
+        <ui:VisualElement name="StarsContainer" class="card-stars-container">
+            <ui:Label name="Star1" text="★" class="card-star star-inactive"/>
+            <ui:Label name="Star2" text="★" class="card-star star-inactive"/>
+            <ui:Label name="Star3" text="★" class="card-star star-inactive"/>
+        </ui:VisualElement>
+        <ui:Label name="StatusLabel" text="UNLOCKED" class="card-status-label"/>
+    </ui:Button>
+</ui:UXML>

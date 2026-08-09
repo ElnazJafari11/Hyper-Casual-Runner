@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ui="UnityEngine.UIElements"
+    xsi:noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
+>
+    <ui:Style src="VictoryScreen.uss" />
+
+    <ui:VisualElement name="VictoryOverlay" class="victory-overlay">
+        <ui:VisualElement name="VictoryCard" class="victory-card">
+            <!-- Banner -->
+            <ui:Label text="LEVEL COMPLETE!" class="victory-title"/>
+
+            <!-- Stars Container -->
+            <ui:VisualElement name="VictoryStarsContainer" class="victory-stars-container">
+                <ui:Label name="VicStar1" text="★" class="vic-star vic-star-active"/>
+                <ui:Label name="VicStar2" text="★" class="vic-star vic-star-active"/>
+                <ui:Label name="VicStar3" text="★" class="vic-star vic-star-active"/>
+            </ui:VisualElement>
+
+            <!-- Coins Earned -->
+            <ui:Label name="CoinsEarnedLabel" text="Coins Earned: +100" class="coins-earned-label"/>
+
+            <!-- Multiplier Wheel Ticker Box -->
+            <ui:VisualElement name="MultiplierContainer" class="multiplier-container">
+                <ui:Label name="MultiplierLabel" text="MULTIPLIER: 2.5x" class="multiplier-label"/>
+                <ui:VisualElement name="TickerTrack" class="ticker-track">
+                    <ui:VisualElement name="TickerBar" class="ticker-bar" style="left: 0%;"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <!-- Action Buttons -->
+            <ui:Button name="ClaimMultipliedBtn" text="CLAIM MULTIPLIED GOLD" class="claim-btn"/>
+            <ui:Button name="WatchAdDoubleBtn" text="WATCH AD FOR 2x GOLD" class="ad-btn"/>
+            <ui:Button name="NextLevelBtn" text="NEXT LEVEL" class="next-btn"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

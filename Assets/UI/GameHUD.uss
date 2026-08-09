@@ -1,0 +1,157 @@
+.main-hud-container {
+    flex-grow: 1;
+    justify-content: space-between;
+    padding: 10px;
+}
+
+.top-bar {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+.badge {
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 12px;
+    padding-left: 14px;
+    padding-right: 14px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.badge-label {
+    font-size: 20px;
+    color: #FFFFFF;
+    -unity-font-style: bold;
+}
+
+.gold-text {
+    color: #FFD700;
+}
+
+.settings-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 24px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #FFFFFF;
+    border-radius: 22px;
+}
+
+.progress-bar-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.progress-level-label {
+    font-size: 18px;
+    color: #FFFFFF;
+    -unity-font-style: bold;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.progress-track {
+    flex-grow: 1;
+    height: 18px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 9px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: #4CAF50;
+    border-radius: 9px;
+}
+
+.pregame-panel {
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 40px;
+}
+
+.upgrade-container {
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.upgrade-btn {
+    width: 45%;
+    height: 50px;
+    font-size: 16px;
+    background-color: #2196F3;
+    color: #FFFFFF;
+    border-radius: 10px;
+    -unity-font-style: bold;
+}
+
+.level-select-btn {
+    width: 60%;
+    height: 44px;
+    font-size: 18px;
+    background-color: #FF9800;
+    color: #FFFFFF;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    -unity-font-style: bold;
+}
+
+.start-btn {
+    width: 80%;
+    height: 70px;
+    font-size: 28px;
+    background-color: #4CAF50;
+    color: #FFFFFF;
+    border-radius: 15px;
+    -unity-font-style: bold;
+}
+
+.settings-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    justify-content: center;
+    align-items: center;
+}
+
+.settings-card {
+    width: 300px;
+    background-color: #1E1E2C;
+    border-radius: 15px;
+    padding: 20px;
+    align-items: center;
+}
+
+.modal-title {
+    font-size: 26px;
+    color: #FFD700;
+    -unity-font-style: bold;
+    margin-bottom: 20px;
+}
+
+.modal-btn {
+    width: 80%;
+    height: 45px;
+    font-size: 18px;
+    background-color: #3F51B5;
+    color: #FFFFFF;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.modal-close-btn {
+    width: 80%;
+    height: 45px;
+    font-size: 18px;
+    background-color: #F44336;
+    color: #FFFFFF;
+    border-radius: 8px;
+}

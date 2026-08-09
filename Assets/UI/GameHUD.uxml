@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ui="UnityEngine.UIElements"
+    xsi:noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
+>
+    <ui:Style src="GameHUD.uss" />
+
+    <ui:VisualElement name="MainHUDContainer" class="main-hud-container">
+        <!-- Top Bar -->
+        <ui:VisualElement name="TopBar" class="top-bar">
+            <ui:VisualElement name="LevelBadge" class="badge">
+                <ui:Label name="LevelLabel" text="LEVEL 1" class="badge-label"/>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="GoldBadge" class="badge">
+                <ui:Label name="GoldLabel" text="Gold: 0" class="badge-label gold-text"/>
+            </ui:VisualElement>
+
+            <ui:Button name="SettingsBtn" text="⚙" class="settings-btn"/>
+        </ui:VisualElement>
+
+        <!-- Progress Bar -->
+        <ui:VisualElement name="ProgressBarContainer" class="progress-bar-container">
+            <ui:Label name="StartLevelLabel" text="1" class="progress-level-label"/>
+            <ui:VisualElement name="ProgressTrack" class="progress-track">
+                <ui:VisualElement name="ProgressFill" class="progress-fill" style="width: 0%;"/>
+            </ui:VisualElement>
+            <ui:Label name="EndLevelLabel" text="2" class="progress-level-label"/>
+        </ui:VisualElement>
+
+        <!-- Pregame Panel -->
+        <ui:VisualElement name="PregamePanel" class="pregame-panel">
+            <ui:VisualElement name="UpgradeContainer" class="upgrade-container">
+                <ui:Button name="UpgradeSwarmBtn" text="Upgrade Swarm ($50)" class="upgrade-btn"/>
+                <ui:Button name="UpgradeIncomeBtn" text="Upgrade Income ($50)" class="upgrade-btn"/>
+            </ui:VisualElement>
+            <ui:Button name="LevelSelectBtn" text="LEVEL SELECT" class="level-select-btn"/>
+            <ui:Button name="StartBtn" text="TAP TO START" class="start-btn"/>
+        </ui:VisualElement>
+
+        <!-- Settings Modal Overlay -->
+        <ui:VisualElement name="SettingsOverlay" class="settings-overlay" style="display: none;">
+            <ui:VisualElement name="SettingsCard" class="settings-card">
+                <ui:Label text="SETTINGS" class="modal-title"/>
+                <ui:Button name="SoundToggleBtn" text="Sound: ON" class="modal-btn"/>
+                <ui:Button name="CloseSettingsBtn" text="CLOSE" class="modal-close-btn"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

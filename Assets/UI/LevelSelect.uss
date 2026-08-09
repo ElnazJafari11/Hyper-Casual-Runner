@@ -1,0 +1,106 @@
+.level-select-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.85);
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.level-select-modal {
+    width: 90%;
+    max-width: 500px;
+    height: 80%;
+    background-color: #1A1A2E;
+    border-radius: 20px;
+    padding: 15px;
+    justify-content: space-between;
+}
+
+.modal-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.title-label {
+    font-size: 26px;
+    color: #FFD700;
+    -unity-font-style: bold;
+}
+
+.close-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    background-color: #E94560;
+    color: #FFFFFF;
+    border-radius: 20px;
+}
+
+.grid-scroll-view {
+    flex-grow: 1;
+}
+
+.level-grid-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 5px;
+}
+
+.level-card-button {
+    width: 30%;
+    height: 100px;
+    background-color: #16213E;
+    border-radius: 12px;
+    border-width: 2px;
+    border-color: #0F3460;
+    margin-bottom: 15px;
+    align-items: center;
+    justify-content: space-around;
+    padding: 5px;
+}
+
+.card-level-number {
+    font-size: 22px;
+    color: #FFFFFF;
+    -unity-font-style: bold;
+}
+
+.card-stars-container {
+    flex-direction: row;
+    justify-content: center;
+}
+
+.card-star {
+    font-size: 16px;
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.star-active {
+    color: #FFD700;
+}
+
+.star-inactive {
+    color: #555555;
+}
+
+.card-status-label {
+    font-size: 11px;
+    color: #4ECCA3;
+    -unity-font-style: bold;
+}
+
+.card-locked {
+    background-color: #222222;
+    border-color: #333333;
+    opacity: 0.6;
+}
+
+.card-playing {
+    border-color: #FFD700;
+    background-color: #1A365D;
+}

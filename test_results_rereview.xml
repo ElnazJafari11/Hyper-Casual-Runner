@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="5" result="Passed" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-22 07:50:22Z" end-time="2026-07-22 07:50:24Z" duration="1.9796104">
+  <test-suite type="TestSuite" id="1000" name="Stickman Rush" fullname="Stickman Rush" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-07-22 07:50:22Z" end-time="2026-07-22 07:50:24Z" duration="1.979610" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1014" name="Assembly-CSharp-Editor.dll" fullname="D:/Git/Hyper-Casual-Runner/Library/ScriptAssemblies/Assembly-CSharp-Editor.dll" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-07-22 07:50:22Z" end-time="2026-07-22 07:50:24Z" duration="1.971959" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="26052" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1015" name="HyperCasualRunner" fullname="HyperCasualRunner" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-07-22 07:50:22Z" end-time="2026-07-22 07:50:24Z" duration="1.971544" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1016" name="Tests" fullname="HyperCasualRunner.Tests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-07-22 07:50:22Z" end-time="2026-07-22 07:50:24Z" duration="1.971299" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1001" name="CoinSystemTests" fullname="HyperCasualRunner.Tests.CoinSystemTests" classname="HyperCasualRunner.Tests.CoinSystemTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-07-22 07:50:22Z" end-time="2026-07-22 07:50:24Z" duration="1.970106" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1002" name="CoinComponents_LayoutAndSizes_MatchSpecifications" fullname="HyperCasualRunner.Tests.CoinSystemTests.CoinComponents_LayoutAndSizes_MatchSpecifications" methodname="CoinComponents_LayoutAndSizes_MatchSpecifications" classname="HyperCasualRunner.Tests.CoinSystemTests" runstate="Runnable" seed="159873153" result="Passed" start-time="2026-07-22 07:50:22Z" end-time="2026-07-22 07:50:22Z" duration="0.205471" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1003" name="CoinMultiplierSystem_AdditiveGate_IncreasesCoinCountAndTriggers" fullname="HyperCasualRunner.Tests.CoinSystemTests.CoinMultiplierSystem_AdditiveGate_IncreasesCoinCountAndTriggers" methodname="CoinMultiplierSystem_AdditiveGate_IncreasesCoinCountAndTriggers" classname="HyperCasualRunner.Tests.CoinSystemTests" runstate="Runnable" seed="985006352" result="Passed" start-time="2026-07-22 07:50:22Z" end-time="2026-07-22 07:50:23Z" duration="0.038330" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1004" name="CoinMultiplierSystem_MultiplicativeGate_MultipliesCoinCount" fullname="HyperCasualRunner.Tests.CoinSystemTests.CoinMultiplierSystem_MultiplicativeGate_MultipliesCoinCount" methodname="CoinMultiplierSystem_MultiplicativeGate_MultipliesCoinCount" classname="HyperCasualRunner.Tests.CoinSystemTests" runstate="Runnable" seed="1526900702" result="Passed" start-time="2026-07-22 07:50:23Z" end-time="2026-07-22 07:50:23Z" duration="0.001560" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1005" name="CoinPhysicsSystem_SimulatesAirborneGravityAndBounce" fullname="HyperCasualRunner.Tests.CoinSystemTests.CoinPhysicsSystem_SimulatesAirborneGravityAndBounce" methodname="CoinPhysicsSystem_SimulatesAirborneGravityAndBounce" classname="HyperCasualRunner.Tests.CoinSystemTests" runstate="Runnable" seed="1001248036" result="Passed" start-time="2026-07-22 07:50:23Z" end-time="2026-07-22 07:50:23Z" duration="0.014442" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1006" name="MoneyRush_Slice14_PrefabContainsCoinSpawnerAndGates" fullname="HyperCasualRunner.Tests.CoinSystemTests.MoneyRush_Slice14_PrefabContainsCoinSpawnerAndGates" methodname="MoneyRush_Slice14_PrefabContainsCoinSpawnerAndGates" classname="HyperCasualRunner.Tests.CoinSystemTests" runstate="Runnable" seed="534449282" result="Passed" start-time="2026-07-22 07:50:23Z" end-time="2026-07-22 07:50:24Z" duration="1.695427" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Successfully generated 21 Playable Slices and 1 Master Hub!
+<b><color=#2EA3FF>MCP-FOR-UNITY</color></b>: [TestRunnerNoThrottle] Restored Interaction Mode after test run.
+Saving results to: C:/Users/AZAD/AppData/LocalLow/DefaultCompany/Stickman Rush\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

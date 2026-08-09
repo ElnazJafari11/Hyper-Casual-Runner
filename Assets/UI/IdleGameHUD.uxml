@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
+>
+    <ui:VisualElement style="flex-grow: 1; justify-content: flex-start; align-items: stretch; padding: 20px; background-color: rgba(0, 0, 0, 0.5);">
+        
+        <ui:Label text="Idle Sandbox HUD" style="font-size: 36px; -unity-font-style: bold; color: rgb(255, 255, 255); margin-bottom: 20px; -unity-text-align: middle-center;"/>
+        
+        <ui:VisualElement style="flex-direction: row; justify-content: space-between; margin-bottom: 10px; padding: 10px; background-color: rgba(255, 255, 255, 0.1); border-radius: 10px;">
+            <ui:Label text="Gold: 0" name="GoldLabel" style="font-size: 24px; color: rgb(255, 215, 0); -unity-font-style: bold;"/>
+            <ui:Label text="Prestige: 0" name="PrestigeLabel" style="font-size: 24px; color: rgb(138, 43, 226); -unity-font-style: bold;"/>
+        </ui:VisualElement>
+
+        <ui:VisualElement style="flex-direction: row; margin-bottom: 10px; justify-content: space-around;">
+            <ui:Button text="Upgrades" name="UpgradesTabButton" style="flex-grow: 1; font-size: 20px; -unity-font-style: bold; height: 40px; border-radius: 5px; margin-right: 5px; background-color: rgb(70, 70, 70); color: rgb(255, 255, 255);"/>
+            <ui:Button text="Cosmetics" name="CosmeticsTabButton" style="flex-grow: 1; font-size: 20px; -unity-font-style: bold; height: 40px; border-radius: 5px; margin-left: 5px; background-color: rgb(70, 70, 70); color: rgb(255, 255, 255);"/>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="UpgradesContainer" style="flex-grow: 1; justify-content: flex-end;">
+            <ui:Button text="BUY UPGRADE (Cost: 50 Gold)" name="BuyUpgradeButton" style="font-size: 24px; -unity-font-style: bold; background-color: rgb(0, 200, 0); color: rgb(255, 255, 255); height: 60px; border-radius: 10px; margin-bottom: 10px;"/>
+            <ui:Button text="ASCEND (Prestige)" name="PrestigeButton" style="font-size: 24px; -unity-font-style: bold; background-color: rgb(138, 43, 226); color: rgb(255, 255, 255); height: 60px; border-radius: 10px;"/>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="CosmeticsContainer" style="flex-grow: 1; display: none;">
+            <ui:ScrollView name="CosmeticsScrollView" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 10px;">
+                <ui:VisualElement style="flex-direction: row; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 10px; background-color: rgba(255, 255, 255, 0.1); border-radius: 5px;">
+                    <ui:Label text="Classic Blue (Default)" style="font-size: 18px; color: rgb(255, 255, 255); -unity-font-style: bold;"/>
+                    <ui:Button text="EQUIP" name="EquipSkin0Button" style="font-size: 16px; background-color: rgb(0, 122, 255); color: rgb(255, 255, 255); width: 140px; height: 40px;"/>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 10px; background-color: rgba(255, 255, 255, 0.1); border-radius: 5px;">
+                    <ui:Label text="Crimson Red (Cost: 5 Prestige)" style="font-size: 18px; color: rgb(255, 255, 255); -unity-font-style: bold;"/>
+                    <ui:Button text="BUY (5 P)" name="BuySkin1Button" style="font-size: 16px; background-color: rgb(200, 0, 0); color: rgb(255, 255, 255); width: 140px; height: 40px;"/>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 10px; background-color: rgba(255, 255, 255, 0.1); border-radius: 5px;">
+                    <ui:Label text="Solid Gold (Cost: 15 Prestige)" style="font-size: 18px; color: rgb(255, 255, 255); -unity-font-style: bold;"/>
+                    <ui:Button text="BUY (15 P)" name="BuySkin2Button" style="font-size: 16px; background-color: rgb(218, 165, 32); color: rgb(255, 255, 255); width: 140px; height: 40px;"/>
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 10px; background-color: rgba(255, 255, 255, 0.1); border-radius: 5px;">
+                    <ui:Label text="Emerald Neon (Cost: 30 Prestige)" style="font-size: 18px; color: rgb(255, 255, 255); -unity-font-style: bold;"/>
+                    <ui:Button text="BUY (30 P)" name="BuySkin3Button" style="font-size: 16px; background-color: rgb(46, 139, 87); color: rgb(255, 255, 255); width: 140px; height: 40px;"/>
+                </ui:VisualElement>
+            </ui:ScrollView>
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="21" result="Failed(Child)" total="21" passed="20" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-07-22 08:06:21Z" end-time="2026-07-22 08:06:34Z" duration="12.2121331">
+  <test-suite type="TestSuite" id="1000" name="Stickman Rush" fullname="Stickman Rush" runstate="Runnable" testcasecount="21" result="Failed" site="Child" start-time="2026-07-22 08:06:21Z" end-time="2026-07-22 08:06:34Z" duration="12.212133" total="21" passed="20" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1026" name="Assembly-CSharp-Editor.dll" fullname="D:/Git/Hyper-Casual-Runner/Library/ScriptAssemblies/Assembly-CSharp-Editor.dll" runstate="Runnable" testcasecount="21" result="Failed" site="Child" start-time="2026-07-22 08:06:21Z" end-time="2026-07-22 08:06:34Z" duration="12.203894" total="21" passed="20" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="27420" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1027" name="HyperCasualRunner" fullname="HyperCasualRunner" runstate="Runnable" testcasecount="21" result="Failed" site="Child" start-time="2026-07-22 08:06:21Z" end-time="2026-07-22 08:06:34Z" duration="12.203435" total="21" passed="20" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1028" name="Tests" fullname="HyperCasualRunner.Tests" runstate="Runnable" testcasecount="21" result="Failed" site="Child" start-time="2026-07-22 08:06:21Z" end-time="2026-07-22 08:06:34Z" duration="12.203239" total="21" passed="20" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestFixture" id="1001" name="CoinSystemTests" fullname="HyperCasualRunner.Tests.CoinSystemTests" classname="HyperCasualRunner.Tests.CoinSystemTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-07-22 08:06:21Z" end-time="2026-07-22 08:06:23Z" duration="2.137956" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1002" name="CoinComponents_LayoutAndSizes_MatchSpecifications" fullname="HyperCasualRunner.Tests.CoinSystemTests.CoinComponents_LayoutAndSizes_MatchSpecifications" methodname="CoinComponents_LayoutAndSizes_MatchSpecifications" classname="HyperCasualRunner.Tests.CoinSystemTests" runstate="Runnable" seed="2066448018" result="Passed" start-time="2026-07-22 08:06:21Z" end-time="2026-07-22 08:06:22Z" duration="0.215105" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1003" name="CoinMultiplierSystem_AdditiveGate_IncreasesCoinCountAndTriggers" fullname="HyperCasualRunner.Tests.CoinSystemTests.CoinMultiplierSystem_AdditiveGate_IncreasesCoinCountAndTriggers" methodname="CoinMultiplierSystem_AdditiveGate_IncreasesCoinCountAndTriggers" classname="HyperCasualRunner.Tests.CoinSystemTests" runstate="Runnable" seed="467665852" result="Passed" start-time="2026-07-22 08:06:22Z" end-time="2026-07-22 08:06:22Z" duration="0.041430" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1004" name="CoinMultiplierSystem_MultiplicativeGate_MultipliesCoinCount" fullname="HyperCasualRunner.Tests.CoinSystemTests.CoinMultiplierSystem_MultiplicativeGate_MultipliesCoinCount" methodname="CoinMultiplierSystem_MultiplicativeGate_MultipliesCoinCount" classname="HyperCasualRunner.Tests.CoinSystemTests" runstate="Runnable" seed="1501763350" result="Passed" start-time="2026-07-22 08:06:22Z" end-time="2026-07-22 08:06:22Z" duration="0.001206" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1005" name="CoinPhysicsSystem_SimulatesAirborneGravityAndBounce" fullname="HyperCasualRunner.Tests.CoinSystemTests.CoinPhysicsSystem_SimulatesAirborneGravityAndBounce" methodname="CoinPhysicsSystem_SimulatesAirborneGravityAndBounce" classname="HyperCasualRunner.Tests.CoinSystemTests" runstate="Runnable" seed="1417849543" result="Passed" start-time="2026-07-22 08:06:22Z" end-time="2026-07-22 08:06:22Z" duration="0.015424" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1006" name="MoneyRush_Slice14_PrefabContainsCoinSpawnerAndGates" fullname="HyperCasualRunner.Tests.CoinSystemTests.MoneyRush_Slice14_PrefabContainsCoinSpawnerAndGates" methodname="MoneyRush_Slice14_PrefabContainsCoinSpawnerAndGates" classname="HyperCasualRunner.Tests.CoinSystemTests" runstate="Runnable" seed="1454545426" result="Passed" start-time="2026-07-22 08:06:22Z" end-time="2026-07-22 08:06:23Z" duration="1.847992" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Successfully generated 21 Playable Slices and 1 Master Hub!
+]]></output>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1007" name="LevelProgressionTests" fullname="HyperCasualRunner.Tests.LevelProgressionTests" classname="HyperCasualRunner.Tests.LevelProgressionTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-07-22 08:06:23Z" end-time="2026-07-22 08:06:24Z" duration="0.073664" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1009" name="GameProgressData_Extensions_PersistLevelStateAndStars" fullname="HyperCasualRunner.Tests.LevelProgressionTests.GameProgressData_Extensions_PersistLevelStateAndStars" methodname="GameProgressData_Extensions_PersistLevelStateAndStars" classname="HyperCasualRunner.Tests.LevelProgressionTests" runstate="Runnable" seed="1840197979" result="Passed" start-time="2026-07-22 08:06:23Z" end-time="2026-07-22 08:06:24Z" duration="0.005141" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1008" name="LevelProgressionComponents_LayoutAndEnum_ValuesMatchSpec" fullname="HyperCasualRunner.Tests.LevelProgressionTests.LevelProgressionComponents_LayoutAndEnum_ValuesMatchSpec" methodname="LevelProgressionComponents_LayoutAndEnum_ValuesMatchSpec" classname="HyperCasualRunner.Tests.LevelProgressionTests" runstate="Runnable" seed="100629850" result="Passed" start-time="2026-07-22 08:06:24Z" end-time="2026-07-22 08:06:24Z" duration="0.002414" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1010" name="LevelProgressionSystem_TeardownAndSpawning_TransitionsCorrectly" fullname="HyperCasualRunner.Tests.LevelProgressionTests.LevelProgressionSystem_TeardownAndSpawning_TransitionsCorrectly" methodname="LevelProgressionSystem_TeardownAndSpawning_TransitionsCorrectly" classname="HyperCasualRunner.Tests.LevelProgressionTests" runstate="Runnable" seed="343070070" result="Passed" start-time="2026-07-22 08:06:24Z" end-time="2026-07-22 08:06:24Z" duration="0.019479" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1011" name="MetaProgressionSaveSystem_ProcessesSaveEvents" fullname="HyperCasualRunner.Tests.LevelProgressionTests.MetaProgressionSaveSystem_ProcessesSaveEvents" methodname="MetaProgressionSaveSystem_ProcessesSaveEvents" classname="HyperCasualRunner.Tests.LevelProgressionTests" runstate="Runnable" seed="1182763778" result="Passed" start-time="2026-07-22 08:06:24Z" end-time="2026-07-22 08:06:24Z" duration="0.010872" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1012" name="UIManagerSystem_InstantiatesAndGenerates21LevelGrid" fullname="HyperCasualRunner.Tests.LevelProgressionTests.UIManagerSystem_InstantiatesAndGenerates21LevelGrid" methodname="UIManagerSystem_InstantiatesAndGenerates21LevelGrid" classname="HyperCasualRunner.Tests.LevelProgressionTests" runstate="Runnable" seed="530599150" result="Passed" start-time="2026-07-22 08:06:24Z" end-time="2026-07-22 08:06:24Z" duration="0.010464" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1013" name="Milestone4StressTests" fullname="HyperCasualRunner.Tests.Milestone4StressTests" classname="HyperCasualRunner.Tests.Milestone4StressTests" runstate="Runnable" testcasecount="5" result="Failed" site="Child" start-time="2026-07-22 08:06:24Z" end-time="2026-07-22 08:06:24Z" duration="0.032060" total="5" passed="4" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-case id="1017" name="LevelProgressionSystem_100CycleStress_TeardownAndEntityCount" fullname="HyperCasualRunner.Tests.Milestone4StressTests.LevelProgressionSystem_100CycleStress_TeardownAndEntityCount" methodname="LevelProgressionSystem_100CycleStress_TeardownAndEntityCount" classname="HyperCasualRunner.Tests.Milestone4StressTests" runstate="Runnable" seed="929609468" result="Passed" start-time="2026-07-22 08:06:24Z" end-time="2026-07-22 08:06:24Z" duration="0.008823" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1016" name="PlayerPrefs_RepeatedSaves_IntegrityUnderStress" fullname="HyperCasualRunner.Tests.Milestone4StressTests.PlayerPrefs_RepeatedSaves_IntegrityUnderStress" methodname="PlayerPrefs_RepeatedSaves_IntegrityUnderStress" classname="HyperCasualRunner.Tests.Milestone4StressTests" runstate="Runnable" seed="1039610224" result="Failed" start-time="2026-07-22 08:06:24Z" end-time="2026-07-22 08:06:24Z" duration="0.007254" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[  Expected: 15
+  But was:  20
+]]></message>
+                <stack-trace><![CDATA[at HyperCasualRunner.Tests.Milestone4StressTests.PlayerPrefs_RepeatedSaves_IntegrityUnderStress () [0x00015] in D:\Git\Hyper-Casual-Runner\Assets\Scripts\Editor\Tests\Milestone4StressTests.cs:81
+]]></stack-trace>
+              </failure>
+            </test-case>
+            <test-case id="1014" name="StarBoundary_NegativeAndExceedingValues_ClampedCorrectly" fullname="HyperCasualRunner.Tests.Milestone4StressTests.StarBoundary_NegativeAndExceedingValues_ClampedCorrectly" methodname="StarBoundary_NegativeAndExceedingValues_ClampedCorrectly" classname="HyperCasualRunner.Tests.Milestone4StressTests" runstate="Runnable" seed="467590958" result="Passed" start-time="2026-07-22 08:06:24Z" end-time="2026-07-22 08:06:24Z" duration="0.002481" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1015" name="StarBoundary_ScoreRetention_PreservesHighestStars" fullname="HyperCasualRunner.Tests.Milestone4StressTests.StarBoundary_ScoreRetention_PreservesHighestStars" methodname="StarBoundary_ScoreRetention_PreservesHighestStars" classname="HyperCasualRunner.Tests.Milestone4StressTests" runstate="Runnable" seed="2053879165" result="Passed" start-time="2026-07-22 08:06:24Z" end-time="2026-07-22 08:06:24Z" duration="0.003011" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1018" name="UIManagerSystem_DuplicateOnEnable_MeasuresCallbackAccumulation" fullname="HyperCasualRunner.Tests.Milestone4StressTests.UIManagerSystem_DuplicateOnEnable_MeasuresCallbackAccumulation" methodname="UIManagerSystem_DuplicateOnEnable_MeasuresCallbackAccumulation" classname="HyperCasualRunner.Tests.Milestone4StressTests" runstate="Runnable" seed="1653831997" result="Passed" start-time="2026-07-22 08:06:24Z" end-time="2026-07-22 08:06:24Z" duration="0.008452" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1019" name="ToolkitGeneratorTests" fullname="HyperCasualRunner.Tests.ToolkitGeneratorTests" classname="HyperCasualRunner.Tests.ToolkitGeneratorTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-07-22 08:06:24Z" end-time="2026-07-22 08:06:34Z" duration="9.958071" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1021" name="CountMasters_ContainsSwarmMechanicsAndGates" fullname="HyperCasualRunner.Tests.ToolkitGeneratorTests.CountMasters_ContainsSwarmMechanicsAndGates" methodname="CountMasters_ContainsSwarmMechanicsAndGates" classname="HyperCasualRunner.Tests.ToolkitGeneratorTests" runstate="Runnable" seed="1221571200" result="Passed" start-time="2026-07-22 08:06:24Z" end-time="2026-07-22 08:06:25Z" duration="1.740437" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Successfully generated 21 Playable Slices and 1 Master Hub!
+=== EMPIRICAL TOOLKIT VERIFICATION REPORT ===
+
+[PASS] 1_SubwaySurfers_Meta -> Verified on disk (13 children)
+       - LaneAuthoring verified: LaneWidth=2.5, Speed=15
+[PASS] 2_IdleSlayer_Platformer -> Verified on disk (4 children)
+[PASS] 3_TalkingTom_Rebuild -> Verified on disk (4 children)
+[PASS] 4_CountMasters_Swarm -> Verified on disk (16 children)
+[PASS] 5_JoinClash_Snake -> Verified on disk (20 children)
+       - SnakeChainAuthoring verified: StartingFollowers=3, SegmentSpacing=0.8
+[PASS] 6_MobControl_Cannons -> Verified on disk (16 children)
+[PASS] 7_BridgeRace_Stacker -> Verified on disk (31 children)
+[PASS] 8_HighHeels_Vertical -> Verified on disk (46 children)
+       - StiltsAuthoring verified: HeelHeight=0.5
+[PASS] 9_TallManRun_Scale -> Verified on disk (6 children)
+[PASS] 10_RunRich_Status -> Verified on disk (6 children)
+[PASS] 11_BlobRunner_Jiggle -> Verified on disk (4 children)
+[PASS] 12_StackyDash_Grid -> Verified on disk (153 children)
+       - MazeCollectorAuthoring & GridPathfinderAuthoring verified: TileHeightOffset=0.2, StepDistance=1
+[PASS] 13_ShortcutRun_Planks -> Verified on disk (27 children)
+       - BridgeBuilderAuthoring verified: DistancePerPlank=0.8
+[PASS] 14_MoneyRush_Coins -> Verified on disk (10 children)
+       - CoinSpawnerAuthoring verified: StartingCoins=1, GateCount=5
+[PASS] 15_Aquapark_Skip -> Verified on disk (6 children)
+       - RampAuthoring verified: JumpForce=18
+[PASS] 16_MyMiniMart_Supply -> Verified on disk (6 children)
+[PASS] 17_MyPerfectHotel_Service -> Verified on disk (6 children)
+[PASS] 18_BurgerPlease_Multi -> Verified on disk (4 children)
+[PASS] 19_PizzaReady_Flow -> Verified on disk (3 children)
+[PASS] 20_MyLittleUniverse_Build -> Verified on disk (6 children)
+[PASS] 21_WeaponMaster_Shooter -> Verified on disk (53 children)
+       - ShooterAuthoring verified: SpreadCount=1, FireRate=0.25
+
+SUMMARY: 21/21 Playable Slices verified successfully!
+
+]]></output>
+            </test-case>
+            <test-case id="1020" name="Generator_OutputsAll20Prefabs" fullname="HyperCasualRunner.Tests.ToolkitGeneratorTests.Generator_OutputsAll20Prefabs" methodname="Generator_OutputsAll20Prefabs" classname="HyperCasualRunner.Tests.ToolkitGeneratorTests" runstate="Runnable" seed="1030751734" result="Passed" start-time="2026-07-22 08:06:25Z" end-time="2026-07-22 08:06:27Z" duration="1.935345" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Successfully generated 21 Playable Slices and 1 Master Hub!
+=== EMPIRICAL TOOLKIT VERIFICATION REPORT ===
+
+[PASS] 1_SubwaySurfers_Meta -> Verified on disk (13 children)
+       - LaneAuthoring verified: LaneWidth=2.5, Speed=15
+[PASS] 2_IdleSlayer_Platformer -> Verified on disk (4 children)
+[PASS] 3_TalkingTom_Rebuild -> Verified on disk (4 children)
+[PASS] 4_CountMasters_Swarm -> Verified on disk (16 children)
+[PASS] 5_JoinClash_Snake -> Verified on disk (20 children)
+       - SnakeChainAuthoring verified: StartingFollowers=3, SegmentSpacing=0.8
+[PASS] 6_MobControl_Cannons -> Verified on disk (16 children)
+[PASS] 7_BridgeRace_Stacker -> Verified on disk (31 children)
+[PASS] 8_HighHeels_Vertical -> Verified on disk (46 children)
+       - StiltsAuthoring verified: HeelHeight=0.5
+[PASS] 9_TallManRun_Scale -> Verified on disk (6 children)
+[PASS] 10_RunRich_Status -> Verified on disk (6 children)
+[PASS] 11_BlobRunner_Jiggle -> Verified on disk (4 children)
+[PASS] 12_StackyDash_Grid -> Verified on disk (153 children)
+       - MazeCollectorAuthoring & GridPathfinderAuthoring verified: TileHeightOffset=0.2, StepDistance=1
+[PASS] 13_ShortcutRun_Planks -> Verified on disk (27 children)
+       - BridgeBuilderAuthoring verified: DistancePerPlank=0.8
+[PASS] 14_MoneyRush_Coins -> Verified on disk (10 children)
+       - CoinSpawnerAuthoring verified: StartingCoins=1, GateCount=5
+[PASS] 15_Aquapark_Skip -> Verified on disk (6 children)
+       - RampAuthoring verified: JumpForce=18
+[PASS] 16_MyMiniMart_Supply -> Verified on disk (6 children)
+[PASS] 17_MyPerfectHotel_Service -> Verified on disk (6 children)
+[PASS] 18_BurgerPlease_Multi -> Verified on disk (4 children)
+[PASS] 19_PizzaReady_Flow -> Verified on disk (3 children)
+[PASS] 20_MyLittleUniverse_Build -> Verified on disk (6 children)
+[PASS] 21_WeaponMaster_Shooter -> Verified on disk (53 children)
+       - ShooterAuthoring verified: SpreadCount=1, FireRate=0.25
+
+SUMMARY: 21/21 Playable Slices verified successfully!
+
+]]></output>
+            </test-case>
+            <test-case id="1024" name="JoinClash_ContainsSnakeChainAuthoring" fullname="HyperCasualRunner.Tests.ToolkitGeneratorTests.JoinClash_ContainsSnakeChainAuthoring" methodname="JoinClash_ContainsSnakeChainAuthoring" classname="HyperCasualRunner.Tests.ToolkitGeneratorTests" runstate="Runnable" seed="734311417" result="Passed" start-time="2026-07-22 08:06:27Z" end-time="2026-07-22 08:06:29Z" duration="1.700317" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Successfully generated 21 Playable Slices and 1 Master Hub!
+=== EMPIRICAL TOOLKIT VERIFICATION REPORT ===
+
+[PASS] 1_SubwaySurfers_Meta -> Verified on disk (13 children)
+       - LaneAuthoring verified: LaneWidth=2.5, Speed=15
+[PASS] 2_IdleSlayer_Platformer -> Verified on disk (4 children)
+[PASS] 3_TalkingTom_Rebuild -> Verified on disk (4 children)
+[PASS] 4_CountMasters_Swarm -> Verified on disk (16 children)
+[PASS] 5_JoinClash_Snake -> Verified on disk (20 children)
+       - SnakeChainAuthoring verified: StartingFollowers=3, SegmentSpacing=0.8
+[PASS] 6_MobControl_Cannons -> Verified on disk (16 children)
+[PASS] 7_BridgeRace_Stacker -> Verified on disk (31 children)
+[PASS] 8_HighHeels_Vertical -> Verified on disk (46 children)
+       - StiltsAuthoring verified: HeelHeight=0.5
+[PASS] 9_TallManRun_Scale -> Verified on disk (6 children)
+[PASS] 10_RunRich_Status -> Verified on disk (6 children)
+[PASS] 11_BlobRunner_Jiggle -> Verified on disk (4 children)
+[PASS] 12_StackyDash_Grid -> Verified on disk (153 children)
+       - MazeCollectorAuthoring & GridPathfinderAuthoring verified: TileHeightOffset=0.2, StepDistance=1
+[PASS] 13_ShortcutRun_Planks -> Verified on disk (27 children)
+       - BridgeBuilderAuthoring verified: DistancePerPlank=0.8
+[PASS] 14_MoneyRush_Coins -> Verified on disk (10 children)
+       - CoinSpawnerAuthoring verified: StartingCoins=1, GateCount=5
+[PASS] 15_Aquapark_Skip -> Verified on disk (6 children)
+       - RampAuthoring verified: JumpForce=18
+[PASS] 16_MyMiniMart_Supply -> Verified on disk (6 children)
+[PASS] 17_MyPerfectHotel_Service -> Verified on disk (6 children)
+[PASS] 18_BurgerPlease_Multi -> Verified on disk (4 children)
+[PASS] 19_PizzaReady_Flow -> Verified on disk (3 children)
+[PASS] 20_MyLittleUniverse_Build -> Verified on disk (6 children)
+[PASS] 21_WeaponMaster_Shooter -> Verified on disk (53 children)
+       - ShooterAuthoring verified: SpreadCount=1, FireRate=0.25
+
+SUMMARY: 21/21 Playable Slices verified successfully!
+
+]]></output>
+            </test-case>
+            <test-case id="1025" name="MoneyRush_ContainsCoinSpawnerAndGates" fullname="HyperCasualRunner.Tests.ToolkitGeneratorTests.MoneyRush_ContainsCoinSpawnerAndGates" methodname="MoneyRush_ContainsCoinSpawnerAndGates" classname="HyperCasualRunner.Tests.ToolkitGeneratorTests" runstate="Runnable" seed="83418845" result="Passed" start-time="2026-07-22 08:06:29Z" end-time="2026-07-22 08:06:30Z" duration="1.509373" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Successfully generated 21 Playable Slices and 1 Master Hub!
+=== EMPIRICAL TOOLKIT VERIFICATION REPORT ===
+
+[PASS] 1_SubwaySurfers_Meta -> Verified on disk (13 children)
+       - LaneAuthoring verified: LaneWidth=2.5, Speed=15
+[PASS] 2_IdleSlayer_Platformer -> Verified on disk (4 children)
+[PASS] 3_TalkingTom_Rebuild -> Verified on disk (4 children)
+[PASS] 4_CountMasters_Swarm -> Verified on disk (16 children)
+[PASS] 5_JoinClash_Snake -> Verified on disk (20 children)
+       - SnakeChainAuthoring verified: StartingFollowers=3, SegmentSpacing=0.8
+[PASS] 6_MobControl_Cannons -> Verified on disk (16 children)
+[PASS] 7_BridgeRace_Stacker -> Verified on disk (31 children)
+[PASS] 8_HighHeels_Vertical -> Verified on disk (46 children)
+       - StiltsAuthoring verified: HeelHeight=0.5
+[PASS] 9_TallManRun_Scale -> Verified on disk (6 children)
+[PASS] 10_RunRich_Status -> Verified on disk (6 children)
+[PASS] 11_BlobRunner_Jiggle -> Verified on disk (4 children)
+[PASS] 12_StackyDash_Grid -> Verified on disk (153 children)
+       - MazeCollectorAuthoring & GridPathfinderAuthoring verified: TileHeightOffset=0.2, StepDistance=1
+[PASS] 13_ShortcutRun_Planks -> Verified on disk (27 children)
+       - BridgeBuilderAuthoring verified: DistancePerPlank=0.8
+[PASS] 14_MoneyRush_Coins -> Verified on disk (10 children)
+       - CoinSpawnerAuthoring verified: StartingCoins=1, GateCount=5
+[PASS] 15_Aquapark_Skip -> Verified on disk (6 children)
+       - RampAuthoring verified: JumpForce=18
+[PASS] 16_MyMiniMart_Supply -> Verified on disk (6 children)
+[PASS] 17_MyPerfectHotel_Service -> Verified on disk (6 children)
+[PASS] 18_BurgerPlease_Multi -> Verified on disk (4 children)
+[PASS] 19_PizzaReady_Flow -> Verified on disk (3 children)
+[PASS] 20_MyLittleUniverse_Build -> Verified on disk (6 children)
+[PASS] 21_WeaponMaster_Shooter -> Verified on disk (53 children)
+       - ShooterAuthoring verified: SpreadCount=1, FireRate=0.25
+
+SUMMARY: 21/21 Playable Slices verified successfully!
+
+]]></output>
+            </test-case>
+            <test-case id="1022" name="MyMiniMart_ContainsArcadeIdleNodes" fullname="HyperCasualRunner.Tests.ToolkitGeneratorTests.MyMiniMart_ContainsArcadeIdleNodes" methodname="MyMiniMart_ContainsArcadeIdleNodes" classname="HyperCasualRunner.Tests.ToolkitGeneratorTests" runstate="Runnable" seed="473930579" result="Passed" start-time="2026-07-22 08:06:30Z" end-time="2026-07-22 08:06:32Z" duration="1.494895" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Successfully generated 21 Playable Slices and 1 Master Hub!
+=== EMPIRICAL TOOLKIT VERIFICATION REPORT ===
+
+[PASS] 1_SubwaySurfers_Meta -> Verified on disk (13 children)
+       - LaneAuthoring verified: LaneWidth=2.5, Speed=15
+[PASS] 2_IdleSlayer_Platformer -> Verified on disk (4 children)
+[PASS] 3_TalkingTom_Rebuild -> Verified on disk (4 children)
+[PASS] 4_CountMasters_Swarm -> Verified on disk (16 children)
+[PASS] 5_JoinClash_Snake -> Verified on disk (20 children)
+       - SnakeChainAuthoring verified: StartingFollowers=3, SegmentSpacing=0.8
+[PASS] 6_MobControl_Cannons -> Verified on disk (16 children)
+[PASS] 7_BridgeRace_Stacker -> Verified on disk (31 children)
+[PASS] 8_HighHeels_Vertical -> Verified on disk (46 children)
+       - StiltsAuthoring verified: HeelHeight=0.5
+[PASS] 9_TallManRun_Scale -> Verified on disk (6 children)
+[PASS] 10_RunRich_Status -> Verified on disk (6 children)
+[PASS] 11_BlobRunner_Jiggle -> Verified on disk (4 children)
+[PASS] 12_StackyDash_Grid -> Verified on disk (153 children)
+       - MazeCollectorAuthoring & GridPathfinderAuthoring verified: TileHeightOffset=0.2, StepDistance=1
+[PASS] 13_ShortcutRun_Planks -> Verified on disk (27 children)
+       - BridgeBuilderAuthoring verified: DistancePerPlank=0.8
+[PASS] 14_MoneyRush_Coins -> Verified on disk (10 children)
+       - CoinSpawnerAuthoring verified: StartingCoins=1, GateCount=5
+[PASS] 15_Aquapark_Skip -> Verified on disk (6 children)
+       - RampAuthoring verified: JumpForce=18
+[PASS] 16_MyMiniMart_Supply -> Verified on disk (6 children)
+[PASS] 17_MyPerfectHotel_Service -> Verified on disk (6 children)
+[PASS] 18_BurgerPlease_Multi -> Verified on disk (4 children)
+[PASS] 19_PizzaReady_Flow -> Verified on disk (3 children)
+[PASS] 20_MyLittleUniverse_Build -> Verified on disk (6 children)
+[PASS] 21_WeaponMaster_Shooter -> Verified on disk (53 children)
+       - ShooterAuthoring verified: SpreadCount=1, FireRate=0.25
+
+SUMMARY: 21/21 Playable Slices verified successfully!
+
+]]></output>
+            </test-case>
+            <test-case id="1023" name="StackyDash_ContainsMazeCollectorAndGridPathfinder" fullname="HyperCasualRunner.Tests.ToolkitGeneratorTests.StackyDash_ContainsMazeCollectorAndGridPathfinder" methodname="StackyDash_ContainsMazeCollectorAndGridPathfinder" classname="HyperCasualRunner.Tests.ToolkitGeneratorTests" runstate="Runnable" seed="1604217563" result="Passed" start-time="2026-07-22 08:06:32Z" end-time="2026-07-22 08:06:34Z" duration="1.575464" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[Successfully generated 21 Playable Slices and 1 Master Hub!
+=== EMPIRICAL TOOLKIT VERIFICATION REPORT ===
+
+[PASS] 1_SubwaySurfers_Meta -> Verified on disk (13 children)
+       - LaneAuthoring verified: LaneWidth=2.5, Speed=15
+[PASS] 2_IdleSlayer_Platformer -> Verified on disk (4 children)
+[PASS] 3_TalkingTom_Rebuild -> Verified on disk (4 children)
+[PASS] 4_CountMasters_Swarm -> Verified on disk (16 children)
+[PASS] 5_JoinClash_Snake -> Verified on disk (20 children)
+       - SnakeChainAuthoring verified: StartingFollowers=3, SegmentSpacing=0.8
+[PASS] 6_MobControl_Cannons -> Verified on disk (16 children)
+[PASS] 7_BridgeRace_Stacker -> Verified on disk (31 children)
+[PASS] 8_HighHeels_Vertical -> Verified on disk (46 children)
+       - StiltsAuthoring verified: HeelHeight=0.5
+[PASS] 9_TallManRun_Scale -> Verified on disk (6 children)
+[PASS] 10_RunRich_Status -> Verified on disk (6 children)
+[PASS] 11_BlobRunner_Jiggle -> Verified on disk (4 children)
+[PASS] 12_StackyDash_Grid -> Verified on disk (153 children)
+       - MazeCollectorAuthoring & GridPathfinderAuthoring verified: TileHeightOffset=0.2, StepDistance=1
+[PASS] 13_ShortcutRun_Planks -> Verified on disk (27 children)
+       - BridgeBuilderAuthoring verified: DistancePerPlank=0.8
+[PASS] 14_MoneyRush_Coins -> Verified on disk (10 children)
+       - CoinSpawnerAuthoring verified: StartingCoins=1, GateCount=5
+[PASS] 15_Aquapark_Skip -> Verified on disk (6 children)
+       - RampAuthoring verified: JumpForce=18
+[PASS] 16_MyMiniMart_Supply -> Verified on disk (6 children)
+[PASS] 17_MyPerfectHotel_Service -> Verified on disk (6 children)
+[PASS] 18_BurgerPlease_Multi -> Verified on disk (4 children)
+[PASS] 19_PizzaReady_Flow -> Verified on disk (3 children)
+[PASS] 20_MyLittleUniverse_Build -> Verified on disk (6 children)
+[PASS] 21_WeaponMaster_Shooter -> Verified on disk (53 children)
+       - ShooterAuthoring verified: SpreadCount=1, FireRate=0.25
+
+SUMMARY: 21/21 Playable Slices verified successfully!
+
+<b><color=#2EA3FF>MCP-FOR-UNITY</color></b>: [TestRunnerNoThrottle] Restored Interaction Mode after test run.
+Saving results to: C:/Users/AZAD/AppData/LocalLow/DefaultCompany/Stickman Rush\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

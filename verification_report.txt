@@ -1,0 +1,33 @@
+=== EMPIRICAL TOOLKIT VERIFICATION REPORT ===
+
+[PASS] 1_SubwaySurfers_Meta -> Verified on disk (13 children)
+       - LaneAuthoring verified: LaneWidth=2.5, Speed=15
+[PASS] 2_IdleSlayer_Platformer -> Verified on disk (4 children)
+[PASS] 3_TalkingTom_Rebuild -> Verified on disk (4 children)
+[PASS] 4_CountMasters_Swarm -> Verified on disk (16 children)
+[PASS] 5_JoinClash_Snake -> Verified on disk (20 children)
+       - SnakeChainAuthoring verified: StartingFollowers=3, SegmentSpacing=0.8
+[PASS] 6_MobControl_Cannons -> Verified on disk (16 children)
+[PASS] 7_BridgeRace_Stacker -> Verified on disk (31 children)
+[PASS] 8_HighHeels_Vertical -> Verified on disk (46 children)
+       - StiltsAuthoring verified: HeelHeight=0.5
+[PASS] 9_TallManRun_Scale -> Verified on disk (6 children)
+[PASS] 10_RunRich_Status -> Verified on disk (6 children)
+[PASS] 11_BlobRunner_Jiggle -> Verified on disk (4 children)
+[PASS] 12_StackyDash_Grid -> Verified on disk (153 children)
+       - MazeCollectorAuthoring & GridPathfinderAuthoring verified: TileHeightOffset=0.2, StepDistance=1
+[PASS] 13_ShortcutRun_Planks -> Verified on disk (27 children)
+       - BridgeBuilderAuthoring verified: DistancePerPlank=0.8
+[PASS] 14_MoneyRush_Coins -> Verified on disk (10 children)
+       - CoinSpawnerAuthoring verified: StartingCoins=1, GateCount=5
+[PASS] 15_Aquapark_Skip -> Verified on disk (6 children)
+       - RampAuthoring verified: JumpForce=18
+[PASS] 16_MyMiniMart_Supply -> Verified on disk (6 children)
+[PASS] 17_MyPerfectHotel_Service -> Verified on disk (6 children)
+[PASS] 18_BurgerPlease_Multi -> Verified on disk (4 children)
+[PASS] 19_PizzaReady_Flow -> Verified on disk (3 children)
+[PASS] 20_MyLittleUniverse_Build -> Verified on disk (6 children)
+[PASS] 21_WeaponMaster_Shooter -> Verified on disk (53 children)
+       - ShooterAuthoring verified: SpreadCount=1, FireRate=0.25
+
+SUMMARY: 21/21 Playable Slices verified successfully!

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ui="UnityEngine.UIElements"
+    xsi:noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
+>
+    <ui:Style src="LevelSelect.uss" />
+
+    <ui:VisualElement name="LevelSelectOverlay" class="level-select-overlay">
+        <ui:VisualElement name="LevelSelectModal" class="level-select-modal">
+            <!-- Header -->
+            <ui:VisualElement name="Header" class="modal-header">
+                <ui:Label text="SELECT LEVEL" class="title-label"/>
+                <ui:Button name="CloseBtn" text="✕" class="close-btn"/>
+            </ui:VisualElement>
+
+            <!-- Scrollable 3-column Grid Container -->
+            <ui:ScrollView name="LevelGridScrollView" class="grid-scroll-view">
+                <ui:VisualElement name="LevelGridContainer" class="level-grid-container"/>
+            </ui:ScrollView>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

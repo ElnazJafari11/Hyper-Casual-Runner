@@ -1,0 +1,62 @@
+.defeat-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(40, 0, 0, 0.85);
+    justify-content: center;
+    align-items: center;
+}
+
+.defeat-card {
+    width: 85%;
+    max-width: 420px;
+    background-color: #2D1517;
+    border-radius: 20px;
+    padding: 25px;
+    align-items: center;
+}
+
+.defeat-title {
+    font-size: 34px;
+    color: #EF4444;
+    -unity-font-style: bold;
+    margin-bottom: 10px;
+}
+
+.pct-label {
+    font-size: 20px;
+    color: #CBD5E1;
+    margin-bottom: 25px;
+    -unity-font-style: bold;
+}
+
+.revive-btn {
+    width: 100%;
+    height: 55px;
+    font-size: 20px;
+    background-color: #3B82F6;
+    color: #FFFFFF;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    -unity-font-style: bold;
+}
+
+.retry-btn {
+    width: 100%;
+    height: 50px;
+    font-size: 18px;
+    background-color: #EF4444;
+    color: #FFFFFF;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    -unity-font-style: bold;
+}
+
+.select-btn {
+    width: 100%;
+    height: 50px;
+    font-size: 18px;
+    background-color: #475569;
+    color: #FFFFFF;
+    border-radius: 12px;
+    -unity-font-style: bold;
+}

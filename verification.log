@@ -1,0 +1,22 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.3/staging' branch; Version is '6000.3.20f1 (c9ba695d4f07) revision 13220457'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 11  (10.0.26200) Core' Language: 'en' Physical Memory: 32687 MB
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-AZAD" at "2026-07-22T05:44:10.115525Z"
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-07-22T05:44:10Z
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.3.20f1\Editor\Unity.exe
+-projectPath
+d:\Git\Hyper-Casual-Runner
+-executeMethod
+HyperCasualRunner.Editor.ToolkitExampleGenerator.RunVerificationSuite
+-quit
+-batchmode
+-logFile
+verification.log
+Successfully changed project path to: d:\Git\Hyper-Casual-Runner
+D:/Git/Hyper-Casual-Runner
+Exiting without the bug reporter. Application will terminate with return code 1

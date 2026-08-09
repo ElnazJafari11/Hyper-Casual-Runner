@@ -1,0 +1,26 @@
+[2026-08-08T23:05:31.059Z][INFO] Command-line: 'C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.5f1\\Editor\\Data\\Resources\\PackageManager\\Server\\UnityPackageManager.exe' server -s 17000 --ipc-path Unity-Upm-17000 -l 2 --log-file D:\\Git\\Hyper-Casual-Runner/Logs/upm.log
+[2026-08-08T23:05:31.144Z][INFO] IPC server started (IPC path=Unity-Upm-17000).
+[2026-08-08T23:05:31.144Z][INFO] Hint: To connect to this UPM instance, launch Unity with the command-line parameter -upmIpcPath Upm-17000.
+[2026-08-08T23:05:35.689Z][INFO] project:list-packages <-- Request received
+params: {}
+[2026-08-08T23:05:36.450Z][INFO] project:list-packages --> 200 (761 ms)
+[2026-08-08T23:05:42.181Z][INFO] project:list-packages <-- Request received
+params: {}
+[2026-08-08T23:05:42.531Z][INFO] project:list-packages --> 200 (349 ms)
+[2026-08-08T23:05:52.677Z][INFO] project:list-packages <-- Request received
+params: {}
+[2026-08-08T23:05:53.036Z][INFO] project:list-packages --> 200 (359 ms)
+[2026-08-08T23:05:53.668Z][INFO] project:list-packages <-- Request received
+params: {}
+[2026-08-08T23:06:04.095Z][INFO] project:list-packages --> 200 (10427 ms)
+[2026-08-08T23:06:04.572Z][INFO] project:resolve-packages <-- Request received
+params: {}
+[2026-08-08T23:06:05.402Z][WARN] Requested version [1.8.1] for package [com.unity.services.core] overridden by minimum version [1.18.0].
+[2026-08-08T23:06:05.402Z][WARN] Requested version [1.0.3] for package [com.unity.settings-manager] overridden by minimum version [2.1.1].
+[2026-08-08T23:06:05.402Z][WARN] Requested version [1.8.25] for package [com.unity.burst] overridden by minimum version [1.8.29].
+[2026-08-08T23:06:05.402Z][WARN] Requested version [1.23.1] for package [com.unity.scriptablebuildpipeline] overridden by minimum version [2.6.1].
+[2026-08-08T23:06:05.402Z][WARN] Requested version [3.2.0] for package [com.unity.test-framework.performance] overridden by minimum version [3.5.0].
+[2026-08-08T23:06:05.402Z][WARN] Requested version [3.0.2] for package [com.unity.nuget.newtonsoft-json] overridden by minimum version [3.2.2].
+[2026-08-08T23:06:05.402Z][WARN] Requested version [4.9.3] for package [com.unity.searcher] overridden by minimum version [4.9.4].
+[2026-08-08T23:06:05.406Z][INFO] project:resolve-packages --> 200 (834 ms)
+[2026-08-08T23:06:09.457Z][INFO] Shutting down UnityPackageManager.exe: parent process [17000] is no longer running.
