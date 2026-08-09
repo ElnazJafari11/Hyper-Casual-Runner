@@ -4,6 +4,11 @@ using HyperCasualRunner.ECS.Components;
 
 namespace HyperCasualRunner.ECS.Systems
 {
+    /// <summary>
+    /// Cosmetics spend IdleSliceState.PrestigeCurrency when present (source of truth),
+    /// keeping PersistentPlayerStats.PrestigeCurrency synced. Runner-only entities still
+    /// spend PersistentPlayerStats directly.
+    /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct CosmeticsShopSystem : ISystem
     {
@@ -22,39 +27,60 @@ namespace HyperCasualRunner.ECS.Systems
                 double cost = purchaseEvent.ValueRO.PrestigeCost;
 
                 bool handled = false;
-                foreach (var stats in SystemAPI.Query<RefRW<PersistentPlayerStats>>())
+
+                // Prefer idle slice prestige ledger when co-located
+                foreach (var (slice, stats) in SystemAPI.Query<RefRW<IdleSliceState>, RefRW<PersistentPlayerStats>>())
                 {
                     handled = true;
+                    // Keep ledgers aligned before spend
+                    stats.ValueRW.PrestigeCurrency = slice.ValueRO.PrestigeCurrency;
+
                     if (GameProgressData.IsSkinUnlocked(skinIndex))
                     {
-                        // Already unlocked: equip skin without deducting currency
                         GameProgressData.CurrentSkinIndex = skinIndex;
                     }
-                    else if (stats.ValueRO.PrestigeCurrency >= cost)
+                    else if (slice.ValueRO.PrestigeCurrency >= cost)
                     {
-                        // Deduct PrestigeCurrency, unlock skin, and equip skin
-                        stats.ValueRW.PrestigeCurrency -= cost;
+                        slice.ValueRW.PrestigeCurrency -= cost;
+                        stats.ValueRW.PrestigeCurrency = slice.ValueRO.PrestigeCurrency;
                         GameProgressData.UnlockSkin(skinIndex);
                         GameProgressData.CurrentSkinIndex = skinIndex;
 
                         var soundEntity = ecb.CreateEntity();
                         ecb.AddComponent(soundEntity, new PlaySoundEventComponent { SoundToPlay = SoundType.Pickup });
                     }
+                    break; // first idle slice with stats
                 }
 
-                // If no PersistentPlayerStats entity exists, fall back to checking/unlocking via GameProgressData directly if free/unlocked
                 if (!handled)
                 {
-                    if (GameProgressData.IsSkinUnlocked(skinIndex))
+                    foreach (var stats in SystemAPI.Query<RefRW<PersistentPlayerStats>>().WithNone<IdleSliceState>())
                     {
-                        GameProgressData.CurrentSkinIndex = skinIndex;
+                        handled = true;
+                        if (GameProgressData.IsSkinUnlocked(skinIndex))
+                        {
+                            GameProgressData.CurrentSkinIndex = skinIndex;
+                        }
+                        else if (stats.ValueRO.PrestigeCurrency >= cost)
+                        {
+                            stats.ValueRW.PrestigeCurrency -= cost;
+                            GameProgressData.UnlockSkin(skinIndex);
+                            GameProgressData.CurrentSkinIndex = skinIndex;
+
+                            var soundEntity = ecb.CreateEntity();
+                            ecb.AddComponent(soundEntity, new PlaySoundEventComponent { SoundToPlay = SoundType.Pickup });
+                        }
                     }
                 }
 
-                if (state.EntityManager.HasComponent<CosmeticPurchaseEventComponent>(entity))
+                if (!handled)
                 {
-                    SystemAPI.SetComponentEnabled<CosmeticPurchaseEventComponent>(entity, false);
+                    if (GameProgressData.IsSkinUnlocked(skinIndex))
+                        GameProgressData.CurrentSkinIndex = skinIndex;
                 }
+
+                if (state.EntityManager.HasComponent<CosmeticPurchaseEventComponent>(entity))
+                    SystemAPI.SetComponentEnabled<CosmeticPurchaseEventComponent>(entity, false);
             }
 
             ecb.Playback(state.EntityManager);
