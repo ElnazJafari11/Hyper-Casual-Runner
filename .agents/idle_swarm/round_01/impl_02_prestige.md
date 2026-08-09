@@ -4,7 +4,7 @@
 **Review:** `review_04_prestige.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
-**Commit:** *(this receipt commit — local only, no push)*  
+**Commit:** `b156256` (local only, no push)  
 **Code owners (peers):** `57910f7` (impl_01 Batch A / prestige gate + FirePrestige), `1e2d9df` (impl_03 BC rebirth fixtures)
 
 ---
