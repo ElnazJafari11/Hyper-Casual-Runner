@@ -1,7 +1,8 @@
 # Idle Toolkit Progress
 
 Branch: `antigravity/toolkit-persist`  
-Matrix: `docs/idle_mechanics_matrix.md` (19 titles)
+Matrix: `docs/idle_mechanics_matrix.md` (19 titles)  
+Compose / piece catalog: `docs/idle-toolkit-compose.md`
 
 ## Evidence (latest)
 
@@ -14,7 +15,7 @@ Matrix: `docs/idle_mechanics_matrix.md` (19 titles)
 | Play Mode (MCP Hyper-Casual-Runner) | UNVERIFIED — MCP still on `thepcgtoolkit` |
 
 **EditMode-verified core verb + beat: 19/19**  
-**Play-mode verified: 0/19**
+**Play-mode verified: 0/19** — do not claim Playable / high-quality playability until this project's Play column is updated from real Play evidence.
 
 ## Per-game status
 
@@ -50,8 +51,16 @@ Unity.exe -batchmode -nographics -projectPath D:\Git\Hyper-Casual-Runner ^
 
 ## Human Play-Smoke
 
-Unity menu: **IdleToolkit → Human Play-Smoke Instructions**  
+Unity menu: **IdleToolkit → MVP → Human Play-Smoke Instructions**  
+Writes: `docs/idle-play-smoke-checklist.md` (Batch A/B expected HUD verbs + Done checkboxes)  
 Also: `Assets/ToolkitExamples/Idle/README_IDLE_SLICES.txt`
+
+## Menus
+
+| Path | Purpose |
+|------|---------|
+| `IdleToolkit/MVP/…` | 19 matrix idle MVPs |
+| `IdleToolkit/RunnerSlices/…` | 21 hyper-casual runner slices |
 
 ## Next
 

@@ -1,25 +1,37 @@
 Idle MVP slices (matrix → archetypes)
 See docs/idle-toolkit-progress.md for EditMode vs Play status.
+Compose / piece catalog: docs/idle-toolkit-compose.md
 
 STATUS (do not confuse these):
   EditMode-verified: 19/19  (IdleBatchASmokeTests + IdleBatchBCSmokeTests)
   Play Mode:         0/19   (needs Hyper-Casual-Runner open in Unity — MCP may be on another project)
 
-HUMAN PLAY-SMOKE (Unity menu: IdleToolkit/Human Play-Smoke Instructions)
-1. Open D:\Git\Hyper-Casual-Runner in Unity 6000.5.5f1
-2. IdleToolkit/Open Idle Prefab Folder
+MENUS (do not mix these up):
+  IdleToolkit/MVP/…            → 19 matrix idle MVPs (this folder)
+  IdleToolkit/RunnerSlices/…   → 21 hyper-casual runner slices (Assets/ToolkitExamples/*.prefab)
+
+HUMAN PLAY-SMOKE (Unity menu: IdleToolkit/MVP/Human Play-Smoke Instructions)
+  Writes durable checklist: docs/idle-play-smoke-checklist.md
+1. Open THIS project in Unity (not another toolkit repo)
+2. IdleToolkit/MVP/Open Idle Prefab Folder
 3. Drop Assets/ToolkitExamples/Idle/01_CookieClicker_Generators_Slice.prefab into a scene
 4. Play → use HUD: core verb + one progression beat (e.g. Click → Buy → Prestige)
 5. Repeat Batch A: 02, 03, 04, 06 then other slices as needed
-6. Mark Playable in docs/idle-toolkit-progress.md
+6. Mark Playable in docs/idle-toolkit-progress.md ONLY after Play evidence
 
 EDITMODE (no Play Mode):
-  Unity menu IdleToolkit/Run Batch A Smoke And Exit
+  Unity menu IdleToolkit/MVP/Run Batch A Smoke And Exit
   or batchmode -executeMethod HyperCasualRunner.Editor.IdleBatchATestRunner.RunAllIdleSmokeAndExit
   (do NOT pass -quit; the runner exits itself)
 
 GENERATE PREFABS:
-  IdleToolkit/Generate All Idle MVP Slices
+  IdleToolkit/MVP/Generate All Idle MVP Slices
+
+COMPOSITION CONTRACT (honest):
+  New prototype without a new IdleArchetype enum = unsupported.
+  Do not use ProducerAuthoring / ArcadeIdleAuthoring / ResourceWallet for M6 MVPs.
+  Clone + retune nearest prefab for low-novelty experiments.
+  Full map: docs/idle-toolkit-compose.md
 
 ARCHETYPE MAP
 01 Cookie Clicker          CookieClicker

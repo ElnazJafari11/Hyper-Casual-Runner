@@ -18,7 +18,7 @@ namespace HyperCasualRunner.Editor
             "20_MyLittleUniverse_Build", "21_WeaponMaster_Shooter"
         };
 
-        [MenuItem("IdleToolkit/Generate 21 Playable Slices")]
+        [MenuItem("IdleToolkit/RunnerSlices/Generate 21 Playable Slices")]
         public static void GenerateExamples()
         {
             string exportPath = "Assets/ToolkitExamples";
@@ -633,14 +633,14 @@ namespace HyperCasualRunner.Editor
             authoring.CollisionRadius = 1.5f;
         }
 
-        [MenuItem("IdleToolkit/Generate and Verify All")]
+        [MenuItem("IdleToolkit/RunnerSlices/Generate and Verify All")]
         public static void GenerateAndVerify()
         {
             GenerateExamples();
             RunVerificationSuite();
         }
 
-        [MenuItem("IdleToolkit/Run Verification Suite")]
+        [MenuItem("IdleToolkit/RunnerSlices/Run Verification Suite")]
         public static void RunVerificationSuite()
         {
             AssetDatabase.Refresh();

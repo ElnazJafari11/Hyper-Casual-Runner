@@ -2,6 +2,8 @@
 
 This document maps the top-tier idle games into a unified matrix of mechanics. It serves as the design blueprint for the Hyper-Casual Runner Toolkit's Idle Sandbox.
 
+**Code map (components / events / UI verbs / smoke):** `docs/idle-toolkit-compose.md` — design columns here are intent; MVP bar is one core verb + one beat.
+
 | Game | Core Verb | Prestige Model | Automation Pattern | Monetization Surface | Why Loved (Fun Factor) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Cookie Clicker** | Click → Buy Generators | Heavenly Chips (Global Multiplier) | Buy Cursor/Grandma (CPS) | None (Browser) | The emotional arc of absurd numbers played straight; deep theorycrafting. |
@@ -23,6 +25,16 @@ This document maps the top-tier idle games into a unified matrix of mechanics. I
 | **Cats & Soup** | Assign Cats to Stations | None (Facility unlocking) | Cats auto-cook | Cosmetics / Ad-skips | ASMR audio; monetizes affection and decoration instead of power. |
 | **Neko Atsume** | Place Food/Toys | None | Zero (Pure passive check-in) | Golden Fish | Zen endpoint; anticipation and surprise; absence as a mechanic. |
 | **Fallout Shelter** | Assign Dwellers | None (Base survival) | Dwellers auto-produce | Lunchboxes (Gacha) | IP affection; "check in or risk losses" tension rarely seen in idles. |
+
+## Matrix coverage gap (candidate #20)
+
+All 19 rows above have EditMode-verified MVP slices. The next expansion slot (not implemented) fills a missing **second-axis** pattern:
+
+| Candidate | Core Verb | Why it fills a gap |
+| :--- | :--- | :--- |
+| **Synergism** (deferred) | Buy upgrades → nested prestige (challenges / achievements as buyable) | Matrix already covers nested meta-layers (Antimatter) and factions (Realm Grinder), but not **achievement-gated buyables** that turn completionism into a generator. Compose path: new `IdleArchetype` + `IdleBuyGeneratorEvent` gated by `ProgressionLevel` flags — see `docs/idle-toolkit-compose.md`. |
+
+Do not implement #20 until Play Mode smoke clears for Batch A on Hyper-Casual-Runner.
 
 ## 5 Pillars of Design DNA
 
