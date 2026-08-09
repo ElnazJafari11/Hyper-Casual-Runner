@@ -86,4 +86,5 @@ Logs/IdleBatchBC-TestResults.xml → total="29" passed="29" failed="0"
 - **Deviations:** Used station-only pay for both assign archetypes (not continuous-for-Cats); still meets “pick one path.” Fixed unrelated OfflineSimulationSystem CS0120 to unblock compile.
 - **Flash Base:** none
 - **Escalations:** none
-- **Commit:** local only (never push)
+- **Commit:** `0ff27a1fb82259b2aa18ea8ff7adcbfcc75e6e8b` (local only, never push)
+- **Note:** Cozy verb code landed in shared Idle ECS commits during Round 01 implement contention; this receipt documents criteria + Batch BC `pass=29 fail=0` evidence.
