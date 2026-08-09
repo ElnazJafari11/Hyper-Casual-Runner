@@ -4,6 +4,11 @@ using HyperCasualRunner.ECS.Components;
 
 namespace HyperCasualRunner.ECS.Systems
 {
+    /// <summary>
+    /// Prestige is gated by IdlePrestigeMath.ConvertRunCurrency (0 → no-op).
+    /// Mutations are scoped to TargetSlice (or sole-slice fallback) — never world-wide.
+    /// PersistentPlayerStats on the slice entity syncs to IdleSliceState.PrestigeCurrency.
+    /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct PrestigeSystem : ISystem
     {
@@ -15,74 +20,141 @@ namespace HyperCasualRunner.ECS.Systems
         public void OnUpdate(ref SystemState state)
         {
             var ecb = new EntityCommandBuffer(Allocator.Temp);
+            var em = state.EntityManager;
+            Entity sole = IdleEventTarget.FindSoleSlice(em);
 
-            foreach (var (_, entity) in SystemAPI.Query<RefRO<PrestigeEventComponent>>().WithEntityAccess())
+            foreach (var (evt, entity) in SystemAPI.Query<RefRO<PrestigeEventComponent>>().WithEntityAccess())
             {
-                // Increment PrestigeCurrency for all entities with PersistentPlayerStats
-                foreach (var persistentStats in SystemAPI.Query<RefRW<PersistentPlayerStats>>())
+                Entity sliceEntity = IdleEventTarget.Resolve(em, entity, evt.ValueRO.TargetSlice, sole);
+
+                // Runner-only prestige (no IdleSliceState in world): legacy wallet/run clear
+                if (sliceEntity == Entity.Null)
                 {
-                    persistentStats.ValueRW.PrestigeCurrency += 1.0;
+                    bool anyIdle = false;
+                    foreach (var _ in SystemAPI.Query<RefRO<IdleSliceState>>())
+                    {
+                        anyIdle = true;
+                        break;
+                    }
+
+                    if (!anyIdle)
+                    {
+                        foreach (var persistentStats in SystemAPI.Query<RefRW<PersistentPlayerStats>>())
+                            persistentStats.ValueRW.PrestigeCurrency += 1.0;
+
+                        foreach (var currentRunStats in SystemAPI.Query<RefRW<CurrentRunStats>>())
+                        {
+                            currentRunStats.ValueRW.CurrentGold = 0.0;
+                            currentRunStats.ValueRW.CurrentDistance = 0;
+                        }
+
+                        foreach (var walletBuffer in SystemAPI.Query<DynamicBuffer<ResourceWallet>>())
+                            walletBuffer.Clear();
+
+                        foreach (var producer in SystemAPI.Query<RefRW<ProducerComponent>>())
+                        {
+                            producer.ValueRW.Timer = 0f;
+                            producer.ValueRW.Multiplier = 1.0;
+                        }
+
+                        var sfx = ecb.CreateEntity();
+                        ecb.AddComponent(sfx, new PlaySoundEventComponent { SoundToPlay = SoundType.Victory });
+                    }
+
+                    SystemAPI.SetComponentEnabled<PrestigeEventComponent>(entity, false);
+                    if (!em.HasComponent<IdleSliceState>(entity))
+                        ecb.DestroyEntity(entity);
+                    continue;
                 }
 
-                // Reset CurrentGold and CurrentDistance for all entities with CurrentRunStats
-                foreach (var currentRunStats in SystemAPI.Query<RefRW<CurrentRunStats>>())
+                var slice = em.GetComponentData<IdleSliceState>(sliceEntity);
+                double converted = IdlePrestigeMath.ConvertRunCurrency(slice.PrimaryCurrency);
+                if (converted < 1)
                 {
-                    currentRunStats.ValueRW.CurrentGold = 0.0;
-                    currentRunStats.ValueRW.CurrentDistance = 0;
+                    // Honest no-op below threshold — leave combat/gens untouched
+                    SystemAPI.SetComponentEnabled<PrestigeEventComponent>(entity, false);
+                    if (!em.HasComponent<IdleSliceState>(entity))
+                        ecb.DestroyEntity(entity);
+                    continue;
                 }
 
-                // Clear all ResourceWallet dynamic buffers across all entities
-                foreach (var walletBuffer in SystemAPI.Query<DynamicBuffer<ResourceWallet>>())
+                slice.PrestigeCurrency += converted;
+                slice.PrimaryCurrency = 0;
+                slice.OwnedGenerators = 0;
+                slice.PassiveRate = 0;
+                slice.PendingClaim = 0;
+                slice.ManagersHired = 0;
+                slice.AssignedWorkers = 0;
+                slice.ProgressionLevel = 0;
+                slice.EnemyHp = 0;
+                slice.EnemyMaxHp = 0;
+                // Intentionally retain FactionId / EnergyPool / EnergyAllocated / SkillXp / PhaseIndex.
+                slice.ClickPower = 1 + slice.PrestigeCurrency * 0.5;
+                slice.GlobalMultiplier = 1f + (float)slice.PrestigeCurrency * 0.1f;
+                em.SetComponentData(sliceEntity, slice);
+
+                // Single ledger: sync PersistentPlayerStats on this entity to slice prestige
+                if (em.HasComponent<PersistentPlayerStats>(sliceEntity))
                 {
-                    walletBuffer.Clear();
+                    var stats = em.GetComponentData<PersistentPlayerStats>(sliceEntity);
+                    stats.PrestigeCurrency = slice.PrestigeCurrency;
+                    em.SetComponentData(sliceEntity, stats);
                 }
 
-                // Reset Timer = 0 and Multiplier = 1 for all ProducerComponent entities
-                foreach (var producer in SystemAPI.Query<RefRW<ProducerComponent>>())
+                if (em.HasComponent<CurrentRunStats>(sliceEntity))
                 {
-                    producer.ValueRW.Timer = 0f;
-                    producer.ValueRW.Multiplier = 1.0;
+                    var run = em.GetComponentData<CurrentRunStats>(sliceEntity);
+                    run.CurrentGold = 0;
+                    run.CurrentDistance = 0;
+                    em.SetComponentData(sliceEntity, run);
                 }
 
-                // Idle toolkit slices: convert run currency → prestige mult, reset generators
-                foreach (var slice in SystemAPI.Query<RefRW<IdleSliceState>>())
-                {
-                    double converted = System.Math.Floor(System.Math.Sqrt(System.Math.Max(0, slice.ValueRO.PrimaryCurrency) / 50.0));
-                    if (converted < 1 && slice.ValueRO.PrimaryCurrency >= 25) converted = 1;
-                    if (converted < 1) converted = 1;
+                if (em.HasBuffer<ResourceWallet>(sliceEntity))
+                    em.GetBuffer<ResourceWallet>(sliceEntity).Clear();
 
-                    slice.ValueRW.PrestigeCurrency += converted;
-                    slice.ValueRW.PrimaryCurrency = 0;
-                    slice.ValueRW.OwnedGenerators = 0;
-                    slice.ValueRW.PassiveRate = 0;
-                    slice.ValueRW.ManagersHired = 0;
-                    slice.ValueRW.AssignedWorkers = 0;
-                    slice.ValueRW.ProgressionLevel = 0;
-                    slice.ValueRW.EnemyHp = 0;
-                    slice.ValueRW.EnemyMaxHp = 0;
-                    slice.ValueRW.ClickPower = 1 + slice.ValueRO.PrestigeCurrency * 0.5;
-                    slice.ValueRW.GlobalMultiplier = 1f + (float)slice.ValueRO.PrestigeCurrency * 0.1f;
+                if (em.HasComponent<BuyableGenerator>(sliceEntity))
+                {
+                    var gen = em.GetComponentData<BuyableGenerator>(sliceEntity);
+                    IdlePrestigeMath.ResetBuyableGenerator(ref gen, slice.Archetype);
+                    em.SetComponentData(sliceEntity, gen);
                 }
 
-                foreach (var gen in SystemAPI.Query<RefRW<BuyableGenerator>>())
+                if (em.HasComponent<IdleManager>(sliceEntity))
                 {
-                    gen.ValueRW.OwnedCount = 0;
+                    var manager = em.GetComponentData<IdleManager>(sliceEntity);
+                    manager.IsHired = false;
+                    em.SetComponentData(sliceEntity, manager);
                 }
 
-                foreach (var manager in SystemAPI.Query<RefRW<IdleManager>>())
+                if (em.HasComponent<ProducerComponent>(sliceEntity))
                 {
-                    manager.ValueRW.IsHired = false;
+                    var producer = em.GetComponentData<ProducerComponent>(sliceEntity);
+                    producer.Timer = 0f;
+                    producer.Multiplier = 1.0;
+                    em.SetComponentData(sliceEntity, producer);
                 }
 
-                // Fire massive hybrid Audio and VFX to celebrate the Prestige!
+                if (em.HasComponent<IdleCombatState>(sliceEntity))
+                {
+                    var combat = em.GetComponentData<IdleCombatState>(sliceEntity);
+                    combat.Zone = 1;
+                    combat.EnemyHp = 20f;
+                    combat.EnemyMaxHp = 20f;
+                    combat.GoldPerKill = 5;
+                    combat.TapDamage = slice.ClickPower;
+                    combat.HeroDps = System.Math.Max(1.0, slice.ClickPower * 0.25);
+                    em.SetComponentData(sliceEntity, combat);
+                }
+
                 var soundEntity = ecb.CreateEntity();
                 ecb.AddComponent(soundEntity, new PlaySoundEventComponent { SoundToPlay = SoundType.Victory });
-                
-                // Disable PrestigeEventComponent on the triggering entity
+
                 SystemAPI.SetComponentEnabled<PrestigeEventComponent>(entity, false);
+                if (!em.HasComponent<IdleSliceState>(entity))
+                    ecb.DestroyEntity(entity);
             }
 
-            ecb.Playback(state.EntityManager);
+            ecb.Playback(em);
             ecb.Dispose();
         }
     }

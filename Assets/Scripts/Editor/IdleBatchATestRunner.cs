@@ -13,9 +13,6 @@ namespace HyperCasualRunner.Editor
     /// </summary>
     public static class IdleBatchATestRunner
     {
-        private const string ResultsPath = "Logs/IdleBatchA-TestResults.xml";
-        private const string SummaryPath = "Logs/IdleBatchA-Summary.txt";
-
         public static void RunAndExit() => RunFixturesAndExit(
             "Logs/IdleBatchA-Summary.txt",
             "Logs/IdleBatchA-TestResults.xml",
@@ -66,10 +63,9 @@ namespace HyperCasualRunner.Editor
                 string summary =
                     $"result={result.ResultState} pass={result.PassCount} fail={result.FailCount} " +
                     $"skip={result.SkipCount} inconclusive={result.InconclusiveCount} duration={result.Duration}\n";
+                // Write only the requested artifact paths — do not overwrite Batch A when running BC/All.
                 File.WriteAllText(_summaryPath, summary);
-                // Keep Batch A path for older docs/tools
-                File.WriteAllText(SummaryPath, summary);
-                Debug.Log("[IdleToolkit] " + summary.Trim());
+                Debug.Log("[IdleToolkit] " + summary.Trim() + " → " + _summaryPath);
 
                 try
                 {
@@ -79,7 +75,6 @@ namespace HyperCasualRunner.Editor
                         $"passed=\"{result.PassCount}\" failed=\"{result.FailCount}\" " +
                         $"result=\"{result.ResultState}\" />\n";
                     File.WriteAllText(_resultsPath, xml);
-                    File.WriteAllText(ResultsPath, xml);
                 }
                 catch (Exception e)
                 {
@@ -94,7 +89,18 @@ namespace HyperCasualRunner.Editor
             public void TestFinished(ITestResultAdaptor result)
             {
                 if (result.HasChildren) return;
-                Debug.Log($"[IdleToolkit] {result.Name} => {result.ResultState}");
+                if (result.ResultState == "Passed")
+                {
+                    Debug.Log($"[IdleToolkit] {result.Name} => Passed");
+                    return;
+                }
+
+                string msg = result.Message ?? "";
+                string stack = result.StackTrace ?? "";
+                string output = result.Output ?? "";
+                Debug.LogWarning(
+                    $"[IdleToolkit] FAIL {result.Name} => {result.ResultState}\n" +
+                    $"MESSAGE: {msg}\nOUTPUT: {output}\nSTACK: {stack}");
             }
         }
     }

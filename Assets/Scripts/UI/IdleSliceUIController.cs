@@ -285,6 +285,7 @@ namespace HyperCasualRunner.UI
                     Btn(row, "Build", () => FireBuy(1));
                     Btn(row, "Align Good", () => FireAlloc(1f));
                     Btn(row, "Align Evil", () => FireAlloc(2f));
+                    Btn(row, "Rebirth", FirePrestige);
                     break;
                 case IdleArchetype.NguIdle:
                     Btn(row, "Allocate Energy", () => FireAlloc(10f));
@@ -364,16 +365,25 @@ namespace HyperCasualRunner.UI
         private void RefreshStats()
         {
             if (_stats == null) return;
-            var world = World.DefaultGameObjectInjectionWorld;
-            if (world == null || !world.IsCreated) return;
+            if (!TryGetEm(out var em)) return;
 
-            var em = world.EntityManager;
-            using var q = em.CreateEntityQuery(typeof(IdleSliceState));
-            if (q.IsEmptyIgnoreFilter) return;
-            var arr = q.ToComponentDataArray<IdleSliceState>(Unity.Collections.Allocator.Temp);
-            if (arr.Length == 0) { arr.Dispose(); return; }
-            var s = arr[0];
-            arr.Dispose();
+            IdleSliceState s;
+            if (_bootstrap != null && _bootstrap.IsSpawned &&
+                em.Exists(_bootstrap.SliceEntity) &&
+                em.HasComponent<IdleSliceState>(_bootstrap.SliceEntity))
+            {
+                s = em.GetComponentData<IdleSliceState>(_bootstrap.SliceEntity);
+            }
+            else
+            {
+                using var q = em.CreateEntityQuery(typeof(IdleSliceState));
+                if (q.IsEmptyIgnoreFilter) return;
+                var arr = q.ToComponentDataArray<IdleSliceState>(Unity.Collections.Allocator.Temp);
+                if (arr.Length == 0) { arr.Dispose(); return; }
+                s = arr[0];
+                arr.Dispose();
+            }
+
             _stats.text =
                 $"Currency: {s.PrimaryCurrency:N1} | Prestige: {s.PrestigeCurrency:N0} | " +
                 $"Lv/Zone: {s.ProgressionLevel} | CPS: {s.PassiveRate:N2} | " +
@@ -396,67 +406,108 @@ namespace HyperCasualRunner.UI
             return true;
         }
 
+        private Entity ResolveTargetSlice(EntityManager em)
+        {
+            if (_bootstrap != null && _bootstrap.IsSpawned &&
+                em.Exists(_bootstrap.SliceEntity) &&
+                em.HasComponent<IdleSliceState>(_bootstrap.SliceEntity))
+            {
+                return _bootstrap.SliceEntity;
+            }
+
+            using var q = em.CreateEntityQuery(typeof(IdleSliceState));
+            if (q.CalculateEntityCount() == 1)
+                return q.GetSingletonEntity();
+            return Entity.Null;
+        }
+
         private void FireClick(float mult)
         {
             if (!TryGetEm(out var em)) return;
             var e = em.CreateEntity();
-            em.AddComponentData(e, new IdleClickEvent { Multiplier = mult });
+            em.AddComponentData(e, new IdleClickEvent
+            {
+                TargetSlice = ResolveTargetSlice(em),
+                Multiplier = mult
+            });
         }
 
         private void FireBuy(int genId)
         {
             if (!TryGetEm(out var em)) return;
             var e = em.CreateEntity();
-            em.AddComponentData(e, new IdleBuyGeneratorEvent { GeneratorId = genId, Amount = 1 });
+            em.AddComponentData(e, new IdleBuyGeneratorEvent
+            {
+                TargetSlice = ResolveTargetSlice(em),
+                GeneratorId = genId,
+                Amount = 1
+            });
         }
 
         private void FireHire(int targetGenId)
         {
             if (!TryGetEm(out var em)) return;
             var e = em.CreateEntity();
-            em.AddComponentData(e, new IdleHireManagerEvent { TargetGeneratorId = targetGenId });
+            em.AddComponentData(e, new IdleHireManagerEvent
+            {
+                TargetSlice = ResolveTargetSlice(em),
+                TargetGeneratorId = targetGenId
+            });
         }
 
         private void FireAssign(int delta)
         {
             if (!TryGetEm(out var em)) return;
             var e = em.CreateEntity();
-            em.AddComponentData(e, new IdleAssignWorkerEvent { StationId = 1, Delta = delta });
+            em.AddComponentData(e, new IdleAssignWorkerEvent
+            {
+                TargetSlice = ResolveTargetSlice(em),
+                StationId = 1,
+                Delta = delta
+            });
         }
 
         private void FireNarrative(int actionId)
         {
             if (!TryGetEm(out var em)) return;
             var e = em.CreateEntity();
-            em.AddComponentData(e, new IdleNarrativeActionEvent { ActionId = actionId });
+            em.AddComponentData(e, new IdleNarrativeActionEvent
+            {
+                TargetSlice = ResolveTargetSlice(em),
+                ActionId = actionId
+            });
         }
 
         private void FireAlloc(float amount)
         {
             if (!TryGetEm(out var em)) return;
             var e = em.CreateEntity();
-            em.AddComponentData(e, new IdleAllocateEnergyEvent { Amount = amount });
+            em.AddComponentData(e, new IdleAllocateEnergyEvent
+            {
+                TargetSlice = ResolveTargetSlice(em),
+                Amount = amount
+            });
         }
 
         private void FireGacha()
         {
             if (!TryGetEm(out var em)) return;
             var e = em.CreateEntity();
-            em.AddComponentData(e, new IdleGachaPullEvent());
+            em.AddComponentData(e, new IdleGachaPullEvent { TargetSlice = ResolveTargetSlice(em) });
         }
 
         private void FireClaim()
         {
             if (!TryGetEm(out var em)) return;
             var e = em.CreateEntity();
-            em.AddComponentData(e, new IdleClaimOfflineEvent());
+            em.AddComponentData(e, new IdleClaimOfflineEvent { TargetSlice = ResolveTargetSlice(em) });
         }
 
         private void FirePhase()
         {
             if (!TryGetEm(out var em)) return;
             var e = em.CreateEntity();
-            em.AddComponentData(e, new IdlePhaseShiftEvent());
+            em.AddComponentData(e, new IdlePhaseShiftEvent { TargetSlice = ResolveTargetSlice(em) });
         }
 
         private void FirePrestige()
@@ -464,7 +515,7 @@ namespace HyperCasualRunner.UI
             // Single prestige path — do not also FirePhase (double conversion).
             if (!TryGetEm(out var em)) return;
             var e = em.CreateEntity();
-            em.AddComponentData(e, new PrestigeEventComponent());
+            em.AddComponentData(e, new PrestigeEventComponent { TargetSlice = ResolveTargetSlice(em) });
         }
 
         private void FireCosmetic(int skinIndex, double cost)

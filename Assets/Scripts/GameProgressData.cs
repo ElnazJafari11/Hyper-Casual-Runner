@@ -1,3 +1,4 @@
+using System.Globalization;
 using UnityEngine;
 
 namespace HyperCasualRunner
@@ -149,7 +150,10 @@ namespace HyperCasualRunner
 
         // --- Idle toolkit slice persistence (lightweight PlayerPrefs) ---
 
-        private static string IdleKey(int archetype, string field) => $"HCR_Idle_{(int)archetype}_{field}";
+        private static string IdleKey(int archetype, string field) => $"HCR_Idle_{archetype}_{field}";
+
+        private static bool TryParseInvariantDouble(string raw, out double value) =>
+            double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
 
         public static void SaveIdleSlice(
             int archetype,
@@ -159,16 +163,26 @@ namespace HyperCasualRunner
             int progressionLevel,
             double clickPower,
             double passiveRate,
-            int ownedGenerators)
+            int ownedGenerators,
+            int managersHired = 0,
+            int phaseIndex = 0,
+            int factionId = 0,
+            float energyAllocated = 0f,
+            bool managerIsHired = false)
         {
-            PlayerPrefs.SetString(IdleKey(archetype, "Primary"), primaryCurrency.ToString("R"));
-            PlayerPrefs.SetString(IdleKey(archetype, "Prestige"), prestigeCurrency.ToString("R"));
+            PlayerPrefs.SetString(IdleKey(archetype, "Primary"), primaryCurrency.ToString("R", CultureInfo.InvariantCulture));
+            PlayerPrefs.SetString(IdleKey(archetype, "Prestige"), prestigeCurrency.ToString("R", CultureInfo.InvariantCulture));
             PlayerPrefs.SetFloat(IdleKey(archetype, "Mult"), globalMultiplier);
             PlayerPrefs.SetInt(IdleKey(archetype, "Level"), progressionLevel);
-            PlayerPrefs.SetString(IdleKey(archetype, "Click"), clickPower.ToString("R"));
-            PlayerPrefs.SetString(IdleKey(archetype, "Passive"), passiveRate.ToString("R"));
+            PlayerPrefs.SetString(IdleKey(archetype, "Click"), clickPower.ToString("R", CultureInfo.InvariantCulture));
+            PlayerPrefs.SetString(IdleKey(archetype, "Passive"), passiveRate.ToString("R", CultureInfo.InvariantCulture));
             PlayerPrefs.SetInt(IdleKey(archetype, "Gens"), ownedGenerators);
-            LastIdleUpdateTime = System.DateTime.UtcNow.ToString("O");
+            PlayerPrefs.SetInt(IdleKey(archetype, "Managers"), managersHired);
+            PlayerPrefs.SetInt(IdleKey(archetype, "Phase"), phaseIndex);
+            PlayerPrefs.SetInt(IdleKey(archetype, "Faction"), factionId);
+            PlayerPrefs.SetString(IdleKey(archetype, "Energy"), energyAllocated.ToString("R", CultureInfo.InvariantCulture));
+            PlayerPrefs.SetInt(IdleKey(archetype, "MgrHired"), managerIsHired ? 1 : 0);
+            LastIdleUpdateTime = System.DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture);
             Save();
         }
 
@@ -182,6 +196,37 @@ namespace HyperCasualRunner
             out double passiveRate,
             out int ownedGenerators)
         {
+            return TryLoadIdleSlice(
+                archetype,
+                out primaryCurrency,
+                out prestigeCurrency,
+                out globalMultiplier,
+                out progressionLevel,
+                out clickPower,
+                out passiveRate,
+                out ownedGenerators,
+                out _,
+                out _,
+                out _,
+                out _,
+                out _);
+        }
+
+        public static bool TryLoadIdleSlice(
+            int archetype,
+            out double primaryCurrency,
+            out double prestigeCurrency,
+            out float globalMultiplier,
+            out int progressionLevel,
+            out double clickPower,
+            out double passiveRate,
+            out int ownedGenerators,
+            out int managersHired,
+            out int phaseIndex,
+            out int factionId,
+            out float energyAllocated,
+            out bool managerIsHired)
+        {
             primaryCurrency = 0;
             prestigeCurrency = 0;
             globalMultiplier = 1f;
@@ -189,17 +234,28 @@ namespace HyperCasualRunner
             clickPower = 1;
             passiveRate = 0;
             ownedGenerators = 0;
+            managersHired = 0;
+            phaseIndex = 0;
+            factionId = 0;
+            energyAllocated = 0f;
+            managerIsHired = false;
 
             string primaryKey = IdleKey(archetype, "Primary");
             if (!PlayerPrefs.HasKey(primaryKey)) return false;
 
-            double.TryParse(PlayerPrefs.GetString(primaryKey, "0"), out primaryCurrency);
-            double.TryParse(PlayerPrefs.GetString(IdleKey(archetype, "Prestige"), "0"), out prestigeCurrency);
+            TryParseInvariantDouble(PlayerPrefs.GetString(primaryKey, "0"), out primaryCurrency);
+            TryParseInvariantDouble(PlayerPrefs.GetString(IdleKey(archetype, "Prestige"), "0"), out prestigeCurrency);
             globalMultiplier = PlayerPrefs.GetFloat(IdleKey(archetype, "Mult"), 1f);
             progressionLevel = PlayerPrefs.GetInt(IdleKey(archetype, "Level"), 0);
-            double.TryParse(PlayerPrefs.GetString(IdleKey(archetype, "Click"), "1"), out clickPower);
-            double.TryParse(PlayerPrefs.GetString(IdleKey(archetype, "Passive"), "0"), out passiveRate);
+            TryParseInvariantDouble(PlayerPrefs.GetString(IdleKey(archetype, "Click"), "1"), out clickPower);
+            TryParseInvariantDouble(PlayerPrefs.GetString(IdleKey(archetype, "Passive"), "0"), out passiveRate);
             ownedGenerators = PlayerPrefs.GetInt(IdleKey(archetype, "Gens"), 0);
+            managersHired = PlayerPrefs.GetInt(IdleKey(archetype, "Managers"), 0);
+            phaseIndex = PlayerPrefs.GetInt(IdleKey(archetype, "Phase"), 0);
+            factionId = PlayerPrefs.GetInt(IdleKey(archetype, "Faction"), 0);
+            TryParseInvariantDouble(PlayerPrefs.GetString(IdleKey(archetype, "Energy"), "0"), out var energy);
+            energyAllocated = (float)energy;
+            managerIsHired = PlayerPrefs.GetInt(IdleKey(archetype, "MgrHired"), 0) != 0;
             return true;
         }
 
@@ -212,6 +268,11 @@ namespace HyperCasualRunner
             PlayerPrefs.DeleteKey(IdleKey(archetype, "Click"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "Passive"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "Gens"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "Managers"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "Phase"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "Faction"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "Energy"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "MgrHired"));
             Save();
         }
     }

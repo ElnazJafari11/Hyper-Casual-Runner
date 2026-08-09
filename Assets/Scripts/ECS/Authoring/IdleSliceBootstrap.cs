@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Entities;
 using HyperCasualRunner.ECS.Components;
+using HyperCasualRunner.ECS.Systems;
 
 namespace HyperCasualRunner.ECS.Authoring
 {
@@ -27,7 +28,17 @@ namespace HyperCasualRunner.ECS.Authoring
 
         private Entity _sliceEntity;
         private bool _spawned;
+        private bool _destroyed;
         private float _saveTimer;
+        private int _loadedGens;
+        private bool _loadedManagerHired;
+        private int _loadedManagersHired;
+        private int _loadedPhase;
+        private int _loadedFaction;
+        private float _loadedEnergy;
+
+        public Entity SliceEntity => _sliceEntity;
+        public bool IsSpawned => _spawned && !_destroyed;
 
         private void Start()
         {
@@ -36,6 +47,7 @@ namespace HyperCasualRunner.ECS.Authoring
 
         private void Update()
         {
+            if (_destroyed) return;
             if (!_spawned) TrySpawn();
             else
             {
@@ -50,7 +62,7 @@ namespace HyperCasualRunner.ECS.Authoring
 
         private void TrySpawn()
         {
-            if (_spawned) return;
+            if (_spawned || _destroyed) return;
             var world = World.DefaultGameObjectInjectionWorld;
             if (world == null || !world.IsCreated) return;
 
@@ -73,10 +85,10 @@ namespace HyperCasualRunner.ECS.Authoring
                 CurrentGold = initial.PrimaryCurrency,
                 BaseDamage = (float)initial.ClickPower
             });
-            em.AddComponent<PrestigeEventComponent>(_sliceEntity);
+            em.AddComponentData(_sliceEntity, new PrestigeEventComponent { TargetSlice = _sliceEntity });
             em.SetComponentEnabled<PrestigeEventComponent>(_sliceEntity, false);
 
-            AttachArchetypeExtras(em, _sliceEntity);
+            AttachArchetypeExtras(em, _sliceEntity, initial);
             _spawned = true;
         }
 
@@ -121,7 +133,8 @@ namespace HyperCasualRunner.ECS.Authoring
                     state.PassiveRate = Archetype == IdleArchetype.IdleHeroes ? 2 : 0.5;
                     break;
                 case IdleArchetype.MelvorIdle:
-                    state.PassiveRate = 0.5;
+                    // Matches IdleSkillNode: 1 currency / TickInterval (1s).
+                    state.PassiveRate = 1.0;
                     break;
                 case IdleArchetype.NekoAtsume:
                     state.PrimaryCurrency = System.Math.Max(StartingCurrency, 20);
@@ -130,6 +143,13 @@ namespace HyperCasualRunner.ECS.Authoring
                     state.PassiveRate = 1;
                     break;
             }
+
+            _loadedGens = 0;
+            _loadedManagerHired = false;
+            _loadedManagersHired = 0;
+            _loadedPhase = 0;
+            _loadedFaction = 0;
+            _loadedEnergy = 0f;
 
             if (LoadPersistedProgress &&
                 GameProgressData.TryLoadIdleSlice(
@@ -140,7 +160,12 @@ namespace HyperCasualRunner.ECS.Authoring
                     out var level,
                     out var click,
                     out var passive,
-                    out var gens))
+                    out var gens,
+                    out var managers,
+                    out var phase,
+                    out var faction,
+                    out var energy,
+                    out var mgrHired))
             {
                 state.PrimaryCurrency = primary;
                 state.PrestigeCurrency = prestige;
@@ -149,20 +174,62 @@ namespace HyperCasualRunner.ECS.Authoring
                 state.ClickPower = click > 0 ? click : state.ClickPower;
                 state.PassiveRate = passive;
                 state.OwnedGenerators = gens;
+                state.ManagersHired = managers;
+                state.PhaseIndex = phase;
+                state.FactionId = faction;
+                state.EnergyAllocated = energy;
+                _loadedGens = gens;
+                _loadedManagersHired = managers;
+                _loadedPhase = phase;
+                _loadedFaction = faction;
+                _loadedEnergy = energy;
+                _loadedManagerHired = mgrHired;
+
+                // Kernel B wall-clock catch-up (Kernel A OfflineSimulationSystem is ProducerComponent-only).
+                ApplyPersistedOfflineCatchUp(ref state);
             }
 
             return state;
         }
 
+        private static void ApplyPersistedOfflineCatchUp(ref IdleSliceState state)
+        {
+            string lastTimeStr = GameProgressData.LastIdleUpdateTime;
+            if (string.IsNullOrEmpty(lastTimeStr)) return;
+            if (!System.DateTime.TryParse(
+                    lastTimeStr,
+                    null,
+                    System.Globalization.DateTimeStyles.RoundtripKind,
+                    out System.DateTime lastTime))
+                return;
+
+            double elapsed = (System.DateTime.UtcNow - lastTime).TotalSeconds;
+            if (elapsed <= 0) return;
+
+            IdleOfflineCatchUp.Apply(ref state, elapsed);
+            GameProgressData.LastIdleUpdateTime = System.DateTime.UtcNow.ToString("O");
+        }
+
         public void PersistNow()
         {
-            if (!_spawned) return;
+            if (!_spawned || _destroyed) return;
             var world = World.DefaultGameObjectInjectionWorld;
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
             if (!em.Exists(_sliceEntity) || !em.HasComponent<IdleSliceState>(_sliceEntity)) return;
 
             var s = em.GetComponentData<IdleSliceState>(_sliceEntity);
+            bool mgrHired = em.HasComponent<IdleManager>(_sliceEntity) &&
+                            em.GetComponentData<IdleManager>(_sliceEntity).IsHired;
+
+            // Keep dual ledger synced on save
+            if (em.HasComponent<PersistentPlayerStats>(_sliceEntity))
+            {
+                var stats = em.GetComponentData<PersistentPlayerStats>(_sliceEntity);
+                stats.PrestigeCurrency = s.PrestigeCurrency;
+                em.SetComponentData(_sliceEntity, stats);
+            }
+
             GameProgressData.SaveIdleSlice(
                 (int)s.Archetype,
                 s.PrimaryCurrency,
@@ -171,10 +238,15 @@ namespace HyperCasualRunner.ECS.Authoring
                 s.ProgressionLevel,
                 s.ClickPower,
                 s.PassiveRate,
-                s.OwnedGenerators);
+                s.OwnedGenerators,
+                s.ManagersHired,
+                s.PhaseIndex,
+                s.FactionId,
+                s.EnergyAllocated,
+                mgrHired);
         }
 
-        private void AttachArchetypeExtras(EntityManager em, Entity slice)
+        private void AttachArchetypeExtras(EntityManager em, Entity slice, IdleSliceState initial)
         {
             switch (Archetype)
             {
@@ -185,15 +257,22 @@ namespace HyperCasualRunner.ECS.Authoring
                 case IdleArchetype.EggInc:
                 case IdleArchetype.IdleMinerTycoon:
                 case IdleArchetype.RealmGrinder:
+                {
+                    bool needsManager = GeneratorRequiresManager
+                        || Archetype == IdleArchetype.AdventureCapitalist
+                        || Archetype == IdleArchetype.IdleMinerTycoon;
+                    // Keep RequiresManager as historical gate even when previously hired;
+                    // IsAutomated carries the live unlock (prestige clears it via IdlePrestigeMath).
+                    bool automated = !needsManager || _loadedManagerHired;
                     em.AddComponentData(slice, new BuyableGenerator
                     {
                         GeneratorId = 1,
-                        OwnedCount = 0,
+                        OwnedCount = _loadedGens,
                         BaseCost = GeneratorBaseCost,
                         CostGrowth = GeneratorCostGrowth,
                         BaseCps = GeneratorBaseCps,
-                        RequiresManager = GeneratorRequiresManager || Archetype == IdleArchetype.AdventureCapitalist,
-                        IsAutomated = !(GeneratorRequiresManager || Archetype == IdleArchetype.AdventureCapitalist)
+                        RequiresManager = needsManager,
+                        IsAutomated = automated
                     });
                     if (Archetype == IdleArchetype.AdventureCapitalist ||
                         Archetype == IdleArchetype.IdleMinerTycoon)
@@ -202,10 +281,11 @@ namespace HyperCasualRunner.ECS.Authoring
                         {
                             TargetGeneratorId = 1,
                             HireCost = ManagerHireCost,
-                            IsHired = false
+                            IsHired = _loadedManagerHired
                         });
                     }
                     break;
+                }
 
                 case IdleArchetype.ClickerHeroes:
                 case IdleArchetype.TapTitans2:
@@ -213,7 +293,7 @@ namespace HyperCasualRunner.ECS.Authoring
                     {
                         TapDamage = ClickPower,
                         HeroDps = System.Math.Max(1.0, statePassiveFromEntity(em, slice)),
-                        Zone = 1,
+                        Zone = System.Math.Max(1, initial.ProgressionLevel),
                         GoldPerKill = 5,
                         EnemyHp = 20,
                         EnemyMaxHp = 20
@@ -221,7 +301,7 @@ namespace HyperCasualRunner.ECS.Authoring
                     em.AddComponentData(slice, new BuyableGenerator
                     {
                         GeneratorId = 1,
-                        OwnedCount = 0,
+                        OwnedCount = _loadedGens,
                         BaseCost = 20,
                         CostGrowth = 1.2f,
                         BaseCps = 1,
@@ -235,7 +315,7 @@ namespace HyperCasualRunner.ECS.Authoring
                     {
                         TapDamage = ClickPower,
                         HeroDps = 3,
-                        Zone = 1,
+                        Zone = System.Math.Max(1, initial.ProgressionLevel),
                         GoldPerKill = 5,
                         EnemyHp = 20,
                         EnemyMaxHp = 20
@@ -263,17 +343,20 @@ namespace HyperCasualRunner.ECS.Authoring
                     break;
 
                 case IdleArchetype.MelvorIdle:
+                {
+                    int skillLevel = System.Math.Max(1, initial.ProgressionLevel > 0 ? initial.ProgressionLevel : 1);
                     em.AddComponentData(slice, new IdleSkillNode
                     {
                         SkillId = 1,
-                        Level = 1,
-                        Xp = 0,
-                        XpToLevel = 25,
+                        Level = skillLevel,
+                        Xp = initial.SkillXp,
+                        XpToLevel = skillLevel <= 1 ? 25 : (20 + skillLevel * 10),
                         TickInterval = 1f,
                         Timer = 0f,
                         IsActive = true
                     });
                     break;
+                }
 
                 case IdleArchetype.ADarkRoom:
                 case IdleArchetype.CapybaraGo:
@@ -318,8 +401,17 @@ namespace HyperCasualRunner.ECS.Authoring
 
         private void OnDestroy()
         {
+            if (_destroyed) return;
             PersistNow();
-            // TODO: [STUB] entity cleanup on domain reload / destroy
+            _destroyed = true;
+
+            if (!_spawned) return;
+            var world = World.DefaultGameObjectInjectionWorld;
+            if (world == null || !world.IsCreated) return;
+            var em = world.EntityManager;
+            if (em.Exists(_sliceEntity))
+                em.DestroyEntity(_sliceEntity);
+            _spawned = false;
         }
     }
 }

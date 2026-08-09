@@ -14,30 +14,45 @@ namespace HyperCasualRunner.ECS.Systems
 
         public void OnUpdate(ref SystemState state)
         {
+            var em = state.EntityManager;
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            Entity sole = IdleEventTarget.FindSoleSlice(em);
+
             foreach (var (evt, entity) in SystemAPI.Query<RefRO<IdleAssignWorkerEvent>>().WithEntityAccess())
             {
                 int stationId = evt.ValueRO.StationId;
                 int delta = evt.ValueRO.Delta == 0 ? 1 : evt.ValueRO.Delta;
+                Entity sliceEntity = IdleEventTarget.Resolve(em, entity, evt.ValueRO.TargetSlice, sole);
 
-                foreach (var slice in SystemAPI.Query<RefRW<IdleSliceState>>())
+                if (sliceEntity != Entity.Null && em.HasComponent<IdleSliceState>(sliceEntity))
                 {
-                    int next = slice.ValueRO.AssignedWorkers + delta;
-                    next = System.Math.Max(0, System.Math.Min(slice.ValueRO.MaxWorkers, next));
-                    slice.ValueRW.AssignedWorkers = next;
-                    if (next > 0 && slice.ValueRO.ProgressionLevel < 1)
-                        slice.ValueRW.ProgressionLevel = 1;
-                }
+                    var slice = em.GetComponentData<IdleSliceState>(sliceEntity);
+                    int next = slice.AssignedWorkers + delta;
+                    next = System.Math.Max(0, System.Math.Min(slice.MaxWorkers, next));
+                    slice.AssignedWorkers = next;
+                    if (next > 0 && slice.ProgressionLevel < 1)
+                        slice.ProgressionLevel = 1;
+                    em.SetComponentData(sliceEntity, slice);
 
-                foreach (var station in SystemAPI.Query<RefRW<IdleAssignmentStation>>())
-                {
-                    if (stationId != 0 && station.ValueRO.StationId != stationId) continue;
-                    int assigned = station.ValueRO.AssignedCount + delta;
-                    assigned = System.Math.Max(0, System.Math.Min(station.ValueRO.Capacity, assigned));
-                    station.ValueRW.AssignedCount = assigned;
+                    if (em.HasComponent<IdleAssignmentStation>(sliceEntity))
+                    {
+                        var station = em.GetComponentData<IdleAssignmentStation>(sliceEntity);
+                        if (stationId == 0 || station.StationId == stationId)
+                        {
+                            int assigned = station.AssignedCount + delta;
+                            assigned = System.Math.Max(0, System.Math.Min(station.Capacity, assigned));
+                            station.AssignedCount = assigned;
+                            em.SetComponentData(sliceEntity, station);
+                        }
+                    }
                 }
 
                 SystemAPI.SetComponentEnabled<IdleAssignWorkerEvent>(entity, false);
+                ecb.DestroyEntity(entity);
             }
+
+            ecb.Playback(em);
+            ecb.Dispose();
         }
     }
 
@@ -52,53 +67,92 @@ namespace HyperCasualRunner.ECS.Systems
         public void OnUpdate(ref SystemState state)
         {
             var ecb = new EntityCommandBuffer(Allocator.Temp);
+            var em = state.EntityManager;
+            Entity sole = IdleEventTarget.FindSoleSlice(em);
 
-            foreach (var (_, entity) in SystemAPI.Query<RefRO<IdleGachaPullEvent>>().WithEntityAccess())
+            foreach (var (evt, entity) in SystemAPI.Query<RefRO<IdleGachaPullEvent>>().WithEntityAccess())
             {
-                foreach (var (gacha, slice) in SystemAPI.Query<RefRW<IdleGachaState>, RefRW<IdleSliceState>>())
+                Entity sliceEntity = IdleEventTarget.Resolve(em, entity, evt.ValueRO.TargetSlice, sole);
+
+                if (sliceEntity != Entity.Null && em.HasComponent<IdleSliceState>(sliceEntity))
                 {
-                    double cost = gacha.ValueRO.PullCost <= 0 ? 10.0 : gacha.ValueRO.PullCost;
-                    if (slice.ValueRO.PrimaryCurrency < cost) continue;
+                    var slice = em.GetComponentData<IdleSliceState>(sliceEntity);
 
-                    slice.ValueRW.PrimaryCurrency -= cost;
-                    gacha.ValueRW.PullCount += 1;
-
-                    // Deterministic rarity ladder (no System.Random in Burst-friendly path)
-                    int rarity = 1 + (gacha.ValueRO.PullCount % 5);
-                    if (rarity > gacha.ValueRO.BestRarity) gacha.ValueRW.BestRarity = rarity;
-
-                    slice.ValueRW.ClickPower += rarity * 0.5;
-                    slice.ValueRW.GlobalMultiplier += rarity * 0.02f;
-
-                    if (gacha.ValueRO.PullCount % 3 == 0)
+                    if (em.HasComponent<IdleGachaState>(sliceEntity))
                     {
-                        gacha.ValueRW.Stage += 1;
-                        slice.ValueRW.ProgressionLevel = gacha.ValueRO.Stage;
+                        var gacha = em.GetComponentData<IdleGachaState>(sliceEntity);
+                        if (TryApplyPull(ref gacha, ref slice, out int rarity))
+                        {
+                            // Idle Heroes: gacha must raise auto-combat DPS, not only ClickPower/mult
+                            if (slice.Archetype == IdleArchetype.IdleHeroes)
+                            {
+                                double dpsGain = rarity * 0.5;
+                                slice.PassiveRate += dpsGain;
+                                if (em.HasComponent<IdleCombatState>(sliceEntity))
+                                {
+                                    var combat = em.GetComponentData<IdleCombatState>(sliceEntity);
+                                    combat.HeroDps += dpsGain;
+                                    combat.TapDamage = slice.ClickPower;
+                                    em.SetComponentData(sliceEntity, combat);
+                                }
+                            }
+
+                            em.SetComponentData(sliceEntity, gacha);
+                            em.SetComponentData(sliceEntity, slice);
+
+                            var sfx = ecb.CreateEntity();
+                            ecb.AddComponent(sfx, new PlaySoundEventComponent { SoundToPlay = SoundType.Pickup });
+                        }
+                    }
+                    else if (slice.Archetype == IdleArchetype.LegendOfMushroom ||
+                             slice.Archetype == IdleArchetype.IdleHeroes)
+                    {
+                        double cost = 10.0 + slice.ProgressionLevel * 5;
+                        if (slice.PrimaryCurrency >= cost)
+                        {
+                            slice.PrimaryCurrency -= cost;
+                            slice.ClickPower += 1.0;
+                            slice.ProgressionLevel += 1;
+                            slice.GlobalMultiplier += 0.05f;
+                            if (slice.Archetype == IdleArchetype.IdleHeroes)
+                                slice.PassiveRate += 0.5;
+                            em.SetComponentData(sliceEntity, slice);
+                        }
                     }
 
-                    var sfx = ecb.CreateEntity();
-                    ecb.AddComponent(sfx, new PlaySoundEventComponent { SoundToPlay = SoundType.Pickup });
+                    IdleEventTarget.SyncPairedRunGold(em, sliceEntity, slice.PrimaryCurrency);
                 }
 
-                // Legend of Mushroom / Idle Heroes without separate gacha component
-                foreach (var slice in SystemAPI.Query<RefRW<IdleSliceState>>().WithNone<IdleGachaState>())
-                {
-                    if (slice.ValueRO.Archetype != IdleArchetype.LegendOfMushroom &&
-                        slice.ValueRO.Archetype != IdleArchetype.IdleHeroes) continue;
-
-                    double cost = 10.0 + slice.ValueRO.ProgressionLevel * 5;
-                    if (slice.ValueRO.PrimaryCurrency < cost) continue;
-                    slice.ValueRW.PrimaryCurrency -= cost;
-                    slice.ValueRW.ClickPower += 1.0;
-                    slice.ValueRW.ProgressionLevel += 1;
-                    slice.ValueRW.GlobalMultiplier += 0.05f;
-                }
-
-                SystemAPI.SetComponentEnabled<IdleGachaPullEvent>(entity, false);
+                ecb.DestroyEntity(entity);
             }
 
-            ecb.Playback(state.EntityManager);
+            ecb.Playback(em);
             ecb.Dispose();
+        }
+
+        /// <summary>Shared pull math for manual events and LoM auto-lamp.</summary>
+        public static bool TryApplyPull(ref IdleGachaState gacha, ref IdleSliceState slice, out int rarity)
+        {
+            rarity = 0;
+            double cost = gacha.PullCost <= 0 ? 10.0 : gacha.PullCost;
+            if (slice.PrimaryCurrency < cost) return false;
+
+            slice.PrimaryCurrency -= cost;
+            gacha.PullCount += 1;
+
+            rarity = 1 + (gacha.PullCount % 5);
+            if (rarity > gacha.BestRarity) gacha.BestRarity = rarity;
+
+            slice.ClickPower += rarity * 0.5;
+            slice.GlobalMultiplier += rarity * 0.02f;
+
+            if (gacha.PullCount % 3 == 0)
+            {
+                gacha.Stage += 1;
+                slice.ProgressionLevel = gacha.Stage;
+            }
+
+            return true;
         }
     }
 
@@ -112,21 +166,35 @@ namespace HyperCasualRunner.ECS.Systems
 
         public void OnUpdate(ref SystemState state)
         {
+            var em = state.EntityManager;
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            Entity sole = IdleEventTarget.FindSoleSlice(em);
+
             foreach (var (evt, entity) in SystemAPI.Query<RefRO<IdleNarrativeActionEvent>>().WithEntityAccess())
             {
                 int action = evt.ValueRO.ActionId;
+                Entity sliceEntity = IdleEventTarget.Resolve(em, entity, evt.ValueRO.TargetSlice, sole);
 
-                foreach (var (narr, slice) in SystemAPI.Query<RefRW<IdleNarrativeState>, RefRW<IdleSliceState>>())
+                if (sliceEntity != Entity.Null && em.HasComponent<IdleSliceState>(sliceEntity))
                 {
-                    ApplyNarrative(ref narr.ValueRW, ref slice.ValueRW, action);
-                }
+                    var slice = em.GetComponentData<IdleSliceState>(sliceEntity);
+                    if (em.HasComponent<IdleNarrativeState>(sliceEntity))
+                    {
+                        var narr = em.GetComponentData<IdleNarrativeState>(sliceEntity);
+                        ApplyNarrative(ref narr, ref slice, action);
+                        em.SetComponentData(sliceEntity, narr);
+                    }
+                    else
+                    {
+                        ApplySliceOnlyNarrative(ref slice, action);
+                    }
 
-                foreach (var slice in SystemAPI.Query<RefRW<IdleSliceState>>().WithNone<IdleNarrativeState>())
-                {
-                    ApplySliceOnlyNarrative(ref slice.ValueRW, action);
+                    em.SetComponentData(sliceEntity, slice);
+                    IdleEventTarget.SyncPairedRunGold(em, sliceEntity, slice.PrimaryCurrency);
                 }
 
                 SystemAPI.SetComponentEnabled<IdleNarrativeActionEvent>(entity, false);
+                ecb.DestroyEntity(entity);
             }
         }
 
@@ -147,6 +215,9 @@ namespace HyperCasualRunner.ECS.Systems
                     slice.ProgressionLevel = narr.RoomOrStep;
                     slice.PrimaryCurrency += 5 * slice.GlobalMultiplier;
                     narr.SoftCurrency += 2;
+                    // Capybara live bootstrap path uses IdleNarrativeState — milestone must land here
+                    if (slice.Archetype == IdleArchetype.CapybaraGo && narr.RoomOrStep % 5 == 0)
+                        slice.GlobalMultiplier += 0.1f;
                     break;
                 case 2: // craft / build
                     if (narr.Wood < 3) return;
@@ -164,7 +235,7 @@ namespace HyperCasualRunner.ECS.Systems
                 case IdleArchetype.ADarkRoom:
                     if (action == 0)
                     {
-                        slice.OwnedGenerators += 1; // stoke count reuse
+                        slice.OwnedGenerators += 1;
                         slice.PrimaryCurrency += 1;
                         if (slice.OwnedGenerators >= 5) slice.ProgressionLevel = System.Math.Max(1, slice.ProgressionLevel);
                     }
@@ -181,11 +252,18 @@ namespace HyperCasualRunner.ECS.Systems
                     if (slice.ProgressionLevel % 5 == 0) slice.GlobalMultiplier += 0.1f;
                     break;
                 case IdleArchetype.NekoAtsume:
-                    // Place food: spend soft currency, attract cats
-                    if (slice.PrimaryCurrency >= 5)
+                    // 0 = Place Food, 1 = Place Toys (matrix Food/Toys)
+                    if (action == 0 && slice.PrimaryCurrency >= 5)
                     {
                         slice.PrimaryCurrency -= 5;
                         slice.CheckInCats += 2;
+                        slice.HasOfflineClaim = true;
+                    }
+                    else if (action == 1 && slice.PrimaryCurrency >= 8)
+                    {
+                        slice.PrimaryCurrency -= 8;
+                        slice.CheckInCats += 3;
+                        slice.ProgressionLevel = System.Math.Max(1, slice.ProgressionLevel);
                         slice.HasOfflineClaim = true;
                     }
                     break;
@@ -203,29 +281,41 @@ namespace HyperCasualRunner.ECS.Systems
 
         public void OnUpdate(ref SystemState state)
         {
+            var em = state.EntityManager;
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            Entity sole = IdleEventTarget.FindSoleSlice(em);
+
             foreach (var (evt, entity) in SystemAPI.Query<RefRO<IdleAllocateEnergyEvent>>().WithEntityAccess())
             {
                 float amount = evt.ValueRO.Amount;
-                foreach (var slice in SystemAPI.Query<RefRW<IdleSliceState>>())
+                Entity sliceEntity = IdleEventTarget.Resolve(em, entity, evt.ValueRO.TargetSlice, sole);
+
+                if (sliceEntity != Entity.Null && em.HasComponent<IdleSliceState>(sliceEntity))
                 {
-                    if (slice.ValueRO.Archetype == IdleArchetype.RealmGrinder)
+                    var slice = em.GetComponentData<IdleSliceState>(sliceEntity);
+                    if (slice.Archetype == IdleArchetype.RealmGrinder)
                     {
-                        // Re-pick faction: amount 1 or 2
-                        slice.ValueRW.FactionId = amount <= 1.5f ? 1 : 2;
-                        slice.ValueRW.GlobalMultiplier += 0.15f;
-                        slice.ValueRW.ProgressionLevel += 1;
+                        slice.FactionId = amount <= 1.5f ? 1 : 2;
+                        slice.GlobalMultiplier += 0.15f;
+                        slice.ProgressionLevel += 1;
                     }
                     else
                     {
-                        float alloc = System.Math.Clamp(amount, 0f, slice.ValueRO.EnergyPool);
-                        slice.ValueRW.EnergyAllocated = alloc;
-                        if (alloc > 0 && slice.ValueRO.ProgressionLevel < 1)
-                            slice.ValueRW.ProgressionLevel = 1;
+                        float alloc = System.Math.Clamp(amount, 0f, slice.EnergyPool);
+                        slice.EnergyAllocated = alloc;
+                        if (alloc > 0 && slice.ProgressionLevel < 1)
+                            slice.ProgressionLevel = 1;
                     }
+
+                    em.SetComponentData(sliceEntity, slice);
                 }
 
                 SystemAPI.SetComponentEnabled<IdleAllocateEnergyEvent>(entity, false);
+                ecb.DestroyEntity(entity);
             }
+
+            ecb.Playback(em);
+            ecb.Dispose();
         }
     }
 
@@ -239,30 +329,54 @@ namespace HyperCasualRunner.ECS.Systems
 
         public void OnUpdate(ref SystemState state)
         {
-            foreach (var (_, entity) in SystemAPI.Query<RefRO<IdleClaimOfflineEvent>>().WithEntityAccess())
+            var em = state.EntityManager;
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            Entity sole = IdleEventTarget.FindSoleSlice(em);
+
+            foreach (var (evt, entity) in SystemAPI.Query<RefRO<IdleClaimOfflineEvent>>().WithEntityAccess())
             {
-                foreach (var slice in SystemAPI.Query<RefRW<IdleSliceState>>())
+                Entity sliceEntity = IdleEventTarget.Resolve(em, entity, evt.ValueRO.TargetSlice, sole);
+
+                if (sliceEntity != Entity.Null && em.HasComponent<IdleSliceState>(sliceEntity))
                 {
-                    if (!slice.ValueRO.HasOfflineClaim && slice.ValueRO.AfkChestSeconds < 1f &&
-                        slice.ValueRO.CheckInCats <= 0)
+                    var slice = em.GetComponentData<IdleSliceState>(sliceEntity);
+                    double pending = slice.PendingClaim;
+                    bool hasClaim = slice.HasOfflineClaim || pending > 0 ||
+                                    slice.AfkChestSeconds >= 1f || slice.CheckInCats > 0;
+
+                    if (!hasClaim)
                     {
-                        // Still grant a small offline sample for demo
-                        slice.ValueRW.PrimaryCurrency += 10 * slice.ValueRO.GlobalMultiplier;
+                        // Honest no-op: no demo free grant
+                        SystemAPI.SetComponentEnabled<IdleClaimOfflineEvent>(entity, false);
+                        ecb.DestroyEntity(entity);
+                        continue;
                     }
-                    else
+
+                    if (pending > 0)
                     {
-                        double reward = slice.ValueRO.AfkChestSeconds * (1.0 + slice.ValueRO.ProgressionLevel) *
-                                        slice.ValueRO.GlobalMultiplier;
-                        reward += slice.ValueRO.CheckInCats * 5.0;
-                        slice.ValueRW.PrimaryCurrency += System.Math.Max(10, reward);
-                        slice.ValueRW.AfkChestSeconds = 0f;
-                        slice.ValueRW.HasOfflineClaim = false;
-                        // Neko: cats linger as collection count
+                        slice.PrimaryCurrency += pending;
+                        slice.PendingClaim = 0;
                     }
+
+                    double reward = slice.AfkChestSeconds * (1.0 + slice.ProgressionLevel) *
+                                    slice.GlobalMultiplier;
+                    reward += slice.CheckInCats * 5.0;
+                    if (reward > 0)
+                        slice.PrimaryCurrency += reward;
+
+                    slice.AfkChestSeconds = 0f;
+                    slice.CheckInCats = 0;
+                    slice.HasOfflineClaim = false;
+                    em.SetComponentData(sliceEntity, slice);
+                    IdleEventTarget.SyncPairedRunGold(em, sliceEntity, slice.PrimaryCurrency);
                 }
 
                 SystemAPI.SetComponentEnabled<IdleClaimOfflineEvent>(entity, false);
+                ecb.DestroyEntity(entity);
             }
+
+            ecb.Playback(em);
+            ecb.Dispose();
         }
     }
 
@@ -276,35 +390,69 @@ namespace HyperCasualRunner.ECS.Systems
 
         public void OnUpdate(ref SystemState state)
         {
-            foreach (var (_, entity) in SystemAPI.Query<RefRO<IdlePhaseShiftEvent>>().WithEntityAccess())
-            {
-                foreach (var slice in SystemAPI.Query<RefRW<IdleSliceState>>())
-                {
-                    // Universal Paperclips / Antimatter nested layer: reset run, keep prestige mult
-                    double converted = System.Math.Floor(System.Math.Sqrt(System.Math.Max(0, slice.ValueRO.PrimaryCurrency) / 50.0));
-                    if (converted < 1 && slice.ValueRO.PrimaryCurrency >= 50) converted = 1;
+            var em = state.EntityManager;
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            Entity sole = IdleEventTarget.FindSoleSlice(em);
 
-                    if (converted >= 1 || slice.ValueRO.PrimaryCurrency >= 25)
+            foreach (var (evt, entity) in SystemAPI.Query<RefRO<IdlePhaseShiftEvent>>().WithEntityAccess())
+            {
+                Entity sliceEntity = IdleEventTarget.Resolve(em, entity, evt.ValueRO.TargetSlice, sole);
+
+                if (sliceEntity != Entity.Null && em.HasComponent<IdleSliceState>(sliceEntity))
+                {
+                    var slice = em.GetComponentData<IdleSliceState>(sliceEntity);
+
+                    // Phase shift is Paperclips / Antimatter only (hard prestige uses PrestigeSystem).
+                    if (slice.Archetype == IdleArchetype.UniversalPaperclips ||
+                        slice.Archetype == IdleArchetype.AntimatterDimensions)
                     {
-                        slice.ValueRW.PrestigeCurrency += System.Math.Max(1, converted);
-                        slice.ValueRW.PhaseIndex += 1;
-                        slice.ValueRW.ProgressionLevel = slice.ValueRO.PhaseIndex;
-                        slice.ValueRW.PrimaryCurrency = 0;
-                        slice.ValueRW.OwnedGenerators = 0;
-                        slice.ValueRW.PassiveRate = 0;
-                        slice.ValueRW.ClickPower = 1 + slice.ValueRO.PrestigeCurrency * 0.5;
-                        slice.ValueRW.GlobalMultiplier = 1f + (float)slice.ValueRO.PrestigeCurrency * 0.1f;
+                        double converted = IdlePrestigeMath.ConvertRunCurrency(slice.PrimaryCurrency);
+                        if (converted >= 1)
+                        {
+                            slice.PrestigeCurrency += converted;
+                            slice.PhaseIndex += 1;
+                            slice.ProgressionLevel = slice.PhaseIndex;
+                            slice.PrimaryCurrency = 0;
+                            slice.OwnedGenerators = 0;
+                            slice.PassiveRate = 0;
+                            slice.PendingClaim = 0;
+                            slice.ManagersHired = 0;
+                            slice.ClickPower = 1 + slice.PrestigeCurrency * 0.5;
+                            slice.GlobalMultiplier = 1f + (float)slice.PrestigeCurrency * 0.1f;
+                            em.SetComponentData(sliceEntity, slice);
+
+                            if (em.HasComponent<PersistentPlayerStats>(sliceEntity))
+                            {
+                                var stats = em.GetComponentData<PersistentPlayerStats>(sliceEntity);
+                                stats.PrestigeCurrency = slice.PrestigeCurrency;
+                                em.SetComponentData(sliceEntity, stats);
+                            }
+
+                            if (em.HasComponent<BuyableGenerator>(sliceEntity))
+                            {
+                                var gen = em.GetComponentData<BuyableGenerator>(sliceEntity);
+                                IdlePrestigeMath.ResetBuyableGenerator(ref gen, slice.Archetype);
+                                em.SetComponentData(sliceEntity, gen);
+                            }
+
+                            if (em.HasComponent<IdleManager>(sliceEntity))
+                            {
+                                var manager = em.GetComponentData<IdleManager>(sliceEntity);
+                                manager.IsHired = false;
+                                em.SetComponentData(sliceEntity, manager);
+                            }
+
+                            IdleEventTarget.SyncPairedRunGold(em, sliceEntity, 0);
+                        }
                     }
                 }
 
-                foreach (var gen in SystemAPI.Query<RefRW<BuyableGenerator>>())
-                {
-                    gen.ValueRW.OwnedCount = 0;
-                    gen.ValueRW.IsAutomated = !gen.ValueRO.RequiresManager;
-                }
-
                 SystemAPI.SetComponentEnabled<IdlePhaseShiftEvent>(entity, false);
+                ecb.DestroyEntity(entity);
             }
+
+            ecb.Playback(em);
+            ecb.Dispose();
         }
     }
 }

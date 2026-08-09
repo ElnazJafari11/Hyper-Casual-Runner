@@ -53,6 +53,9 @@ namespace HyperCasualRunner.ECS.Components
         public Entity TargetWalletEntity;
     }
 
-    // Component event to trigger a Prestige reset
-    public struct PrestigeEventComponent : IComponentData, IEnableableComponent { }
+    // Component event to trigger a Prestige reset (TargetSlice scopes idle mutations)
+    public struct PrestigeEventComponent : IComponentData, IEnableableComponent
+    {
+        public Entity TargetSlice;
+    }
 }

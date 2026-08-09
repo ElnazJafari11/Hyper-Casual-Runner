@@ -51,6 +51,8 @@ namespace HyperCasualRunner.ECS.Components
         public int SkillXp;
         public int CheckInCats;
         public bool HasOfflineClaim;
+        /// <summary>Accrued output waiting for Claim (Fallout Shelter / AFK-style).</summary>
+        public double PendingClaim;
     }
 
     public struct IdleSliceTag : IComponentData
@@ -123,45 +125,63 @@ namespace HyperCasualRunner.ECS.Components
         public double PullCost;
         public int BestRarity;
         public int Stage;
+        /// <summary>LoM auto-lamp interval accumulator (earned after Stage &gt;= 1).</summary>
+        public float AutoTimer;
     }
 
     // --- Events (enableable one-shots) ---
+    // TargetSlice binds the event to one slice entity (Entity.Null = sole-slice fallback).
 
     public struct IdleClickEvent : IComponentData, IEnableableComponent
     {
+        public Entity TargetSlice;
         public float Multiplier;
     }
 
     public struct IdleBuyGeneratorEvent : IComponentData, IEnableableComponent
     {
+        public Entity TargetSlice;
         public int GeneratorId;
         public int Amount;
     }
 
     public struct IdleHireManagerEvent : IComponentData, IEnableableComponent
     {
+        public Entity TargetSlice;
         public int TargetGeneratorId;
     }
 
     public struct IdleAssignWorkerEvent : IComponentData, IEnableableComponent
     {
+        public Entity TargetSlice;
         public int StationId;
         public int Delta;
     }
 
-    public struct IdleGachaPullEvent : IComponentData, IEnableableComponent { }
+    public struct IdleGachaPullEvent : IComponentData, IEnableableComponent
+    {
+        public Entity TargetSlice;
+    }
 
     public struct IdleNarrativeActionEvent : IComponentData, IEnableableComponent
     {
+        public Entity TargetSlice;
         public int ActionId; // 0=stoke/step/rub, 1=explore/advance, 2=craft
     }
 
     public struct IdleAllocateEnergyEvent : IComponentData, IEnableableComponent
     {
+        public Entity TargetSlice;
         public float Amount;
     }
 
-    public struct IdleClaimOfflineEvent : IComponentData, IEnableableComponent { }
+    public struct IdleClaimOfflineEvent : IComponentData, IEnableableComponent
+    {
+        public Entity TargetSlice;
+    }
 
-    public struct IdlePhaseShiftEvent : IComponentData, IEnableableComponent { }
+    public struct IdlePhaseShiftEvent : IComponentData, IEnableableComponent
+    {
+        public Entity TargetSlice;
+    }
 }

@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Collections;
 using HyperCasualRunner.ECS.Components;
 
 namespace HyperCasualRunner.ECS.Systems
@@ -14,54 +15,46 @@ namespace HyperCasualRunner.ECS.Systems
 
         public void OnUpdate(ref SystemState state)
         {
+            var em = state.EntityManager;
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            Entity sole = IdleEventTarget.FindSoleSlice(em);
+
             foreach (var (buyEvt, evtEntity) in SystemAPI.Query<RefRO<IdleBuyGeneratorEvent>>().WithEntityAccess())
             {
                 int genId = buyEvt.ValueRO.GeneratorId;
                 int amount = buyEvt.ValueRO.Amount <= 0 ? 1 : buyEvt.ValueRO.Amount;
-                bool handled = false;
+                Entity sliceEntity = IdleEventTarget.Resolve(em, evtEntity, buyEvt.ValueRO.TargetSlice, sole);
 
-                foreach (var (gen, slice) in SystemAPI.Query<RefRW<BuyableGenerator>, RefRW<IdleSliceState>>())
+                if (sliceEntity != Entity.Null && em.HasComponent<IdleSliceState>(sliceEntity))
                 {
-                    if (genId != 0 && gen.ValueRO.GeneratorId != genId) continue;
-                    handled = true;
-                    Purchase(ref gen.ValueRW, ref slice.ValueRW, amount);
-                    ApplyCombatHeroBoost(ref slice.ValueRW);
-                }
+                    var slice = em.GetComponentData<IdleSliceState>(sliceEntity);
+                    bool bought = false;
 
-                if (!handled)
-                {
-                    foreach (var slice in SystemAPI.Query<RefRW<IdleSliceState>>())
+                    if (em.HasComponent<BuyableGenerator>(sliceEntity))
                     {
-                        bool boughtViaGen = false;
-                        foreach (var gen in SystemAPI.Query<RefRW<BuyableGenerator>>())
+                        var gen = em.GetComponentData<BuyableGenerator>(sliceEntity);
+                        if (genId == 0 || gen.GeneratorId == genId)
                         {
-                            if (genId != 0 && gen.ValueRO.GeneratorId != genId) continue;
-                            Purchase(ref gen.ValueRW, ref slice.ValueRW, amount);
-                            boughtViaGen = true;
-                            handled = true;
+                            Purchase(ref gen, ref slice, amount);
+                            em.SetComponentData(sliceEntity, gen);
+                            bought = true;
                         }
-
-                        if (!boughtViaGen)
-                        {
-                            // Combat / fallback: spend gold to raise passive DPS
-                            handled |= PurchaseHeroDpsFallback(ref slice.ValueRW, amount);
-                        }
-
-                        if (handled) ApplyCombatHeroBoost(ref slice.ValueRW);
                     }
-                }
 
-                foreach (var run in SystemAPI.Query<RefRW<CurrentRunStats>>())
-                {
-                    foreach (var slice in SystemAPI.Query<RefRO<IdleSliceState>>())
-                    {
-                        run.ValueRW.CurrentGold = slice.ValueRO.PrimaryCurrency;
-                        break;
-                    }
+                    if (!bought)
+                        PurchaseHeroDpsFallback(ref slice, amount);
+
+                    ApplyCombatHeroBoost(ref slice, em, sliceEntity);
+                    em.SetComponentData(sliceEntity, slice);
+                    IdleEventTarget.SyncPairedRunGold(em, sliceEntity, slice.PrimaryCurrency);
                 }
 
                 SystemAPI.SetComponentEnabled<IdleBuyGeneratorEvent>(evtEntity, false);
+                ecb.DestroyEntity(evtEntity);
             }
+
+            ecb.Playback(em);
+            ecb.Dispose();
         }
 
         private static void Purchase(ref BuyableGenerator gen, ref IdleSliceState slice, int amount)
@@ -76,11 +69,10 @@ namespace HyperCasualRunner.ECS.Systems
                 gen.OwnedCount += 1;
                 slice.OwnedGenerators = gen.OwnedCount;
 
+                // PassiveRate = BaseCps * Owned only — GlobalMultiplier applied once in simulation
                 bool auto = !gen.RequiresManager || gen.IsAutomated;
                 if (auto)
-                {
-                    slice.PassiveRate = gen.BaseCps * gen.OwnedCount * slice.GlobalMultiplier;
-                }
+                    slice.PassiveRate = IdlePrestigeMath.ComputePassiveRate(gen.BaseCps, gen.OwnedCount);
             }
         }
 
@@ -93,22 +85,30 @@ namespace HyperCasualRunner.ECS.Systems
                 if (slice.PrimaryCurrency < cost) break;
                 slice.PrimaryCurrency -= cost;
                 slice.OwnedGenerators += 1;
-                slice.PassiveRate += 1.0 * slice.GlobalMultiplier;
+                slice.PassiveRate += 1.0; // mult applied in sim / combat, not here
                 slice.ClickPower += 0.5;
                 any = true;
             }
             return any;
         }
 
-        private static void ApplyCombatHeroBoost(ref IdleSliceState slice)
+        private static void ApplyCombatHeroBoost(ref IdleSliceState slice, EntityManager em, Entity sliceEntity)
         {
-            // Mirror PassiveRate into combat path used by IdleSliceSimulationSystem
-            if (slice.Archetype == IdleArchetype.ClickerHeroes ||
-                slice.Archetype == IdleArchetype.TapTitans2 ||
-                slice.Archetype == IdleArchetype.IdleHeroes)
+            if (slice.Archetype != IdleArchetype.ClickerHeroes &&
+                slice.Archetype != IdleArchetype.TapTitans2 &&
+                slice.Archetype != IdleArchetype.IdleHeroes)
+                return;
+
+            if (slice.PassiveRate < slice.OwnedGenerators)
+                slice.PassiveRate = System.Math.Max(slice.PassiveRate, slice.OwnedGenerators);
+
+            if (em.HasComponent<IdleCombatState>(sliceEntity))
             {
-                if (slice.PassiveRate < slice.OwnedGenerators)
-                    slice.PassiveRate = System.Math.Max(slice.PassiveRate, slice.OwnedGenerators);
+                var combat = em.GetComponentData<IdleCombatState>(sliceEntity);
+                // Single DPS field: PassiveRate / owned heroes — first buy must raise a bootstrap floor of 1.
+                combat.HeroDps = System.Math.Max(slice.PassiveRate, 1.0 + slice.OwnedGenerators);
+                combat.TapDamage = slice.ClickPower > 0 ? slice.ClickPower : combat.TapDamage;
+                em.SetComponentData(sliceEntity, combat);
             }
         }
     }
@@ -124,39 +124,56 @@ namespace HyperCasualRunner.ECS.Systems
 
         public void OnUpdate(ref SystemState state)
         {
+            var em = state.EntityManager;
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            Entity sole = IdleEventTarget.FindSoleSlice(em);
+
             foreach (var (hire, evtEntity) in SystemAPI.Query<RefRO<IdleHireManagerEvent>>().WithEntityAccess())
             {
                 int targetId = hire.ValueRO.TargetGeneratorId;
+                Entity sliceEntity = IdleEventTarget.Resolve(em, evtEntity, hire.ValueRO.TargetSlice, sole);
 
-                foreach (var slice in SystemAPI.Query<RefRW<IdleSliceState>>())
+                if (sliceEntity != Entity.Null &&
+                    em.HasComponent<IdleSliceState>(sliceEntity) &&
+                    em.HasComponent<IdleManager>(sliceEntity))
                 {
-                    foreach (var manager in SystemAPI.Query<RefRW<IdleManager>>())
+                    var slice = em.GetComponentData<IdleSliceState>(sliceEntity);
+                    var manager = em.GetComponentData<IdleManager>(sliceEntity);
+
+                    if (!manager.IsHired &&
+                        (targetId == 0 || manager.TargetGeneratorId == targetId) &&
+                        slice.PrimaryCurrency >= manager.HireCost)
                     {
-                        if (manager.ValueRO.IsHired) continue;
-                        if (targetId != 0 && manager.ValueRO.TargetGeneratorId != targetId) continue;
-                        if (slice.ValueRO.PrimaryCurrency < manager.ValueRO.HireCost) continue;
+                        slice.PrimaryCurrency -= manager.HireCost;
+                        manager.IsHired = true;
+                        slice.ManagersHired += 1;
+                        em.SetComponentData(sliceEntity, manager);
 
-                        slice.ValueRW.PrimaryCurrency -= manager.ValueRO.HireCost;
-                        manager.ValueRW.IsHired = true;
-                        slice.ValueRW.ManagersHired += 1;
-
-                        foreach (var gen in SystemAPI.Query<RefRW<BuyableGenerator>>())
+                        if (em.HasComponent<BuyableGenerator>(sliceEntity))
                         {
-                            if (targetId != 0 && gen.ValueRO.GeneratorId != manager.ValueRO.TargetGeneratorId)
-                                continue;
-
-                            gen.ValueRW.IsAutomated = true;
-                            gen.ValueRW.RequiresManager = false;
-                            slice.ValueRW.PassiveRate = System.Math.Max(
-                                slice.ValueRO.PassiveRate,
-                                gen.ValueRO.BaseCps * System.Math.Max(1, gen.ValueRO.OwnedCount) *
-                                slice.ValueRO.GlobalMultiplier);
+                            var gen = em.GetComponentData<BuyableGenerator>(sliceEntity);
+                            if (targetId == 0 || gen.GeneratorId == manager.TargetGeneratorId)
+                            {
+                                // Keep RequiresManager so prestige/phase can restore the gate.
+                                gen.IsAutomated = true;
+                                slice.PassiveRate = System.Math.Max(
+                                    slice.PassiveRate,
+                                    IdlePrestigeMath.ComputePassiveRate(gen.BaseCps, gen.OwnedCount));
+                                em.SetComponentData(sliceEntity, gen);
+                            }
                         }
+
+                        em.SetComponentData(sliceEntity, slice);
+                        IdleEventTarget.SyncPairedRunGold(em, sliceEntity, slice.PrimaryCurrency);
                     }
                 }
 
                 SystemAPI.SetComponentEnabled<IdleHireManagerEvent>(evtEntity, false);
+                ecb.DestroyEntity(evtEntity);
             }
+
+            ecb.Playback(em);
+            ecb.Dispose();
         }
     }
 }
