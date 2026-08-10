@@ -4,7 +4,7 @@
 **Source review:** `round_05/review_06_gacha.md`  
 **Date:** 2026-08-10  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
-**Commit:** local only (never push) — `15dd7df`
+**Commit:** local only (never push) — `f07ee0c`
 
 ---
 
@@ -66,8 +66,8 @@ CHANGES:
  - this receipt
 VERIFICATION:
  - Build: Unity 6000.5.5f1 batchmode EditMode compiled
- - Run: Logs/IdleHud-impl06-r5c-TestResults.xml
-     IdleSliceHudSmokeTests total=7 passed=7 failed=0
+ - Run: Logs/IdleHud-impl06-r5-TestResults.xml
+     testcasecount=1 result=Passed passed=1 failed=0
      LegendOfMushroom_FarmButton_HidesAfterStageUnlock => Passed
  - Checklist grep: auto-lamp + unlocks auto-tiles present; no Farm Stage Gold primary verb
 STATUS: VERIFIED
@@ -83,6 +83,7 @@ RISKS:
 
 - Checklist was already regenerated/synced on HEAD before this turn; receipt still greps acceptance closed.
 - Did not run full AllSmoke (project lock contention); targeted Farm hide EditMode fixture green.
+- Feature commit hash recorded as `f07ee0c` (same tree as transient `15dd7df` during swarm rewrite).
 
 ## Flash Base
 
