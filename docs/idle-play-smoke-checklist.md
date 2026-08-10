@@ -34,6 +34,8 @@ Note: `05_ADarkRoom_*` is Batch B/C, not Batch A.
 
 **R5-A4 (round_05 impl_08):** Prefabs **01 / 03 / 04** Play Mode remain **BLOCKED** — Unity MCP is pinned to `thepcgtoolkit`, not Hyper-Casual-Runner; no Play session or capture on this project. EditMode Batch A `23/23` is not Play evidence. Receipt: `.agents/idle_swarm/round_05/impl_08_batchA.md`.
 
+**R6-A4 (round_06 impl_07):** Prefabs **01 / 03 / 04** still **BLOCKED** — MCP discovered instance remains `thepcgtoolkit@96e3a310` only; no interactive HCR editor registered for Play-smoke. EditMode reconfirmed `23/23` (`Logs/IdleBatchA-impl07-r6.log`). Receipt: `.agents/idle_swarm/round_06/impl_07_batchA.md`.
+
 ## Batch B/C (optional)
 
 | Prefab | Expected HUD verbs | Done? |
