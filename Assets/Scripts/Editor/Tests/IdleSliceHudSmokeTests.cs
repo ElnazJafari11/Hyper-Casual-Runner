@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using UnityEditor;
+using HyperCasualRunner;
 using HyperCasualRunner.UI;
 using HyperCasualRunner.ECS.Authoring;
 using HyperCasualRunner.ECS.Components;
@@ -15,8 +16,8 @@ namespace HyperCasualRunner.Tests
 {
     /// <summary>
     /// EditMode HUD surface smoke (UI2-02 / UI3-04 / UI4-04): named Actions/Cosmetics tabs + skin buttons
-    /// without Enter Play Mode. UI4-06 adds Cosmetics click → CosmeticPurchaseEventComponent wiring.
-    /// UI4-01 Play Mode cosmetics remains blocked without an HCR interactive editor on MCP.
+    /// without Enter Play Mode. UI4-06 cosmetics wiring + R5 LoM Farm hide; UI5-01 Play Mode
+    /// cosmetics remains blocked without an HCR interactive editor on MCP.
     /// </summary>
     [TestFixture]
     public class IdleSliceHudSmokeTests
@@ -26,6 +27,10 @@ namespace HyperCasualRunner.Tests
         [SetUp]
         public void SetUp()
         {
+            PlayerPrefs.DeleteKey("HCR_SkinIndex");
+            PlayerPrefs.DeleteKey("HCR_UnlockedSkins");
+            PlayerPrefs.Save();
+
             _world = new World("IdleSliceHudSmokeWorld");
             World.DefaultGameObjectInjectionWorld = _world;
         }
@@ -38,6 +43,10 @@ namespace HyperCasualRunner.Tests
             if (World.DefaultGameObjectInjectionWorld == _world)
                 World.DefaultGameObjectInjectionWorld = null;
             _world = null;
+
+            PlayerPrefs.DeleteKey("HCR_SkinIndex");
+            PlayerPrefs.DeleteKey("HCR_UnlockedSkins");
+            PlayerPrefs.Save();
         }
 
         [Test]
@@ -238,6 +247,72 @@ namespace HyperCasualRunner.Tests
             finally
             {
                 UnityEngine.Object.DestroyImmediate(go);
+            }
+        }
+
+        /// <summary>
+        /// R5 gacha P1: LoM Farm Stage Gold hides once Stage≥1 (single-verb after auto-lamp unlock).
+        /// </summary>
+        [Test]
+        public void LegendOfMushroom_FarmButton_HidesAfterStageUnlock()
+        {
+            GameProgressData.ClearIdleSlice((int)IdleArchetype.LegendOfMushroom);
+            var go = new GameObject("LoM_FarmHide_HudSmoke");
+            try
+            {
+                var doc = go.AddComponent<UIDocument>();
+                AssignPanelSettings(doc);
+
+                var bootstrap = go.AddComponent<IdleSliceBootstrap>();
+                bootstrap.DisplayName = "LoM Farm Hide";
+                bootstrap.HowToPlay = "Rub Lamp";
+                bootstrap.Archetype = IdleArchetype.LegendOfMushroom;
+                bootstrap.LoadPersistedProgress = false;
+                bootstrap.StartingCurrency = 20;
+
+                var trySpawn = typeof(IdleSliceBootstrap).GetMethod(
+                    "TrySpawn",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.IsNotNull(trySpawn, "TrySpawn must exist");
+                trySpawn.Invoke(bootstrap, null);
+                Assert.IsTrue(bootstrap.IsSpawned, "LoM bootstrap must spawn");
+
+                var controller = go.AddComponent<IdleSliceUIController>();
+                if (doc.panelSettings == null)
+                    LogAssert.Expect(LogType.Error, new Regex("UI Toolkit\\.meta"));
+
+                controller.EnsureHudBuilt();
+
+                LogAssert.ignoreFailingMessages = true;
+                var root = controller.RootVisualElement;
+                LogAssert.ignoreFailingMessages = false;
+                Assert.IsNotNull(root);
+
+                var farm = root.Q<Button>("FarmStageGoldButton");
+                Assert.IsNotNull(farm, "FarmStageGoldButton should exist at Stage 0");
+
+                var refresh = typeof(IdleSliceUIController).GetMethod(
+                    "RefreshStats",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.IsNotNull(refresh, "RefreshStats must exist");
+                refresh.Invoke(controller, null);
+                Assert.AreEqual(DisplayStyle.Flex, farm.style.display.value,
+                    "Farm should stay visible before Stage≥1");
+
+                var em = _world.EntityManager;
+                Assert.IsTrue(em.HasComponent<IdleGachaState>(bootstrap.SliceEntity));
+                var g = em.GetComponentData<IdleGachaState>(bootstrap.SliceEntity);
+                g.Stage = 1;
+                em.SetComponentData(bootstrap.SliceEntity, g);
+
+                refresh.Invoke(controller, null);
+                Assert.AreEqual(DisplayStyle.None, farm.style.display.value,
+                    "Farm must hide at Stage≥1 (single-verb UI)");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+                GameProgressData.ClearIdleSlice((int)IdleArchetype.LegendOfMushroom);
             }
         }
 

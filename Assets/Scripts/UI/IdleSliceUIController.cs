@@ -32,6 +32,7 @@ namespace HyperCasualRunner.UI
         private VisualElement _cosmeticsContainer;
         private Button _actionsTabButton;
         private Button _cosmeticsTabButton;
+        private Button _lomFarmButton;
         private readonly Button[] _skinButtons = new Button[4];
         private bool _built;
 
@@ -339,8 +340,10 @@ namespace HyperCasualRunner.UI
                     Btn(row, "Open AFK Chest", FireClaim);
                     break;
                 case IdleArchetype.LegendOfMushroom:
+                    // Single compulsive verb after Stage≥1: auto-lamp sustains; hide Farm fuel click.
                     Btn(row, "Rub Lamp", FireGacha);
-                    Btn(row, "Farm Stage Gold", () => FireClick(3f));
+                    _lomFarmButton = Btn(row, "Farm Stage Gold", () => FireClick(3f));
+                    _lomFarmButton.name = "FarmStageGoldButton";
                     break;
                 case IdleArchetype.CapybaraGo:
                     Btn(row, "Take Step", () => FireNarrative(0));
@@ -369,7 +372,7 @@ namespace HyperCasualRunner.UI
             }
         }
 
-        private static void Btn(VisualElement parent, string text, System.Action onClick)
+        private static Button Btn(VisualElement parent, string text, System.Action onClick)
         {
             var b = new Button(onClick) { text = text };
             // TODO: [STUB] inline action button styles
@@ -382,6 +385,7 @@ namespace HyperCasualRunner.UI
             b.style.color = Color.white;
             b.style.fontSize = 16;
             parent.Add(b);
+            return b;
         }
 
         private void RefreshStats()
@@ -430,6 +434,8 @@ namespace HyperCasualRunner.UI
             {
                 var g = em.GetComponentData<IdleGachaState>(sliceEntity);
                 _stats.text += $"\nPulls: {g.PullCount} | BestRarity: {g.BestRarity} | Stage: {g.Stage}";
+                if (_lomFarmButton != null && s.Archetype == IdleArchetype.LegendOfMushroom)
+                    _lomFarmButton.style.display = g.Stage >= 1 ? DisplayStyle.None : DisplayStyle.Flex;
             }
 
             if (combatHud)
