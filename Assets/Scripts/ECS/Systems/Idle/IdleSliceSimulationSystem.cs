@@ -149,6 +149,28 @@ namespace HyperCasualRunner.ECS.Systems
                 }
             }
 
+            // Capybara auto-tiles: when ExploreUnlocked, advance RoomOrStep every 1s (milestone mult included).
+            foreach (var (narr, slice, entity) in SystemAPI
+                         .Query<RefRW<IdleNarrativeState>, RefRW<IdleSliceState>>()
+                         .WithEntityAccess())
+            {
+                if (slice.ValueRO.Archetype != IdleArchetype.CapybaraGo) continue;
+                if (narr.ValueRO.ExploreUnlocked == 0) continue;
+
+                narr.ValueRW.AutoTimer += dt;
+                if (narr.ValueRO.AutoTimer < 1f) continue;
+                narr.ValueRW.AutoTimer -= 1f;
+
+                if (!IdleNarrativeActionSystem.TryAdvanceStep(ref narr.ValueRW, ref slice.ValueRW))
+                    continue;
+
+                if (SystemAPI.HasComponent<CurrentRunStats>(entity))
+                {
+                    var run = SystemAPI.GetComponentRW<CurrentRunStats>(entity);
+                    run.ValueRW.CurrentGold = slice.ValueRO.PrimaryCurrency;
+                }
+            }
+
             foreach (var (station, slice, entity) in SystemAPI
                          .Query<RefRW<IdleAssignmentStation>, RefRW<IdleSliceState>>()
                          .WithEntityAccess())

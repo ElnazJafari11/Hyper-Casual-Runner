@@ -82,7 +82,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HyperCasualRunner.ECS.Authoring.IdleSliceBootstrap
   Archetype: 15
   DisplayName: Capybara Go!
-  HowToPlay: "Advance narrative steps \u2192 lucky finds \u2192 milestone mult beats."
+  HowToPlay: "Auto-tiles advance steps \u2192 lucky finds \u2192 milestone mult beats."
   StartingCurrency: 0
   ClickPower: 1
   GeneratorBaseCost: 15

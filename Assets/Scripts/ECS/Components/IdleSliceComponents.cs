@@ -117,6 +117,8 @@ namespace HyperCasualRunner.ECS.Components
         public int ExploreUnlocked;
         public double Wood;
         public double SoftCurrency;
+        /// <summary>Capybara auto-tile interval accumulator (when ExploreUnlocked &gt; 0).</summary>
+        public float AutoTimer;
     }
 
     public struct IdleGachaState : IComponentData
@@ -173,6 +175,16 @@ namespace HyperCasualRunner.ECS.Components
     {
         public Entity TargetSlice;
         public float Amount;
+    }
+
+    /// <summary>
+    /// Realm Grinder faction pick. Sets FactionId only — no free GlobalMultiplier / level stack.
+    /// Faction income bonus is applied in IdleSliceSimulationSystem.
+    /// </summary>
+    public struct IdleFactionAlignEvent : IComponentData, IEnableableComponent
+    {
+        public Entity TargetSlice;
+        public int FactionId; // 1=Good, 2=Evil
     }
 
     public struct IdleClaimOfflineEvent : IComponentData, IEnableableComponent
