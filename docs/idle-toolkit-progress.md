@@ -88,4 +88,4 @@ Checklist artifact: `docs/idle-play-smoke-checklist.md` (also written by that me
 ## Blockers
 
 - MCP instance is only `thepcgtoolkit` — Hyper-Casual-Runner editor not connected → Play Mode 0/19.
-- **Batch A Play 01/03/04 (R5–R7-A4):** BLOCKED — Cookie / AdvCap / Paperclips checklist rows stay unchecked; EditMode Batch A reconfirmed `23/23` (`Logs/IdleBatchA-Summary.txt`, `Logs/IdleBatchA-impl05-r7.log` — R6 `impl07-r6.log` was a compile-fail cite, superseded). MCP `doctor`: discovered `thepcgtoolkit@96e3a310` only; HCR interactive editor absent — no Play. See `.agents/idle_swarm/round_07/impl_05_batchA.md`.
+- **Batch A Play 01/03/04 (R5–R8-A4):** BLOCKED — Cookie / AdvCap / Paperclips checklist rows stay unchecked; EditMode Batch A cite `23/23` (`Logs/IdleBatchA-Summary.txt`, `Logs/IdleBatchA-impl05-r7.log` — do not cite R6 `impl07-r6.log`). MCP `doctor` (R8): discovered `thepcgtoolkit@96e3a310` only; registered_sessions empty; HCR batchmode ≠ interactive bridge — no Play. See `.agents/idle_swarm/round_08/impl_05_batchA.md`.
