@@ -4,7 +4,7 @@
 **Source review:** `review_05_production.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
-**Commit:** (filled after local commit)  
+**Commit:** `388eb0205284b4591630028e46d40f944cce781b` (local only — never push)  
 **Push:** never
 
 ---
