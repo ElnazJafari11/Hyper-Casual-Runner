@@ -3,7 +3,7 @@
 **Agent:** implement 7/10 (retry after stalled relaunch `12eb30a3`)  
 **Source review:** `round_05/review_08_ui.md`  
 **Architecture:** UI Toolkit only  
-**Commit:** _(filled after local commit)_  
+**Commit:** `7f4a07112de25b2e62d1af53997b414e6d1de447` (local only, no push)  
 **Push:** never (local commit only)  
 **Play:** no thrash — UI5-01 documented BLOCKED only
 
