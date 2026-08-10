@@ -4,7 +4,7 @@
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
 **Source:** `round_04/review_02_batchA.md`  
-**Commit:** (local only, no push — hash filled after commit)
+**Commit:** `e4acd01` (local only, no push)
 
 ---
 
