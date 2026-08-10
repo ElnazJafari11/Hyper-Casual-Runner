@@ -1,1 +1,1 @@
-result=Passed pass=46 fail=0 skip=0 inconclusive=0 duration=0.968998
+result=Passed pass=56 fail=0 skip=0 inconclusive=0 duration=1.8465593

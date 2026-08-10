@@ -168,7 +168,8 @@ namespace HyperCasualRunner
             int phaseIndex = 0,
             int factionId = 0,
             float energyAllocated = 0f,
-            bool managerIsHired = false)
+            bool managerIsHired = false,
+            float energyPool = 50f)
         {
             PlayerPrefs.SetString(IdleKey(archetype, "Primary"), primaryCurrency.ToString("R", CultureInfo.InvariantCulture));
             PlayerPrefs.SetString(IdleKey(archetype, "Prestige"), prestigeCurrency.ToString("R", CultureInfo.InvariantCulture));
@@ -181,6 +182,7 @@ namespace HyperCasualRunner
             PlayerPrefs.SetInt(IdleKey(archetype, "Phase"), phaseIndex);
             PlayerPrefs.SetInt(IdleKey(archetype, "Faction"), factionId);
             PlayerPrefs.SetString(IdleKey(archetype, "Energy"), energyAllocated.ToString("R", CultureInfo.InvariantCulture));
+            PlayerPrefs.SetString(IdleKey(archetype, "EnergyPool"), energyPool.ToString("R", CultureInfo.InvariantCulture));
             PlayerPrefs.SetInt(IdleKey(archetype, "MgrHired"), managerIsHired ? 1 : 0);
             LastIdleUpdateTime = System.DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture);
             Save();
@@ -209,6 +211,7 @@ namespace HyperCasualRunner
                 out _,
                 out _,
                 out _,
+                out _,
                 out _);
         }
 
@@ -227,6 +230,39 @@ namespace HyperCasualRunner
             out float energyAllocated,
             out bool managerIsHired)
         {
+            return TryLoadIdleSlice(
+                archetype,
+                out primaryCurrency,
+                out prestigeCurrency,
+                out globalMultiplier,
+                out progressionLevel,
+                out clickPower,
+                out passiveRate,
+                out ownedGenerators,
+                out managersHired,
+                out phaseIndex,
+                out factionId,
+                out energyAllocated,
+                out managerIsHired,
+                out _);
+        }
+
+        public static bool TryLoadIdleSlice(
+            int archetype,
+            out double primaryCurrency,
+            out double prestigeCurrency,
+            out float globalMultiplier,
+            out int progressionLevel,
+            out double clickPower,
+            out double passiveRate,
+            out int ownedGenerators,
+            out int managersHired,
+            out int phaseIndex,
+            out int factionId,
+            out float energyAllocated,
+            out bool managerIsHired,
+            out float energyPool)
+        {
             primaryCurrency = 0;
             prestigeCurrency = 0;
             globalMultiplier = 1f;
@@ -239,6 +275,7 @@ namespace HyperCasualRunner
             factionId = 0;
             energyAllocated = 0f;
             managerIsHired = false;
+            energyPool = 50f;
 
             string primaryKey = IdleKey(archetype, "Primary");
             if (!PlayerPrefs.HasKey(primaryKey)) return false;
@@ -255,6 +292,12 @@ namespace HyperCasualRunner
             factionId = PlayerPrefs.GetInt(IdleKey(archetype, "Faction"), 0);
             TryParseInvariantDouble(PlayerPrefs.GetString(IdleKey(archetype, "Energy"), "0"), out var energy);
             energyAllocated = (float)energy;
+            string poolKey = IdleKey(archetype, "EnergyPool");
+            if (PlayerPrefs.HasKey(poolKey) &&
+                TryParseInvariantDouble(PlayerPrefs.GetString(poolKey, "50"), out var pool))
+            {
+                energyPool = (float)pool;
+            }
             managerIsHired = PlayerPrefs.GetInt(IdleKey(archetype, "MgrHired"), 0) != 0;
             return true;
         }
@@ -272,6 +315,7 @@ namespace HyperCasualRunner
             PlayerPrefs.DeleteKey(IdleKey(archetype, "Phase"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "Faction"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "Energy"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "EnergyPool"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "MgrHired"));
             Save();
         }

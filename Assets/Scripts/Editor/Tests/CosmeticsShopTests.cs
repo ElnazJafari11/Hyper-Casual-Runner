@@ -40,8 +40,9 @@ namespace HyperCasualRunner.Tests
         [Test]
         public void CosmeticPurchaseEventComponent_LayoutAndSize_MatchesSpecifications()
         {
-            Assert.AreEqual(16, System.Runtime.InteropServices.Marshal.SizeOf(typeof(CosmeticPurchaseEventComponent)), "CosmeticPurchaseEventComponent size mismatch");
-            Assert.AreEqual(16, Unity.Collections.LowLevel.Unsafe.UnsafeUtility.SizeOf<CosmeticPurchaseEventComponent>(), "CosmeticPurchaseEventComponent native size mismatch");
+            // Entity(8) + int(4) + pad(4) + double(8) = 24
+            Assert.AreEqual(24, System.Runtime.InteropServices.Marshal.SizeOf(typeof(CosmeticPurchaseEventComponent)), "CosmeticPurchaseEventComponent size mismatch");
+            Assert.AreEqual(24, Unity.Collections.LowLevel.Unsafe.UnsafeUtility.SizeOf<CosmeticPurchaseEventComponent>(), "CosmeticPurchaseEventComponent native size mismatch");
         }
 
         [Test]
@@ -148,6 +149,59 @@ namespace HyperCasualRunner.Tests
 
             // Assert current skin index is now 1
             Assert.AreEqual(1, GameProgressData.CurrentSkinIndex, "Skin 1 should be equipped");
+        }
+
+        [Test]
+        public void CosmeticsShopSystem_TargetSlice_SpendsOwningSliceOnly()
+        {
+            var systemHandle = testWorld.CreateSystem<CosmeticsShopSystem>();
+
+            Entity sliceA = entityManager.CreateEntity();
+            entityManager.AddComponentData(sliceA, new IdleSliceState
+            {
+                Archetype = IdleArchetype.CookieClicker,
+                PrestigeCurrency = 20,
+                GlobalMultiplier = 1f,
+                ClickPower = 1,
+                EnergyPool = 50
+            });
+            entityManager.AddComponentData(sliceA, new PersistentPlayerStats
+            {
+                PrestigeCurrency = 20,
+                PermanentDamageMultiplier = 1f,
+                PermanentGoldMultiplier = 1f
+            });
+
+            Entity sliceB = entityManager.CreateEntity();
+            entityManager.AddComponentData(sliceB, new IdleSliceState
+            {
+                Archetype = IdleArchetype.CookieClicker,
+                PrestigeCurrency = 50,
+                GlobalMultiplier = 1f,
+                ClickPower = 1,
+                EnergyPool = 50
+            });
+            entityManager.AddComponentData(sliceB, new PersistentPlayerStats
+            {
+                PrestigeCurrency = 50,
+                PermanentDamageMultiplier = 1f,
+                PermanentGoldMultiplier = 1f
+            });
+
+            Entity eventEntity = entityManager.CreateEntity();
+            entityManager.AddComponentData(eventEntity, new CosmeticPurchaseEventComponent
+            {
+                TargetSlice = sliceB,
+                TargetSkinIndex = 1,
+                PrestigeCost = 5.0
+            });
+
+            systemHandle.Update(testWorld.Unmanaged);
+
+            Assert.AreEqual(20.0, entityManager.GetComponentData<IdleSliceState>(sliceA).PrestigeCurrency, 0.001);
+            Assert.AreEqual(45.0, entityManager.GetComponentData<IdleSliceState>(sliceB).PrestigeCurrency, 0.001);
+            Assert.AreEqual(45.0, entityManager.GetComponentData<PersistentPlayerStats>(sliceB).PrestigeCurrency, 0.001);
+            Assert.IsTrue(GameProgressData.IsSkinUnlocked(1));
         }
 
         [Test]
