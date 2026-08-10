@@ -11,6 +11,7 @@ namespace HyperCasualRunner.Tests
     /// Kernel P0/P1 correctness gates from review_01_kernel (multi-slice, mult, offline, claim).
     /// Round 02: D14 stamp race, D15 Kernel B = IdleOfflineCatchUp, D16 claim conservation.
     /// Round 03: D23 zero-grant stamp, D25 CatchUp-after-Sync PassiveRate.
+    /// Round 04: D33 Melvor IdleSkillNode sync after CatchUp.
     /// </summary>
     [TestFixture]
     public class IdleKernelCorrectnessTests
@@ -339,6 +340,69 @@ namespace HyperCasualRunner.Tests
             Assert.Greater(gained, 50);
             Assert.AreNotEqual(stamp, GameProgressData.LastIdleUpdateTime,
                 "Positive grant must consume AFK stamp");
+        }
+
+        [Test]
+        public void Melvor_CatchUp_SyncsIdleSkillNode_FromSlice()
+        {
+            // D33: attach node at L1/Xp0, CatchUp enough to level, sync node, assert match
+            // after sync and after one sim tick (stale node must not clobber ProgressionLevel).
+            string stamp = System.DateTime.UtcNow.AddSeconds(-60)
+                .ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+            GameProgressData.LastIdleUpdateTime = stamp;
+
+            var slice = CreateSlice(IdleArchetype.MelvorIdle, 0);
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.ProgressionLevel = 1;
+            st.SkillXp = 0;
+            st.PassiveRate = 1;
+            st.GlobalMultiplier = 1f;
+            st.PendingClaim = 0;
+            st.HasOfflineClaim = false;
+            _em.SetComponentData(slice, st);
+            _em.AddComponentData(slice, new IdleSkillNode
+            {
+                SkillId = 1,
+                Level = 1,
+                Xp = 0,
+                XpToLevel = 25,
+                TickInterval = 1f,
+                Timer = 0f,
+                IsActive = true
+            });
+
+            // Mirror bootstrap: CatchUp then SyncSkillNodeFromSlice.
+            st = _em.GetComponentData<IdleSliceState>(slice);
+            double gained = IdleOfflineCatchUp.ApplyPersistedElapsed(ref st);
+            _em.SetComponentData(slice, st);
+            Assert.Greater(gained, 50);
+
+            var skill = _em.GetComponentData<IdleSkillNode>(slice);
+            Assert.AreEqual(1, skill.Level, "Pre-sync node stays at attach Level (desync repro)");
+            IdleOfflineCatchUp.SyncSkillNodeFromSlice(ref skill, in st);
+            _em.SetComponentData(slice, skill);
+
+            Assert.Greater(st.ProgressionLevel, 1, "60s CatchUp must level past 1");
+            Assert.AreEqual(st.ProgressionLevel, skill.Level, "D33: node Level must match slice after sync");
+            Assert.AreEqual(st.SkillXp, skill.Xp, "D33: node Xp must match slice after sync");
+            Assert.AreEqual(IdleOfflineCatchUp.XpToLevelFor(skill.Level), skill.XpToLevel);
+
+            int levelAfterSync = skill.Level;
+            int xpAfterSync = skill.Xp;
+
+            // Sub-interval tick: no skill progress; proves stale-node clobber path is closed.
+            var simSys = _world.CreateSystem<IdleSliceSimulationSystem>();
+            _world.SetTime(new TimeData(0.5, 0.5f));
+            simSys.Update(_world.Unmanaged);
+
+            var afterSlice = _em.GetComponentData<IdleSliceState>(slice);
+            var afterSkill = _em.GetComponentData<IdleSkillNode>(slice);
+            Assert.AreEqual(levelAfterSync, afterSkill.Level);
+            Assert.AreEqual(xpAfterSync, afterSkill.Xp);
+            Assert.AreEqual(afterSkill.Level, afterSlice.ProgressionLevel,
+                "D33: after sim tick, node Level must still match slice (no clobber)");
+            Assert.AreEqual(afterSkill.Xp, afterSlice.SkillXp,
+                "D33: after sim tick, node Xp must still match slice");
         }
     }
 }

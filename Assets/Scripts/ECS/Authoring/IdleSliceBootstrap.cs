@@ -103,11 +103,18 @@ namespace HyperCasualRunner.ECS.Authoring
             // D25: CatchUp AFTER SyncGeneratorOwnedCountFromState (inside AttachArchetypeExtras)
             // so offline grants use raw PassiveRate, not stale Mult² prefs.
             // D23: ApplyPersistedElapsed stamps LastIdleUpdateTime only when grant > 0.
+            // D33: Melvor CatchUp mutates slice Level/XP; rewrite IdleSkillNode to match.
             if (_loadedFromPrefs)
             {
                 var st = em.GetComponentData<IdleSliceState>(_sliceEntity);
                 IdleOfflineCatchUp.ApplyPersistedElapsed(ref st);
                 em.SetComponentData(_sliceEntity, st);
+                if (st.Archetype == IdleArchetype.MelvorIdle && em.HasComponent<IdleSkillNode>(_sliceEntity))
+                {
+                    var skill = em.GetComponentData<IdleSkillNode>(_sliceEntity);
+                    IdleOfflineCatchUp.SyncSkillNodeFromSlice(ref skill, in st);
+                    em.SetComponentData(_sliceEntity, skill);
+                }
             }
 
             _spawned = true;
@@ -432,7 +439,7 @@ namespace HyperCasualRunner.ECS.Authoring
                         SkillId = 1,
                         Level = skillLevel,
                         Xp = initial.SkillXp,
-                        XpToLevel = skillLevel <= 1 ? 25 : (20 + skillLevel * 10),
+                        XpToLevel = IdleOfflineCatchUp.XpToLevelFor(skillLevel),
                         TickInterval = 1f,
                         Timer = 0f,
                         IsActive = true
