@@ -4,7 +4,7 @@
 **From:** `round_05/review_10_llm.md` (+ `round_05/review_06_gacha.md` stale checklist)  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
-**Commit:** (see git log after local commit; never push)
+**Commit:** `f04f99a` (local only; never push)
 
 ---
 
