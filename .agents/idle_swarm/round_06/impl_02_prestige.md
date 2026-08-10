@@ -5,7 +5,9 @@
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
 **Mode:** P2 landing hygiene only — no prestige DNA redesign; no optional polish  
-**Push:** never (local commit only)
+**Commit:** `bf5ae94` (local only, no push)  
+**Push:** never (local commit only)  
+**Prior land:** `8480305` (Evil 1.25 fixture + AllSmoke + compose + impl_09 honesty)
 
 ---
 
