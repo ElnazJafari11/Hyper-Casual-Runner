@@ -3,6 +3,7 @@ using Unity.Core;
 using Unity.Entities;
 using UnityEngine;
 using HyperCasualRunner;
+using HyperCasualRunner.ECS.Authoring;
 using HyperCasualRunner.ECS.Components;
 using HyperCasualRunner.ECS.Systems;
 
@@ -25,7 +26,9 @@ namespace HyperCasualRunner.Tests
             IdleArchetype.MelvorIdle,
             IdleArchetype.AfkArena,
             IdleArchetype.LegendOfMushroom,
+            IdleArchetype.ADarkRoom,
             IdleArchetype.CatsAndSoup,
+            IdleArchetype.NekoAtsume,
             IdleArchetype.FalloutShelter
         };
 
@@ -382,6 +385,13 @@ namespace HyperCasualRunner.Tests
             Assert.AreEqual(85.0, after.PrimaryCurrency, 0.001, "HireCost spent");
             Assert.Greater(after.PassiveRate, 0);
             Assert.IsTrue(_em.GetComponentData<BuyableGenerator>(slice).IsAutomated);
+
+            // Post-hire income tick (mirror Cookie/AdvCap): rate field alone is not enough.
+            var simSys = _world.CreateSystem<IdleSliceSimulationSystem>();
+            double beforeTick = after.PrimaryCurrency;
+            PumpSim(simSys, 1f);
+            Assert.Greater(_em.GetComponentData<IdleSliceState>(slice).PrimaryCurrency, beforeTick,
+                "Post-hire PumpSim must accrue PrimaryCurrency from shaft automation");
         }
 
         [Test]
@@ -715,6 +725,157 @@ namespace HyperCasualRunner.Tests
             Assert.IsFalse(after.HasOfflineClaim);
         }
 
+        private IdleSliceBootstrap SpawnBootstrap(IdleArchetype arch, int maxWorkers = 5)
+        {
+            var go = new GameObject("CozyPersist_" + arch);
+            var boot = go.AddComponent<IdleSliceBootstrap>();
+            boot.Archetype = arch;
+            boot.MaxWorkers = maxWorkers;
+            boot.LoadPersistedProgress = true;
+            boot.StartingCurrency = 0;
+            // EditMode: SendMessage("Start") asserts ShouldRunBehaviour — invoke TrySpawn directly.
+            var trySpawn = typeof(IdleSliceBootstrap).GetMethod(
+                "TrySpawn",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            Assert.IsNotNull(trySpawn, "IdleSliceBootstrap.TrySpawn must exist for EditMode spawn");
+            trySpawn.Invoke(boot, null);
+            Assert.IsTrue(boot.IsSpawned, arch + " bootstrap must spawn into DefaultWorld");
+            return boot;
+        }
+
+        [Test]
+        public void CatsAndSoup_AssignedWorkers_SurvivePersistNowReload()
+        {
+            int arch = (int)IdleArchetype.CatsAndSoup;
+            GameProgressData.ClearIdleSlice(arch);
+
+            var boot = SpawnBootstrap(IdleArchetype.CatsAndSoup);
+            var slice = boot.SliceEntity;
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.AssignedWorkers = 3;
+            st.PrimaryCurrency = 9;
+            _em.SetComponentData(slice, st);
+            var station = _em.GetComponentData<IdleAssignmentStation>(slice);
+            station.AssignedCount = 3;
+            _em.SetComponentData(slice, station);
+            boot.PersistNow();
+            Object.DestroyImmediate(boot.gameObject);
+
+            var boot2 = SpawnBootstrap(IdleArchetype.CatsAndSoup);
+            try
+            {
+                var reloaded = _em.GetComponentData<IdleSliceState>(boot2.SliceEntity);
+                Assert.AreEqual(3, reloaded.AssignedWorkers, "Cats workers must survive PersistNow reload");
+                Assert.AreEqual(3, _em.GetComponentData<IdleAssignmentStation>(boot2.SliceEntity).AssignedCount,
+                    "Station AssignedCount must restore via AttachArchetypeExtras");
+            }
+            finally
+            {
+                Object.DestroyImmediate(boot2.gameObject);
+                GameProgressData.ClearIdleSlice(arch);
+            }
+        }
+
+        [Test]
+        public void FalloutShelter_PendingAndWorkers_SurvivePersistNowReload()
+        {
+            int arch = (int)IdleArchetype.FalloutShelter;
+            GameProgressData.ClearIdleSlice(arch);
+
+            var boot = SpawnBootstrap(IdleArchetype.FalloutShelter);
+            var slice = boot.SliceEntity;
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.AssignedWorkers = 2;
+            st.PendingClaim = 12.5;
+            st.HasOfflineClaim = true;
+            _em.SetComponentData(slice, st);
+            var station = _em.GetComponentData<IdleAssignmentStation>(slice);
+            station.AssignedCount = 2;
+            _em.SetComponentData(slice, station);
+            boot.PersistNow();
+            Object.DestroyImmediate(boot.gameObject);
+
+            var boot2 = SpawnBootstrap(IdleArchetype.FalloutShelter);
+            try
+            {
+                var reloaded = _em.GetComponentData<IdleSliceState>(boot2.SliceEntity);
+                Assert.AreEqual(2, reloaded.AssignedWorkers);
+                Assert.AreEqual(12.5, reloaded.PendingClaim, 0.01, "Fallout PendingClaim must survive reload");
+                Assert.IsTrue(reloaded.HasOfflineClaim);
+                Assert.AreEqual(2, _em.GetComponentData<IdleAssignmentStation>(boot2.SliceEntity).AssignedCount);
+            }
+            finally
+            {
+                Object.DestroyImmediate(boot2.gameObject);
+                GameProgressData.ClearIdleSlice(arch);
+            }
+        }
+
+        [Test]
+        public void NekoAtsume_CheckInCats_SurvivePersistNowReload()
+        {
+            int arch = (int)IdleArchetype.NekoAtsume;
+            GameProgressData.ClearIdleSlice(arch);
+
+            var boot = SpawnBootstrap(IdleArchetype.NekoAtsume);
+            var slice = boot.SliceEntity;
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.CheckInCats = 5;
+            st.HasOfflineClaim = true;
+            st.PrimaryCurrency = 20;
+            _em.SetComponentData(slice, st);
+            boot.PersistNow();
+            Object.DestroyImmediate(boot.gameObject);
+
+            var boot2 = SpawnBootstrap(IdleArchetype.NekoAtsume);
+            try
+            {
+                var reloaded = _em.GetComponentData<IdleSliceState>(boot2.SliceEntity);
+                Assert.AreEqual(5, reloaded.CheckInCats, "Neko CheckInCats must survive PersistNow reload");
+                Assert.IsTrue(reloaded.HasOfflineClaim);
+            }
+            finally
+            {
+                Object.DestroyImmediate(boot2.gameObject);
+                GameProgressData.ClearIdleSlice(arch);
+            }
+        }
+
+        [Test]
+        public void ADarkRoom_NarrativeWoodStoke_SurvivePersistNowReload()
+        {
+            int arch = (int)IdleArchetype.ADarkRoom;
+            GameProgressData.ClearIdleSlice(arch);
+
+            var boot = SpawnBootstrap(IdleArchetype.ADarkRoom);
+            var slice = boot.SliceEntity;
+            _em.SetComponentData(slice, new IdleNarrativeState
+            {
+                RoomOrStep = 2,
+                StokeCount = 4,
+                ExploreUnlocked = 1,
+                Wood = 7,
+                SoftCurrency = 3
+            });
+            boot.PersistNow();
+            Object.DestroyImmediate(boot.gameObject);
+
+            var boot2 = SpawnBootstrap(IdleArchetype.ADarkRoom);
+            try
+            {
+                var narr = _em.GetComponentData<IdleNarrativeState>(boot2.SliceEntity);
+                Assert.AreEqual(2, narr.RoomOrStep);
+                Assert.AreEqual(4, narr.StokeCount, "ADR StokeCount must survive reload");
+                Assert.AreEqual(1, narr.ExploreUnlocked);
+                Assert.AreEqual(7.0, narr.Wood, 0.01, "ADR Wood must survive reload");
+                Assert.AreEqual(3.0, narr.SoftCurrency, 0.01);
+            }
+            finally
+            {
+                Object.DestroyImmediate(boot2.gameObject);
+                GameProgressData.ClearIdleSlice(arch);
+            }
+        }
 
         [Test]
         public void IdleHeroes_AfkChest_FillsOverSimTime()

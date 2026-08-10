@@ -3,6 +3,18 @@ using UnityEngine;
 
 namespace HyperCasualRunner
 {
+    /// <summary>
+    /// Cozy/assign extras (D18): workers, check-in cats, ADR wood/stoke.
+    /// Pending/HasClaim/NarrStep/Explore/Soft live on SaveIdleSlice core params.
+    /// </summary>
+    public struct IdleSliceCozyPersist
+    {
+        public int AssignedWorkers;
+        public int CheckInCats;
+        public int NarrStokeCount;
+        public double NarrWood;
+    }
+
     public static class GameProgressData
     {
         private const string GoldKey = "HCR_TotalGold";
@@ -169,7 +181,20 @@ namespace HyperCasualRunner
             int factionId = 0,
             float energyAllocated = 0f,
             bool managerIsHired = false,
-            float energyPool = 50f)
+            float energyPool = 50f,
+            double pendingClaim = 0,
+            bool hasOfflineClaim = false,
+            int gachaStage = 0,
+            int gachaPullCount = 0,
+            int gachaBestRarity = 0,
+            int narrRoomOrStep = 0,
+            int narrExploreUnlocked = 0,
+            double narrSoftCurrency = 0,
+            float afkChestSeconds = 0f,
+            int assignedWorkers = 0,
+            int checkInCats = 0,
+            int narrStokeCount = 0,
+            double narrWood = 0)
         {
             PlayerPrefs.SetString(IdleKey(archetype, "Primary"), primaryCurrency.ToString("R", CultureInfo.InvariantCulture));
             PlayerPrefs.SetString(IdleKey(archetype, "Prestige"), prestigeCurrency.ToString("R", CultureInfo.InvariantCulture));
@@ -184,8 +209,38 @@ namespace HyperCasualRunner
             PlayerPrefs.SetString(IdleKey(archetype, "Energy"), energyAllocated.ToString("R", CultureInfo.InvariantCulture));
             PlayerPrefs.SetString(IdleKey(archetype, "EnergyPool"), energyPool.ToString("R", CultureInfo.InvariantCulture));
             PlayerPrefs.SetInt(IdleKey(archetype, "MgrHired"), managerIsHired ? 1 : 0);
+            // Melvor (and Fallout) claim-bank: must survive PersistNow / quit after catch-up stamps time.
+            PlayerPrefs.SetString(IdleKey(archetype, "Pending"), pendingClaim.ToString("R", CultureInfo.InvariantCulture));
+            PlayerPrefs.SetInt(IdleKey(archetype, "HasClaim"), hasOfflineClaim ? 1 : 0);
+            // Gacha / narrative / AFK extras (IH Stage+chest, LoM Stage, Capybara Explore).
+            PlayerPrefs.SetInt(IdleKey(archetype, "GachaStage"), gachaStage);
+            PlayerPrefs.SetInt(IdleKey(archetype, "GachaPulls"), gachaPullCount);
+            PlayerPrefs.SetInt(IdleKey(archetype, "GachaRarity"), gachaBestRarity);
+            PlayerPrefs.SetInt(IdleKey(archetype, "NarrStep"), narrRoomOrStep);
+            PlayerPrefs.SetInt(IdleKey(archetype, "NarrExplore"), narrExploreUnlocked);
+            PlayerPrefs.SetString(IdleKey(archetype, "NarrSoft"), narrSoftCurrency.ToString("R", CultureInfo.InvariantCulture));
+            PlayerPrefs.SetFloat(IdleKey(archetype, "AfkChest"), afkChestSeconds);
+            // Cozy assign / ADR wood-stoke / Neko cats (D18 session honesty).
+            PlayerPrefs.SetInt(IdleKey(archetype, "Workers"), assignedWorkers);
+            PlayerPrefs.SetInt(IdleKey(archetype, "Cats"), checkInCats);
+            PlayerPrefs.SetInt(IdleKey(archetype, "NarrStoke"), narrStokeCount);
+            PlayerPrefs.SetString(IdleKey(archetype, "NarrWood"), narrWood.ToString("R", CultureInfo.InvariantCulture));
             LastIdleUpdateTime = System.DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture);
             Save();
+        }
+
+        /// <summary>Load cozy-only extras. Missing keys → zeros (safe for pre-D18 saves).</summary>
+        public static IdleSliceCozyPersist LoadIdleCozyPersist(int archetype)
+        {
+            var cozy = new IdleSliceCozyPersist
+            {
+                AssignedWorkers = PlayerPrefs.GetInt(IdleKey(archetype, "Workers"), 0),
+                CheckInCats = PlayerPrefs.GetInt(IdleKey(archetype, "Cats"), 0),
+                NarrStokeCount = PlayerPrefs.GetInt(IdleKey(archetype, "NarrStoke"), 0)
+            };
+            TryParseInvariantDouble(PlayerPrefs.GetString(IdleKey(archetype, "NarrWood"), "0"), out var wood);
+            cozy.NarrWood = wood;
+            return cozy;
         }
 
         public static bool TryLoadIdleSlice(
@@ -207,6 +262,8 @@ namespace HyperCasualRunner
                 out clickPower,
                 out passiveRate,
                 out ownedGenerators,
+                out _,
+                out _,
                 out _,
                 out _,
                 out _,
@@ -244,6 +301,8 @@ namespace HyperCasualRunner
                 out factionId,
                 out energyAllocated,
                 out managerIsHired,
+                out _,
+                out _,
                 out _);
         }
 
@@ -263,6 +322,94 @@ namespace HyperCasualRunner
             out bool managerIsHired,
             out float energyPool)
         {
+            return TryLoadIdleSlice(
+                archetype,
+                out primaryCurrency,
+                out prestigeCurrency,
+                out globalMultiplier,
+                out progressionLevel,
+                out clickPower,
+                out passiveRate,
+                out ownedGenerators,
+                out managersHired,
+                out phaseIndex,
+                out factionId,
+                out energyAllocated,
+                out managerIsHired,
+                out energyPool,
+                out _,
+                out _);
+        }
+
+        public static bool TryLoadIdleSlice(
+            int archetype,
+            out double primaryCurrency,
+            out double prestigeCurrency,
+            out float globalMultiplier,
+            out int progressionLevel,
+            out double clickPower,
+            out double passiveRate,
+            out int ownedGenerators,
+            out int managersHired,
+            out int phaseIndex,
+            out int factionId,
+            out float energyAllocated,
+            out bool managerIsHired,
+            out float energyPool,
+            out double pendingClaim,
+            out bool hasOfflineClaim)
+        {
+            return TryLoadIdleSlice(
+                archetype,
+                out primaryCurrency,
+                out prestigeCurrency,
+                out globalMultiplier,
+                out progressionLevel,
+                out clickPower,
+                out passiveRate,
+                out ownedGenerators,
+                out managersHired,
+                out phaseIndex,
+                out factionId,
+                out energyAllocated,
+                out managerIsHired,
+                out energyPool,
+                out pendingClaim,
+                out hasOfflineClaim,
+                out _,
+                out _,
+                out _,
+                out _,
+                out _,
+                out _,
+                out _);
+        }
+
+        public static bool TryLoadIdleSlice(
+            int archetype,
+            out double primaryCurrency,
+            out double prestigeCurrency,
+            out float globalMultiplier,
+            out int progressionLevel,
+            out double clickPower,
+            out double passiveRate,
+            out int ownedGenerators,
+            out int managersHired,
+            out int phaseIndex,
+            out int factionId,
+            out float energyAllocated,
+            out bool managerIsHired,
+            out float energyPool,
+            out double pendingClaim,
+            out bool hasOfflineClaim,
+            out int gachaStage,
+            out int gachaPullCount,
+            out int gachaBestRarity,
+            out int narrRoomOrStep,
+            out int narrExploreUnlocked,
+            out double narrSoftCurrency,
+            out float afkChestSeconds)
+        {
             primaryCurrency = 0;
             prestigeCurrency = 0;
             globalMultiplier = 1f;
@@ -276,6 +423,15 @@ namespace HyperCasualRunner
             energyAllocated = 0f;
             managerIsHired = false;
             energyPool = 50f;
+            pendingClaim = 0;
+            hasOfflineClaim = false;
+            gachaStage = 0;
+            gachaPullCount = 0;
+            gachaBestRarity = 0;
+            narrRoomOrStep = 0;
+            narrExploreUnlocked = 0;
+            narrSoftCurrency = 0;
+            afkChestSeconds = 0f;
 
             string primaryKey = IdleKey(archetype, "Primary");
             if (!PlayerPrefs.HasKey(primaryKey)) return false;
@@ -299,6 +455,16 @@ namespace HyperCasualRunner
                 energyPool = (float)pool;
             }
             managerIsHired = PlayerPrefs.GetInt(IdleKey(archetype, "MgrHired"), 0) != 0;
+            TryParseInvariantDouble(PlayerPrefs.GetString(IdleKey(archetype, "Pending"), "0"), out pendingClaim);
+            hasOfflineClaim = PlayerPrefs.GetInt(IdleKey(archetype, "HasClaim"), 0) != 0
+                              || pendingClaim > 0.5;
+            gachaStage = PlayerPrefs.GetInt(IdleKey(archetype, "GachaStage"), 0);
+            gachaPullCount = PlayerPrefs.GetInt(IdleKey(archetype, "GachaPulls"), 0);
+            gachaBestRarity = PlayerPrefs.GetInt(IdleKey(archetype, "GachaRarity"), 0);
+            narrRoomOrStep = PlayerPrefs.GetInt(IdleKey(archetype, "NarrStep"), 0);
+            narrExploreUnlocked = PlayerPrefs.GetInt(IdleKey(archetype, "NarrExplore"), 0);
+            TryParseInvariantDouble(PlayerPrefs.GetString(IdleKey(archetype, "NarrSoft"), "0"), out narrSoftCurrency);
+            afkChestSeconds = PlayerPrefs.GetFloat(IdleKey(archetype, "AfkChest"), 0f);
             return true;
         }
 
@@ -317,6 +483,19 @@ namespace HyperCasualRunner
             PlayerPrefs.DeleteKey(IdleKey(archetype, "Energy"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "EnergyPool"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "MgrHired"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "Pending"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "HasClaim"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "GachaStage"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "GachaPulls"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "GachaRarity"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrStep"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrExplore"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrSoft"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "AfkChest"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "Workers"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "Cats"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrStoke"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrWood"));
             Save();
         }
     }

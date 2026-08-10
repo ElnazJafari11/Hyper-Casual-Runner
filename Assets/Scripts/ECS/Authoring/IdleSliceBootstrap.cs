@@ -37,6 +37,15 @@ namespace HyperCasualRunner.ECS.Authoring
         private int _loadedFaction;
         private float _loadedEnergy;
         private bool _loadedFromPrefs;
+        private int _loadedGachaStage;
+        private int _loadedGachaPullCount;
+        private int _loadedGachaBestRarity;
+        private int _loadedNarrRoomOrStep;
+        private int _loadedNarrExploreUnlocked;
+        private int _loadedNarrStokeCount;
+        private double _loadedNarrSoftCurrency;
+        private double _loadedNarrWood;
+        private float _loadedAfkChestSeconds;
 
         public Entity SliceEntity => _sliceEntity;
         public bool IsSpawned => _spawned && !_destroyed;
@@ -164,6 +173,15 @@ namespace HyperCasualRunner.ECS.Authoring
             _loadedFaction = 0;
             _loadedEnergy = 0f;
             _loadedFromPrefs = false;
+            _loadedGachaStage = 0;
+            _loadedGachaPullCount = 0;
+            _loadedGachaBestRarity = 0;
+            _loadedNarrRoomOrStep = 0;
+            _loadedNarrExploreUnlocked = 0;
+            _loadedNarrStokeCount = 0;
+            _loadedNarrSoftCurrency = 0;
+            _loadedNarrWood = 0;
+            _loadedAfkChestSeconds = 0f;
 
             if (LoadPersistedProgress &&
                 GameProgressData.TryLoadIdleSlice(
@@ -182,7 +200,14 @@ namespace HyperCasualRunner.ECS.Authoring
                     out var mgrHired,
                     out var energyPool,
                     out var pendingClaim,
-                    out var hasOfflineClaim))
+                    out var hasOfflineClaim,
+                    out var gachaStage,
+                    out var gachaPulls,
+                    out var gachaRarity,
+                    out var narrStep,
+                    out var narrExplore,
+                    out var narrSoft,
+                    out var afkChest))
             {
                 state.PrimaryCurrency = primary;
                 state.PrestigeCurrency = prestige;
@@ -199,12 +224,26 @@ namespace HyperCasualRunner.ECS.Authoring
                 // Melvor/Fallout claim-bank must survive PersistNow after catch-up stamps time.
                 state.PendingClaim = pendingClaim;
                 state.HasOfflineClaim = hasOfflineClaim || pendingClaim > 0.5;
+                state.AfkChestSeconds = afkChest;
+                var cozy = GameProgressData.LoadIdleCozyPersist((int)Archetype);
+                state.AssignedWorkers = System.Math.Clamp(cozy.AssignedWorkers, 0, state.MaxWorkers);
+                state.CheckInCats = System.Math.Max(0, cozy.CheckInCats);
+                if (state.CheckInCats > 0) state.HasOfflineClaim = true;
                 _loadedGens = gens;
                 _loadedManagersHired = managers;
                 _loadedPhase = phase;
                 _loadedFaction = faction;
                 _loadedEnergy = energy;
                 _loadedManagerHired = mgrHired;
+                _loadedGachaStage = gachaStage;
+                _loadedGachaPullCount = gachaPulls;
+                _loadedGachaBestRarity = gachaRarity;
+                _loadedNarrRoomOrStep = narrStep;
+                _loadedNarrExploreUnlocked = narrExplore;
+                _loadedNarrSoftCurrency = narrSoft;
+                _loadedNarrStokeCount = cozy.NarrStokeCount;
+                _loadedNarrWood = cozy.NarrWood;
+                _loadedAfkChestSeconds = afkChest;
                 // Catch-up deferred until after AttachArchetypeExtras PassiveRate sync (D25).
                 _loadedFromPrefs = true;
             }
@@ -232,6 +271,26 @@ namespace HyperCasualRunner.ECS.Authoring
                 em.SetComponentData(_sliceEntity, stats);
             }
 
+            int gachaStage = 0, gachaPulls = 0, gachaRarity = 0;
+            int narrStep = 0, narrExplore = 0, narrStoke = 0;
+            double narrSoft = 0, narrWood = 0;
+            if (em.HasComponent<IdleGachaState>(_sliceEntity))
+            {
+                var g = em.GetComponentData<IdleGachaState>(_sliceEntity);
+                gachaStage = g.Stage;
+                gachaPulls = g.PullCount;
+                gachaRarity = g.BestRarity;
+            }
+            if (em.HasComponent<IdleNarrativeState>(_sliceEntity))
+            {
+                var n = em.GetComponentData<IdleNarrativeState>(_sliceEntity);
+                narrStep = n.RoomOrStep;
+                narrExplore = n.ExploreUnlocked;
+                narrSoft = n.SoftCurrency;
+                narrStoke = n.StokeCount;
+                narrWood = n.Wood;
+            }
+
             GameProgressData.SaveIdleSlice(
                 (int)s.Archetype,
                 s.PrimaryCurrency,
@@ -247,8 +306,19 @@ namespace HyperCasualRunner.ECS.Authoring
                 s.EnergyAllocated,
                 mgrHired,
                 s.EnergyPool,
-                pendingClaim: s.PendingClaim,
-                hasOfflineClaim: s.HasOfflineClaim);
+                s.PendingClaim,
+                s.HasOfflineClaim,
+                gachaStage,
+                gachaPulls,
+                gachaRarity,
+                narrStep,
+                narrExplore,
+                narrSoft,
+                s.AfkChestSeconds,
+                s.AssignedWorkers,
+                s.CheckInCats,
+                narrStoke,
+                narrWood);
         }
 
         private void AttachArchetypeExtras(EntityManager em, Entity slice, IdleSliceState initial)
@@ -334,10 +404,10 @@ namespace HyperCasualRunner.ECS.Authoring
                     });
                     em.AddComponentData(slice, new IdleGachaState
                     {
-                        PullCount = 0,
+                        PullCount = _loadedGachaPullCount,
                         PullCost = PullCost,
-                        BestRarity = 0,
-                        Stage = 0
+                        BestRarity = _loadedGachaBestRarity,
+                        Stage = _loadedGachaStage
                     });
                     break;
 
@@ -346,7 +416,7 @@ namespace HyperCasualRunner.ECS.Authoring
                     em.AddComponentData(slice, new IdleAssignmentStation
                     {
                         StationId = 1,
-                        AssignedCount = 0,
+                        AssignedCount = System.Math.Clamp(initial.AssignedWorkers, 0, MaxWorkers),
                         Capacity = MaxWorkers,
                         OutputPerWorker = 1.5,
                         Interval = 1f,
@@ -374,21 +444,21 @@ namespace HyperCasualRunner.ECS.Authoring
                 case IdleArchetype.CapybaraGo:
                     em.AddComponentData(slice, new IdleNarrativeState
                     {
-                        RoomOrStep = 0,
-                        StokeCount = 0,
-                        ExploreUnlocked = 0,
-                        Wood = 0,
-                        SoftCurrency = 0
+                        RoomOrStep = _loadedNarrRoomOrStep,
+                        StokeCount = _loadedNarrStokeCount,
+                        ExploreUnlocked = _loadedNarrExploreUnlocked,
+                        Wood = _loadedNarrWood,
+                        SoftCurrency = _loadedNarrSoftCurrency
                     });
                     break;
 
                 case IdleArchetype.LegendOfMushroom:
                     em.AddComponentData(slice, new IdleGachaState
                     {
-                        PullCount = 0,
+                        PullCount = _loadedGachaPullCount,
                         PullCost = PullCost,
-                        BestRarity = 0,
-                        Stage = 0
+                        BestRarity = _loadedGachaBestRarity,
+                        Stage = _loadedGachaStage
                     });
                     break;
             }
