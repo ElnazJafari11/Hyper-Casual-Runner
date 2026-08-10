@@ -101,4 +101,4 @@ Fresh attempt: Logs/IdleHud-impl10-r7.log → Exiting ... return code 1 (aborted
 - **Deviations:** fresh HUD batchmode aborted on lock (documented)
 - **Flash Base:** none
 - **Escalations:** none
-- **Commit:** (local only, never push — hash noted after commit)
+- **Commit:** `a262e7eba14b76f1f8776e5dcc90b6c4b6e50c99` (receipt + R7 UI review + HUD smoke UI7 wording; local only, never push)

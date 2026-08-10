@@ -83,4 +83,4 @@ FalloutShelter_PendingAndWorkers_SurvivePersistNowReload => Passed
 - **Deviations:** none from review (required empty). Soft polish not taken.
 - **Flash Base:** none
 - **Escalations:** none
-- **Commit:** (local only, never push — hash noted after commit)
+- **Commit:** `318133e7d2ebe077383ba1ab4b87b57c8eaa57e2` (receipt + R7 cozy review; local only, never push)
