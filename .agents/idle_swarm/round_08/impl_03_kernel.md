@@ -4,6 +4,7 @@
 **Review:** `.agents/idle_swarm/round_08/review_01_kernel.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
+**Commit:** `d59bdb4013ed7981125ec7d438381227b14eaa40` (local only, no push)  
 **Mode:** Sole P0 D24 — one `doctor` max, then BLOCKED receipt. No P1. No Play thrash.  
 **Push:** never (local commit only)
 
@@ -98,4 +99,4 @@ Doctor: single call only — see table above
 **ROUTE:** Executor (review_01 sole P0 D24 blocker doc)  
 **D24:** **UNVERIFIED / BLOCKED**  
 **P1:** none  
-**COMMIT:** (filled after local commit) — never push
+**COMMIT:** `d59bdb4013ed7981125ec7d438381227b14eaa40` local only — never push
