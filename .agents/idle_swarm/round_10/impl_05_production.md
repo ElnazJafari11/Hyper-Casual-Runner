@@ -11,8 +11,9 @@ None.
 
 ## Verification
 - Tip 115 honest (Summary duration match tip log).
-- Lane verdict from review: ClickPower CatchUp stays deferred (stash/WT WIP not HEAD); BC 69.
+- Lane verdict SUPERSEDED: ClickPower CatchUp landed on HEAD as 9bd9e99 (see CORRECTION_clickpower_landed.md). BC 69.
 - Play Mode: still **0/19 UNVERIFIED**.
 
 ## STATUS
 VERIFIED (EditMode/docs) / UNVERIFIED (Play)
+
