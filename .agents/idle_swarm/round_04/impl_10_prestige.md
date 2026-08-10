@@ -4,6 +4,7 @@
 **Review:** `.agents/idle_swarm/round_04/review_04_prestige.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
+**Commit:** `a50511d` (local only, no push)  
 **Mode:** P2 coverage only — AD band EditMode assert + optional Align income fixture  
 **Push:** never (local commit only)
 
