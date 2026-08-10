@@ -39,7 +39,7 @@ No live HUD / prefab / hub / sandbox source changes. LoM Farm hide already on HE
 | UI5-03 | Hub equip-only + refresh holds | **PASS** | STUB dual-economy comment retained; `UnlockSkin` only in STUB prose; `RefreshAllSkinButtons()` still called on equip click |
 | UI5-04 | EditMode smoke stays green | **PASS** | `IdleSliceHudSmokeTests` → surface + cosmetics-wiring + UI5-06 shop bridge green (see Verification); fixture also carries R5 combat HUD + LoM Farm peers |
 | UI5-05 | Sandbox stay deferred or fix currency | **N/A (PASS)** | Binder instance count **0** on Idle prefabs |
-| UI5-06 | (Optional) Shop-outcome EditMode bridge | **PASS** | `IdleSliceUIController_CosmeticsBuy_ShopSpendsPrestigeAndSetsCurrentSkin`: prestige 20→15, unlock skin 1, `CurrentSkinIndex=1` after shop tick |
+| UI5-06 | (Optional) Shop-outcome EditMode bridge | **PASS** | `IdleSliceUIController_CosmeticsBuy_ShopSpendsPrestigeAndSetsCurrentSkin`: prestige 20→15, unlock skin 1, `CurrentSkinIndex=1` after shop tick; also asserts event `TargetSlice` == funded sole slice |
 
 R01 UI-01..07, R02 UI2-02..06, R03 UI3-02..06, R04 UI4-02..06 retained as regression — sole live HUD, hub equip-only + refresh, binder unused, Toolkit-only, UI4-06 wiring unchanged.
 
@@ -96,6 +96,10 @@ Unity 6000.5.5f1 -batchmode -nographics -projectPath D:\Git\Hyper-Casual-Runner
 → IdleSliceUIController_CosmeticsBuy_ShopSpendsPrestigeAndSetsCurrentSkin => Passed
 → IdleSliceUIController_CosmeticsBuy_EmitsCosmeticPurchaseEvent => Passed
 → IdleSliceUIController_EnsureHudBuilt_CreatesNamedTabsAndSkinButtons => Passed
+
+# Reconfirm (same filter; Logs/IdleHud-TestResults.xml + IdleHud-impl07-r5.log)
+→ Test run completed. Exiting with code 0 (Ok).
+→ result=Passed total=7 passed=7 failed=0 (start-time 2026-08-10 02:02:01Z)
 ```
 
 **Play Mode cosmetics:** **BLOCKED / UNVERIFIED**.
