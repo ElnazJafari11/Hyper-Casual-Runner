@@ -1,5 +1,8 @@
+using System;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
+using Unity.Entities;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
@@ -11,12 +14,32 @@ using HyperCasualRunner.ECS.Components;
 namespace HyperCasualRunner.Tests
 {
     /// <summary>
-    /// EditMode HUD surface smoke (UI2-02): named Actions/Cosmetics tabs + skin buttons
-    /// without Enter Play Mode.
+    /// EditMode HUD surface smoke (UI2-02 / UI3-04 / UI4-04): named Actions/Cosmetics tabs + skin buttons
+    /// without Enter Play Mode. UI4-06 adds Cosmetics click → CosmeticPurchaseEventComponent wiring.
+    /// UI4-01 Play Mode cosmetics remains blocked without an HCR interactive editor on MCP.
     /// </summary>
     [TestFixture]
     public class IdleSliceHudSmokeTests
     {
+        private World _world;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _world = new World("IdleSliceHudSmokeWorld");
+            World.DefaultGameObjectInjectionWorld = _world;
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (_world != null && _world.IsCreated)
+                _world.Dispose();
+            if (World.DefaultGameObjectInjectionWorld == _world)
+                World.DefaultGameObjectInjectionWorld = null;
+            _world = null;
+        }
+
         [Test]
         public void IdleSliceUIController_EnsureHudBuilt_CreatesNamedTabsAndSkinButtons()
         {
@@ -61,8 +84,94 @@ namespace HyperCasualRunner.Tests
             }
             finally
             {
-                Object.DestroyImmediate(go);
+                UnityEngine.Object.DestroyImmediate(go);
             }
+        }
+
+        /// <summary>
+        /// UI4-06: Cosmetics tab show + BuySkin1 click emits CosmeticPurchaseEventComponent.
+        /// Substitute while UI4-01 Play Mode cosmetics smoke is blocked (no HCR interactive MCP).
+        /// </summary>
+        [Test]
+        public void IdleSliceUIController_CosmeticsBuy_EmitsCosmeticPurchaseEvent()
+        {
+            var go = new GameObject("IdleSliceHudCosmeticsWiring");
+            try
+            {
+                var doc = go.AddComponent<UIDocument>();
+                AssignPanelSettings(doc);
+
+                var bootstrap = go.AddComponent<IdleSliceBootstrap>();
+                bootstrap.DisplayName = "Cosmetics Wiring Slice";
+                bootstrap.HowToPlay = "UI4-06 EditMode wiring";
+                bootstrap.Archetype = IdleArchetype.CookieClicker;
+
+                var controller = go.AddComponent<IdleSliceUIController>();
+
+                bool needsRuntimePanel = doc.panelSettings == null;
+                if (needsRuntimePanel)
+                    LogAssert.Expect(LogType.Error, new Regex("UI Toolkit\\.meta"));
+
+                controller.EnsureHudBuilt();
+
+                LogAssert.ignoreFailingMessages = true;
+                var root = controller.RootVisualElement;
+                LogAssert.ignoreFailingMessages = false;
+                Assert.IsNotNull(root, "UIDocument rootVisualElement should exist after PanelSettings.");
+
+                var cosmeticsTab = root.Q<Button>("CosmeticsTabButton");
+                Assert.IsNotNull(cosmeticsTab, "CosmeticsTabButton missing");
+                SimulateClick(cosmeticsTab);
+
+                var cosmetics = root.Q<VisualElement>("CosmeticsContainer");
+                Assert.IsNotNull(cosmetics, "CosmeticsContainer missing");
+                Assert.AreEqual(DisplayStyle.Flex, cosmetics.style.display.value,
+                    "Cosmetics tab click should show CosmeticsContainer");
+
+                using (var before = _world.EntityManager.CreateEntityQuery(typeof(CosmeticPurchaseEventComponent)))
+                    Assert.AreEqual(0, before.CalculateEntityCount(), "No cosmetic events before buy click");
+
+                var buy = root.Q<Button>("BuySkin1Button");
+                Assert.IsNotNull(buy, "BuySkin1Button missing");
+                SimulateClick(buy);
+
+                using var q = _world.EntityManager.CreateEntityQuery(typeof(CosmeticPurchaseEventComponent));
+                Assert.AreEqual(1, q.CalculateEntityCount(),
+                    "BuySkin1 click should create CosmeticPurchaseEventComponent");
+                // Enableable IComponentData cannot use GetSingleton — read via array.
+                var arr = q.ToComponentDataArray<CosmeticPurchaseEventComponent>(Unity.Collections.Allocator.Temp);
+                try
+                {
+                    Assert.AreEqual(1, arr.Length);
+                    Assert.AreEqual(1, arr[0].TargetSkinIndex, "TargetSkinIndex should be skin 1 (Crimson Red)");
+                    Assert.AreEqual(5.0, arr[0].PrestigeCost, "PrestigeCost should match SkinRows cost for skin 1");
+                }
+                finally
+                {
+                    arr.Dispose();
+                }
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+            }
+        }
+
+        /// <summary>
+        /// EditMode panels often do not route ClickEvent through Clickable; invoke clicked subscribers directly.
+        /// </summary>
+        private static void SimulateClick(Button button)
+        {
+            Assert.IsNotNull(button, "Button null");
+            var clickable = button.clickable;
+            Assert.IsNotNull(clickable, "Button.clickable missing on " + button.name);
+
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            var field = typeof(Clickable).GetField("clicked", flags);
+            Assert.IsNotNull(field, "Clickable.clicked backing field missing (Unity API change?)");
+            var del = field.GetValue(clickable) as Action;
+            Assert.IsNotNull(del, "No clicked subscribers on " + button.name);
+            del.Invoke();
         }
 
         private static void AssignPanelSettings(UIDocument doc)
