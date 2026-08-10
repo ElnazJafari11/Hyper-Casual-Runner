@@ -5,7 +5,7 @@
 **Date:** 2026-08-10  
 **Source review:** `round_08/review_07_cozy.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
-**Commit:** local only (never push) — hash filled after commit  
+**Commit:** local only (never push) — `9711d3e`  
 **Push:** never  
 
 ---
@@ -89,4 +89,4 @@ Station AFK / SurvivePersist:
 - **Deviations:** none from review (required empty). Soft polish not taken.  
 - **Flash Base:** none  
 - **Escalations:** none  
-- **Commit:** (local only, never push — hash after commit)
+- **Commit:** `9711d3edb729719f681068129f2352bfa63e0a04` (receipt only; local only, never push)

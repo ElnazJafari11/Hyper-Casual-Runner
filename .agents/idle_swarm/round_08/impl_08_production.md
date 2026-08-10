@@ -4,7 +4,7 @@
 **Source review:** `round_08/review_05_production.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
-**Commit:** local only (never push) — hash filled after commit  
+**Commit:** local only (never push) — `988f1f8`  
 **Push:** never  
 
 ---
