@@ -1645,6 +1645,52 @@ namespace HyperCasualRunner.Tests
         }
 
         [Test]
+        public void NekoAtsume_SpawnBootstrap_TrySpawn_AccruesCheckInCatsAndPersists()
+        {
+            // R6 P2: live IdleSliceBootstrap.TrySpawn CatchUp→PersistNow for Neko D26
+            // (helper Apply alone is not enough — Melvor already has this live pipe fixture).
+            // Prefs + T−50s → TrySpawn must accrue floor(50/5)=10 cats, leave Primary alone,
+            // and flush CheckInCats via PersistNow without a 2s wait.
+            int arch = (int)IdleArchetype.NekoAtsume;
+            GameProgressData.ClearIdleSlice(arch);
+            GameProgressData.SaveIdleSlice(
+                arch, 20, 0, 1f, 1, 1, 0, 0,
+                pendingClaim: 0, hasOfflineClaim: false, checkInCats: 0);
+            GameProgressData.LastIdleUpdateTime = System.DateTime.UtcNow.AddSeconds(-50)
+                .ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+
+            var boot = SpawnBootstrap(IdleArchetype.NekoAtsume);
+            try
+            {
+                var state = _em.GetComponentData<IdleSliceState>(boot.SliceEntity);
+                Assert.AreEqual(10, state.CheckInCats,
+                    "50s Neko CatchUp via TrySpawn must accrue floor(50/5)=10 CheckInCats");
+                Assert.AreEqual(20.0, state.PrimaryCurrency, 0.001,
+                    "Neko TrySpawn CatchUp must not double-bank Primary");
+                Assert.IsTrue(state.HasOfflineClaim);
+                Assert.AreEqual(0.0, state.PendingClaim, 0.001,
+                    "Neko banks cats, not PendingClaim");
+
+                int catsAfter = state.CheckInCats;
+                // R4 PersistNow already ran inside TrySpawn when catchUpGained > 0 — no 2s wait.
+                var cozy = GameProgressData.LoadIdleCozyPersist(arch);
+                Assert.AreEqual(catsAfter, cozy.CheckInCats,
+                    "Cold LoadIdleCozyPersist must restore cats flushed by live TrySpawn PersistNow");
+                Assert.IsTrue(GameProgressData.TryLoadIdleSlice(
+                    arch,
+                    out var primary, out _, out _, out _, out _, out _,
+                    out _, out _, out _, out _, out _, out _, out _, out _, out var hasClaim));
+                Assert.AreEqual(20.0, primary, 0.001, "Primary must survive TrySpawn PersistNow");
+                Assert.IsTrue(hasClaim);
+            }
+            finally
+            {
+                Object.DestroyImmediate(boot.gameObject);
+                GameProgressData.ClearIdleSlice(arch);
+            }
+        }
+
+        [Test]
         public void Melvor_PendingClaim_SurvivesPersistAndColdReload()
         {
             // R3 P0: catch-up banks PendingClaim then PersistNow stamps time — claim must survive reload.
