@@ -15,6 +15,20 @@ namespace HyperCasualRunner
         public double NarrWood;
     }
 
+    /// <summary>
+    /// Combat SoT (R4-F1): Zone/HP/DPS/Tap/GoldPerKill survive reload.
+    /// Must not be rebuilt from Stage-inflated ProgressionLevel alone.
+    /// </summary>
+    public struct IdleCombatPersist
+    {
+        public int Zone;
+        public float EnemyHp;
+        public float EnemyMaxHp;
+        public double HeroDps;
+        public double TapDamage;
+        public double GoldPerKill;
+    }
+
     public static class GameProgressData
     {
         private const string GoldKey = "HCR_TotalGold";
@@ -241,6 +255,40 @@ namespace HyperCasualRunner
             TryParseInvariantDouble(PlayerPrefs.GetString(IdleKey(archetype, "NarrWood"), "0"), out var wood);
             cozy.NarrWood = wood;
             return cozy;
+        }
+
+        /// <summary>Persist IdleCombatState SoT. Only call when the slice actually has combat.</summary>
+        public static void SaveIdleCombatPersist(int archetype, in IdleCombatPersist combat)
+        {
+            PlayerPrefs.SetInt(IdleKey(archetype, "CombatZone"), combat.Zone);
+            PlayerPrefs.SetFloat(IdleKey(archetype, "CombatEnemyHp"), combat.EnemyHp);
+            PlayerPrefs.SetFloat(IdleKey(archetype, "CombatEnemyMaxHp"), combat.EnemyMaxHp);
+            PlayerPrefs.SetString(IdleKey(archetype, "CombatHeroDps"),
+                combat.HeroDps.ToString("R", CultureInfo.InvariantCulture));
+            PlayerPrefs.SetString(IdleKey(archetype, "CombatTapDmg"),
+                combat.TapDamage.ToString("R", CultureInfo.InvariantCulture));
+            PlayerPrefs.SetString(IdleKey(archetype, "CombatGoldKill"),
+                combat.GoldPerKill.ToString("R", CultureInfo.InvariantCulture));
+            Save();
+        }
+
+        /// <summary>
+        /// Load combat SoT. Missing CombatZone key → false (cold start / pre-R4 saves).
+        /// Caller must not invent Zone from ProgressionLevel when this returns true.
+        /// </summary>
+        public static bool TryLoadIdleCombatPersist(int archetype, out IdleCombatPersist combat)
+        {
+            combat = default;
+            string zoneKey = IdleKey(archetype, "CombatZone");
+            if (!PlayerPrefs.HasKey(zoneKey)) return false;
+
+            combat.Zone = PlayerPrefs.GetInt(zoneKey, 1);
+            combat.EnemyHp = PlayerPrefs.GetFloat(IdleKey(archetype, "CombatEnemyHp"), 0f);
+            combat.EnemyMaxHp = PlayerPrefs.GetFloat(IdleKey(archetype, "CombatEnemyMaxHp"), 0f);
+            TryParseInvariantDouble(PlayerPrefs.GetString(IdleKey(archetype, "CombatHeroDps"), "0"), out combat.HeroDps);
+            TryParseInvariantDouble(PlayerPrefs.GetString(IdleKey(archetype, "CombatTapDmg"), "0"), out combat.TapDamage);
+            TryParseInvariantDouble(PlayerPrefs.GetString(IdleKey(archetype, "CombatGoldKill"), "0"), out combat.GoldPerKill);
+            return true;
         }
 
         public static bool TryLoadIdleSlice(
@@ -496,6 +544,12 @@ namespace HyperCasualRunner
             PlayerPrefs.DeleteKey(IdleKey(archetype, "Cats"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrStoke"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrWood"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "CombatZone"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "CombatEnemyHp"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "CombatEnemyMaxHp"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "CombatHeroDps"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "CombatTapDmg"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "CombatGoldKill"));
             Save();
         }
     }

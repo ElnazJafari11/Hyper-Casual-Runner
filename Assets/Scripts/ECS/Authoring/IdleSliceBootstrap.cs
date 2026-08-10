@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Entities;
+using HyperCasualRunner;
 using HyperCasualRunner.ECS.Components;
 using HyperCasualRunner.ECS.Systems;
 
@@ -165,7 +166,8 @@ namespace HyperCasualRunner.ECS.Authoring
                 case IdleArchetype.IdleHeroes:
                     state.EnemyMaxHp = 20;
                     state.EnemyHp = 20;
-                    state.PassiveRate = Archetype == IdleArchetype.IdleHeroes ? 2 : 0.5;
+                    // IH floor matches attach HeroDps=3 so gacha bumps stay in lockstep with PassiveRate.
+                    state.PassiveRate = Archetype == IdleArchetype.IdleHeroes ? 3 : 0.5;
                     break;
                 case IdleArchetype.MelvorIdle:
                     // Matches IdleSkillNode: 1 currency / TickInterval (1s).
@@ -332,6 +334,22 @@ namespace HyperCasualRunner.ECS.Authoring
                 s.CheckInCats,
                 narrStoke,
                 narrWood);
+
+            // R4-F1: combat SoT is separate from Level — Stage-inflated ProgressionLevel must not
+            // become Zone on cold start. Only write when IdleCombatState is present.
+            if (em.HasComponent<IdleCombatState>(_sliceEntity))
+            {
+                var c = em.GetComponentData<IdleCombatState>(_sliceEntity);
+                GameProgressData.SaveIdleCombatPersist((int)s.Archetype, new IdleCombatPersist
+                {
+                    Zone = c.Zone,
+                    EnemyHp = c.EnemyHp,
+                    EnemyMaxHp = c.EnemyMaxHp,
+                    HeroDps = c.HeroDps,
+                    TapDamage = c.TapDamage,
+                    GoldPerKill = c.GoldPerKill
+                });
+            }
         }
 
         private void AttachArchetypeExtras(EntityManager em, Entity slice, IdleSliceState initial)
@@ -384,15 +402,8 @@ namespace HyperCasualRunner.ECS.Authoring
 
                 case IdleArchetype.ClickerHeroes:
                 case IdleArchetype.TapTitans2:
-                    em.AddComponentData(slice, new IdleCombatState
-                    {
-                        TapDamage = ClickPower,
-                        HeroDps = System.Math.Max(1.0, statePassiveFromEntity(em, slice)),
-                        Zone = System.Math.Max(1, initial.ProgressionLevel),
-                        GoldPerKill = 5,
-                        EnemyHp = 20,
-                        EnemyMaxHp = 20
-                    });
+                    em.AddComponentData(slice, BuildCombatState(
+                        initial, System.Math.Max(1.0, statePassiveFromEntity(em, slice))));
                     em.AddComponentData(slice, new BuyableGenerator
                     {
                         GeneratorId = 1,
@@ -406,15 +417,10 @@ namespace HyperCasualRunner.ECS.Authoring
                     break;
 
                 case IdleArchetype.IdleHeroes:
-                    em.AddComponentData(slice, new IdleCombatState
-                    {
-                        TapDamage = ClickPower,
-                        HeroDps = 3,
-                        Zone = System.Math.Max(1, initial.ProgressionLevel),
-                        GoldPerKill = 5,
-                        EnemyHp = 20,
-                        EnemyMaxHp = 20
-                    });
+                    // Cold-start HeroDps floor 3; PassiveRate lifts when prefs have gacha DPS.
+                    // Persisted combat SoT wins over Level/PassiveRate invent (R4-F1).
+                    em.AddComponentData(slice, BuildCombatState(
+                        initial, System.Math.Max(3.0, statePassiveFromEntity(em, slice))));
                     em.AddComponentData(slice, new IdleGachaState
                     {
                         PullCount = _loadedGachaPullCount,
@@ -475,6 +481,49 @@ namespace HyperCasualRunner.ECS.Authoring
                     });
                     break;
             }
+        }
+
+        /// <summary>
+        /// Restore IdleCombatState from prefs when present; otherwise cold-start from Level.
+        /// Never invent Zone from Stage-inflated ProgressionLevel when combat keys exist (R4-F1).
+        /// MaxHp/Gold rebase from Zone when MaxHp≤0 (R4-D7).
+        /// </summary>
+        private IdleCombatState BuildCombatState(IdleSliceState initial, double defaultHeroDps)
+        {
+            if (_loadedFromPrefs &&
+                GameProgressData.TryLoadIdleCombatPersist((int)Archetype, out var saved))
+            {
+                int zone = System.Math.Max(1, saved.Zone);
+                float maxHp = saved.EnemyMaxHp;
+                float hp = saved.EnemyHp;
+                double gold = saved.GoldPerKill;
+                if (maxHp <= 0f)
+                {
+                    maxHp = 20f + zone * 25f;
+                    hp = maxHp;
+                }
+                if (gold <= 0)
+                    gold = 5 + zone * 2;
+                return new IdleCombatState
+                {
+                    TapDamage = saved.TapDamage > 0 ? saved.TapDamage : ClickPower,
+                    HeroDps = saved.HeroDps > 0 ? saved.HeroDps : defaultHeroDps,
+                    Zone = zone,
+                    GoldPerKill = gold,
+                    EnemyHp = hp,
+                    EnemyMaxHp = maxHp
+                };
+            }
+
+            return new IdleCombatState
+            {
+                TapDamage = ClickPower,
+                HeroDps = defaultHeroDps,
+                Zone = System.Math.Max(1, initial.ProgressionLevel),
+                GoldPerKill = 5,
+                EnemyHp = 20,
+                EnemyMaxHp = 20
+            };
         }
 
         private static double statePassiveFromEntity(EntityManager em, Entity slice)

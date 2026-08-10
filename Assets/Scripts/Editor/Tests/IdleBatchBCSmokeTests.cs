@@ -1238,6 +1238,114 @@ namespace HyperCasualRunner.Tests
         }
 
         [Test]
+        public void IdleHeroes_HeroDps_RestoresFromPassiveRateOnAttach()
+        {
+            int arch = (int)IdleArchetype.IdleHeroes;
+            GameProgressData.ClearIdleSlice(arch);
+
+            // Legacy path: PassiveRate prefs only (no CombatHeroDps key) — attach must lift HeroDps.
+            GameProgressData.SaveIdleSlice(
+                arch, 40, 0, 1f, 3, 2, 7.5, 0,
+                gachaStage: 2, gachaPullCount: 4, gachaBestRarity: 3,
+                afkChestSeconds: 1f);
+
+            var boot = SpawnBootstrap(IdleArchetype.IdleHeroes);
+            try
+            {
+                var reloaded = _em.GetComponentData<IdleSliceState>(boot.SliceEntity);
+                var reCombat = _em.GetComponentData<IdleCombatState>(boot.SliceEntity);
+                Assert.AreEqual(7.5, reloaded.PassiveRate, 0.01, "PassiveRate must survive prefs round-trip");
+                Assert.GreaterOrEqual(reCombat.HeroDps, 7.5 - 0.01,
+                    "Attach must restore HeroDps from PassiveRate, not hardcode bare 3");
+                Assert.Greater(reCombat.HeroDps, 3.0 + 0.01,
+                    "Reloaded HeroDps must exceed cold-start floor when PassiveRate reflects gacha");
+            }
+            finally
+            {
+                Object.DestroyImmediate(boot.gameObject);
+                GameProgressData.ClearIdleSlice(arch);
+            }
+        }
+
+        [Test]
+        public void IdleHeroes_HeroDps_SurvivePersistNowReload()
+        {
+            int arch = (int)IdleArchetype.IdleHeroes;
+            GameProgressData.ClearIdleSlice(arch);
+
+            var boot = SpawnBootstrap(IdleArchetype.IdleHeroes);
+            var slice = boot.SliceEntity;
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.PassiveRate = 8.0;
+            st.PrimaryCurrency = 40;
+            _em.SetComponentData(slice, st);
+            var combat = _em.GetComponentData<IdleCombatState>(slice);
+            combat.HeroDps = 8.0;
+            _em.SetComponentData(slice, combat);
+            double preSaveDps = combat.HeroDps;
+            boot.PersistNow();
+            Object.DestroyImmediate(boot.gameObject);
+
+            var boot2 = SpawnBootstrap(IdleArchetype.IdleHeroes);
+            try
+            {
+                var reCombat = _em.GetComponentData<IdleCombatState>(boot2.SliceEntity);
+                Assert.GreaterOrEqual(reCombat.HeroDps, preSaveDps - 0.01,
+                    "PersistNow reload must keep HeroDps ≥ pre-save (combat prefs or PassiveRate)");
+            }
+            finally
+            {
+                Object.DestroyImmediate(boot2.gameObject);
+                GameProgressData.ClearIdleSlice(arch);
+            }
+        }
+
+        [Test]
+        public void IdleHeroes_CombatState_PersistsRoundTrip_ZoneNotRebuiltFromStageLevel()
+        {
+            // R4-F1: Stage-inflated Level=8 with live Zone=5 must reload Zone=5 (not 8) + mid-fight HP/DPS.
+            int arch = (int)IdleArchetype.IdleHeroes;
+            GameProgressData.ClearIdleSlice(arch);
+
+            var boot = SpawnBootstrap(IdleArchetype.IdleHeroes);
+            var slice = boot.SliceEntity;
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.ProgressionLevel = 8;
+            st.PrimaryCurrency = 40;
+            _em.SetComponentData(slice, st);
+            _em.SetComponentData(slice, new IdleCombatState
+            {
+                TapDamage = 2,
+                HeroDps = 12,
+                Zone = 5,
+                GoldPerKill = 15,
+                EnemyHp = 40,
+                EnemyMaxHp = 145
+            });
+            boot.PersistNow();
+            Object.DestroyImmediate(boot.gameObject);
+
+            var boot2 = SpawnBootstrap(IdleArchetype.IdleHeroes);
+            try
+            {
+                var reloaded = _em.GetComponentData<IdleSliceState>(boot2.SliceEntity);
+                Assert.AreEqual(8, reloaded.ProgressionLevel, "Stage-inflated Level must still load");
+                var combat = _em.GetComponentData<IdleCombatState>(boot2.SliceEntity);
+                Assert.AreEqual(5, combat.Zone, "Zone must not teleport to Stage-inflated Level=8");
+                Assert.AreEqual(40f, combat.EnemyHp, 0.01f, "Mid-fight EnemyHp must survive reload");
+                Assert.AreEqual(145f, combat.EnemyMaxHp, 0.01f, "EnemyMaxHp must match Zone scale");
+                Assert.AreEqual(12.0, combat.HeroDps, 0.01, "HeroDps must survive reload");
+                Assert.AreEqual(2.0, combat.TapDamage, 0.01);
+                Assert.AreEqual(15.0, combat.GoldPerKill, 0.01);
+            }
+            finally
+            {
+                Object.DestroyImmediate(boot2.gameObject);
+                GameProgressData.ClearIdleSlice(arch);
+            }
+        }
+
+        [Test]
         public void ADarkRoom_Craft_SpendsWoodForPassive()
         {
             var slice = CreateSlice(IdleArchetype.ADarkRoom, 0);
