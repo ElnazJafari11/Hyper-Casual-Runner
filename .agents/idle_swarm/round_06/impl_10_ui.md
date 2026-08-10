@@ -3,7 +3,7 @@
 **Agent:** implement 10/10  
 **Source review:** `round_06/review_08_ui.md`  
 **Architecture:** UI Toolkit only  
-**Commit:** (filled after local commit)  
+**Commit:** `c8d31a1ba6ea88e7e9f7564c1146beb171202afa` (local only, no push)  
 **Push:** never (local commit only)  
 **Play:** no thrash — UI6-01 one `doctor` max, then documented BLOCKED
 
