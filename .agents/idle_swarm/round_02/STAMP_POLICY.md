@@ -37,6 +37,8 @@
 | Cats & Soup (`AssignedWorkers > 0`) | **Direct** `PrimaryCurrency` via station rate (bootstrap OutputPerWorker/Interval) | None |
 | Fallout Shelter (`AssignedWorkers > 0`) | `PendingClaim` via station rate | Already has Claim |
 | Cats/Fallout with 0 workers | Grant 0 — leave stamp (D23) | — |
+| Neko Atsume | `CheckInCats` += floor(elapsed / 5s) capped at 20; sets `HasOfflineClaim`; **no** Primary bump (D26 cozy) | Already has Check In / Claim |
+| Neko at cap / elapsed &lt; 5s | Grant 0 — leave stamp (D23) | — |
 | Other PassiveRate slices | Same as Egg/Miner (direct Primary) | None unless a later round switches to PendingClaim |
 
 If a future change banks Egg/Miner into `PendingClaim`, Claim UI (or auto-drain) becomes required in the same change.

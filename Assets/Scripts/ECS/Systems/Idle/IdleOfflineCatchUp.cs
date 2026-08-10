@@ -22,11 +22,18 @@ namespace HyperCasualRunner.ECS.Systems
         public const float StationIntervalSeconds = 1f;
 
         /// <summary>
+        /// Matches online Neko timer in <c>IdleSliceSimulationSystem</c> (1 cat / 5s, soft 20).
+        /// </summary>
+        public const float NekoCatIntervalSeconds = 5f;
+        public const int NekoMaxCheckInCats = 20;
+
+        /// <summary>
         /// Apply elapsed wall-clock time into slice state.
         /// Melvor banks into <see cref="IdleSliceState.PendingClaim"/> (+ skill XP); never bumps AfkChestSeconds.
         /// Cats &amp; Soup / Fallout Shelter with AssignedWorkers&gt;0 simulate station ticks (Primary vs Pending).
+        /// Neko Atsume accrues <see cref="IdleSliceState.CheckInCats"/> (D26 cozy face; no Primary double-bank).
         /// Egg/Miner and other PassiveRate&gt;0 archetypes add directly to PrimaryCurrency (no Claim UI required).
-        /// Returns currency granted or banked (0 if nothing applied).
+        /// Returns currency granted or banked, or cats added for Neko (0 if nothing applied).
         /// </summary>
         public static double Apply(ref IdleSliceState state, double elapsedSeconds)
         {
@@ -50,6 +57,9 @@ namespace HyperCasualRunner.ECS.Systems
             {
                 return ApplyStationCatchUp(ref state, capped);
             }
+
+            if (state.Archetype == IdleArchetype.NekoAtsume)
+                return ApplyNekoCatchUp(ref state, capped);
 
             if (state.PassiveRate > 0)
             {
@@ -86,6 +96,27 @@ namespace HyperCasualRunner.ECS.Systems
             }
 
             return gained;
+        }
+
+        /// <summary>
+        /// D26 Neko face: floor(elapsed / 5s) cats into CheckInCats (cap 20) + HasOfflineClaim.
+        /// Does not touch PrimaryCurrency (claim pays cats). Sub-interval / already-full → 0 (D23).
+        /// </summary>
+        public static double ApplyNekoCatchUp(ref IdleSliceState state, double cappedSeconds)
+        {
+            float interval = NekoCatIntervalSeconds <= 0f ? 5f : NekoCatIntervalSeconds;
+            int ticks = (int)(cappedSeconds / interval);
+            if (ticks <= 0) return 0;
+
+            int before = state.CheckInCats;
+            if (before < 0) before = 0;
+            int after = Math.Min(NekoMaxCheckInCats, before + ticks);
+            int added = after - before;
+            if (added <= 0) return 0;
+
+            state.CheckInCats = after;
+            state.HasOfflineClaim = true;
+            return added;
         }
 
         /// <summary>
