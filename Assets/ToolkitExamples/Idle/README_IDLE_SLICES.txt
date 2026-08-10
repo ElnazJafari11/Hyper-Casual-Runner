@@ -3,8 +3,11 @@ See docs/idle-toolkit-progress.md for EditMode vs Play status.
 Compose / piece catalog: docs/idle-toolkit-compose.md
 
 STATUS (do not confuse these):
-  EditMode-verified: 19/19  (IdleBatchASmokeTests + IdleBatchBCSmokeTests)
+  Fixture presence:  19/19  (named smoke per matrix title; IdleBatchA + IdleBatchBC + Kernel + Cosmetics + PrestigeFaction in AllSmoke)
+  EditMode NUnit:    see tip Logs/IdleAllSmoke-Summary.txt (authoritative count; not verb closure)
+  Matrix core verbs: ~17/19 OK — Antimatter + AFK Arena PARTIAL (see docs/idle-toolkit-progress.md)
   Play Mode:         0/19   (needs Hyper-Casual-Runner open in Unity — MCP may be on another project)
+  Note: AllSmoke green ≠ full verb closure ≠ Play Mode.
 
 MENUS (do not mix these up):
   IdleToolkit/MVP/…            → 19 matrix idle MVPs (this folder)
