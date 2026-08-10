@@ -50,7 +50,7 @@ namespace HyperCasualRunner.ECS.Systems
                 }
 
                 SystemAPI.SetComponentEnabled<IdleBuyGeneratorEvent>(evtEntity, false);
-                ecb.DestroyEntity(evtEntity);
+                IdleEventTarget.DestroyIfEphemeral(em, ecb, evtEntity, sliceEntity);
             }
 
             ecb.Playback(em);
@@ -169,7 +169,7 @@ namespace HyperCasualRunner.ECS.Systems
                 }
 
                 SystemAPI.SetComponentEnabled<IdleHireManagerEvent>(evtEntity, false);
-                ecb.DestroyEntity(evtEntity);
+                IdleEventTarget.DestroyIfEphemeral(em, ecb, evtEntity, sliceEntity);
             }
 
             ecb.Playback(em);

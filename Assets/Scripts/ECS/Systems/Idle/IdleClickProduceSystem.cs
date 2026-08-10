@@ -24,7 +24,7 @@ namespace HyperCasualRunner.ECS.Systems
                 Entity sliceEntity = IdleEventTarget.Resolve(em, entity, click.ValueRO.TargetSlice, sole);
                 if (sliceEntity == Entity.Null || !em.HasComponent<IdleSliceState>(sliceEntity))
                 {
-                    ecb.DestroyEntity(entity);
+                    IdleEventTarget.DestroyIfEphemeral(em, ecb, entity, sliceEntity);
                     continue;
                 }
 
@@ -77,7 +77,7 @@ namespace HyperCasualRunner.ECS.Systems
 
                 var sfx = ecb.CreateEntity();
                 ecb.AddComponent(sfx, new PlaySoundEventComponent { SoundToPlay = SoundType.Pickup });
-                ecb.DestroyEntity(entity);
+                IdleEventTarget.DestroyIfEphemeral(em, ecb, entity, sliceEntity);
             }
 
             ecb.Playback(em);

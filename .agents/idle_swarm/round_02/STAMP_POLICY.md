@@ -51,6 +51,22 @@ If a future change banks Egg/Miner into `PendingClaim`, Claim UI (or auto-drain)
 - Else: chest / cats formula only.
 - CPS offline catch-up must not fill both PendingClaim and AfkChestSeconds for the same elapsed window.
 
+### D27 — two-step Claim Offline (allowed)
+
+When both `PendingClaim > 0` and chest/cats evidence exist, **Claim Offline is intentionally two-step**:
+1. First click pays pending only and **retains** `AfkChestSeconds` / `CheckInCats`.
+2. Second click (pending already 0) drains chest/cats via the chest formula.
+
+Do **not** clear chest on pending pay (would erase unpaid AFK chest). Do **not** pay both in one click (D16). HUD may note “2-step” when both are present. EditMode: `Claim_PendingClaim_DoesNotAlsoPayAfkChest` + `Claim_SecondClick_AfterPending_PaysRetainedChest`.
+
+## Hybrid Kernel A + B stamp coexistence (D29)
+
+`LastIdleUpdateTime` is a **single** PlayerPrefs stamp shared by Kernel A (`OfflineSimulationSystem` / automated `ProducerComponent`) and Kernel B (`IdleOfflineCatchUp` via bootstrap).
+
+If any automated producer applies catch-up in the same Init pass **before** bootstrap CatchUp, OS stamps `LastIdleUpdateTime = now` and the toolkit slice AFK window collapses to ~0.
+
+**Policy (MVP):** producers and toolkit `IdleSliceState` slices must **not** share one PlayerPrefs stamp in the same scene/load path. Toolkit prefabs do not add producers today — this is a latent dual-writer hazard, not a current demo bug. Future hybrid demos need either separate stamp keys or delayed OS stamp until after bootstrap CatchUp.
+
 ---
 
 ## Machine checks

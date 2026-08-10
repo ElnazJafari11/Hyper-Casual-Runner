@@ -12,6 +12,7 @@ namespace HyperCasualRunner.Tests
     /// Round 02: D14 stamp race, D15 Kernel B = IdleOfflineCatchUp, D16 claim conservation.
     /// Round 03: D23 zero-grant stamp, D25 CatchUp-after-Sync PassiveRate.
     /// Round 04: D33 Melvor IdleSkillNode sync after CatchUp.
+    /// Round 06: D27 two-step claim (pending then chest); D31 destroy-if-ephemeral.
     /// </summary>
     [TestFixture]
     public class IdleKernelCorrectnessTests
@@ -239,6 +240,62 @@ namespace HyperCasualRunner.Tests
             Assert.AreEqual(0.0, after.PendingClaim, 0.001);
             Assert.AreEqual(12f, after.AfkChestSeconds, 0.01f,
                 "Chest left for a later claim when pending was preferred");
+        }
+
+        [Test]
+        public void Claim_SecondClick_AfterPending_PaysRetainedChest()
+        {
+            // D27: documented two-step — first click pays pending; second drains retained chest.
+            var slice = CreateSlice(IdleArchetype.MelvorIdle, 0);
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.PendingClaim = 40;
+            st.AfkChestSeconds = 12f;
+            st.HasOfflineClaim = true;
+            st.ProgressionLevel = 2;
+            st.GlobalMultiplier = 1f;
+            _em.SetComponentData(slice, st);
+
+            var claimSys = _world.CreateSystem<IdleClaimOfflineSystem>();
+            var first = _em.CreateEntity();
+            _em.AddComponentData(first, new IdleClaimOfflineEvent { TargetSlice = slice });
+            claimSys.Update(_world.Unmanaged);
+
+            var mid = _em.GetComponentData<IdleSliceState>(slice);
+            Assert.AreEqual(40.0, mid.PrimaryCurrency, 0.001);
+            Assert.AreEqual(0.0, mid.PendingClaim, 0.001);
+            Assert.AreEqual(12f, mid.AfkChestSeconds, 0.01f);
+
+            var second = _em.CreateEntity();
+            _em.AddComponentData(second, new IdleClaimOfflineEvent { TargetSlice = slice });
+            claimSys.Update(_world.Unmanaged);
+
+            var after = _em.GetComponentData<IdleSliceState>(slice);
+            // Chest formula: AfkChestSeconds * (1 + ProgressionLevel) * GlobalMultiplier = 12 * 3 * 1
+            Assert.AreEqual(76.0, after.PrimaryCurrency, 0.001,
+                "D27: second click must pay retained chest (40 + 36)");
+            Assert.AreEqual(0f, after.AfkChestSeconds, 0.01f);
+            Assert.IsFalse(after.HasOfflineClaim);
+        }
+
+        [Test]
+        public void Claim_EventOnSlice_DoesNotDestroySlice()
+        {
+            // D31: enableable claim on the slice entity must disable-only, never DestroyEntity the slice.
+            var slice = CreateSlice(IdleArchetype.MelvorIdle, 5);
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.PendingClaim = 10;
+            st.HasOfflineClaim = true;
+            _em.SetComponentData(slice, st);
+            _em.AddComponentData(slice, new IdleClaimOfflineEvent { TargetSlice = slice });
+
+            var claimSys = _world.CreateSystem<IdleClaimOfflineSystem>();
+            claimSys.Update(_world.Unmanaged);
+
+            Assert.IsTrue(_em.Exists(slice), "D31: slice must survive claim event on self");
+            var after = _em.GetComponentData<IdleSliceState>(slice);
+            Assert.AreEqual(15.0, after.PrimaryCurrency, 0.001);
+            Assert.AreEqual(0.0, after.PendingClaim, 0.001);
+            Assert.IsFalse(_em.IsComponentEnabled<IdleClaimOfflineEvent>(slice));
         }
 
         [Test]

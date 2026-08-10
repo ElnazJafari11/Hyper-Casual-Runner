@@ -53,5 +53,25 @@ namespace HyperCasualRunner.ECS.Systems
             run.CurrentGold = gold;
             em.SetComponentData(sliceEntity, run);
         }
+
+        /// <summary>
+        /// D31: destroy ephemeral CreateEntity events only. When the enableable event sits on the
+        /// resolved slice (identity match) or otherwise carries <see cref="IdleSliceState"/>,
+        /// disable-only — never DestroyEntity the slice. Mirrors PrestigeSystem's event==slice guard.
+        /// </summary>
+        public static void DestroyIfEphemeral(
+            EntityManager em,
+            EntityCommandBuffer ecb,
+            Entity eventEntity,
+            Entity resolvedSlice = default)
+        {
+            if (eventEntity == Entity.Null)
+                return;
+            if (resolvedSlice != Entity.Null && eventEntity == resolvedSlice)
+                return;
+            if (em.Exists(eventEntity) && em.HasComponent<IdleSliceState>(eventEntity))
+                return;
+            ecb.DestroyEntity(eventEntity);
+        }
     }
 }
