@@ -46,7 +46,7 @@ Authoring / UI / persist: `IdleSliceBootstrap`, `IdleSliceUIController`, `IdleSa
 | 04 | Universal Paperclips | `UniversalPaperclips` | `BuyableGenerator` | Make Paperclip, Buy Autoclipper, Phase Shift | `IdleBatchASmokeTests.Paperclips_ManufactureThenPhaseShift_ConvertsToPrestige` |
 | 05 | A Dark Room | `ADarkRoom` | `IdleNarrativeState` | Stoke Fire, Explore, Craft | `IdleBatchBCSmokeTests.ADarkRoom_StokeThenExplore_AdvancesProgression` |
 | 06 | Antimatter Dimensions | `AntimatterDimensions` | `BuyableGenerator` | Buy Dimension, Click Antimatter, Prestige Layer | `IdleBatchASmokeTests.Antimatter_BuyDimension_RaisesOwnedAndCps` (+ `Antimatter_PhaseBand_MapsNamedLayers`, `Antimatter_PhaseShift_IncrementsPhaseIndex` asserts `GetAntimatterPhaseBand`; multi-Dim tiers `TODO: [STUB]`) |
-| 07 | Realm Grinder | `RealmGrinder` | `BuyableGenerator` | Build, Align Good, Align Evil (first free; flip costs PrimaryCurrency), Rebirth | `IdleBatchBCSmokeTests.RealmGrinder_AlignFaction_SetsFactionWithoutFreeMult` (+ `RealmGrinder_AlignFlip_CostsPrimaryCurrency`, `RealmGrinder_AlignGood_RaisesPassiveIncomeViaFactionBonus`, `RealmGrinder_Rebirth_ResetsRun_KeepsFaction`) |
+| 07 | Realm Grinder | `RealmGrinder` | `BuyableGenerator` | Build, Align Good, Align Evil (first free; flip costs PrimaryCurrency), Rebirth | `IdleBatchBCSmokeTests.RealmGrinder_AlignFaction_SetsFactionWithoutFreeMult` (+ `RealmGrinder_AlignFlip_CostsPrimaryCurrency`, `RealmGrinder_AlignGood_RaisesPassiveIncomeViaFactionBonus`, `RealmGrinder_AlignEvil_RaisesPassiveIncomeViaFactionBonus`, `RealmGrinder_Rebirth_ResetsRun_KeepsFaction`) |
 | 08 | NGU Idle | `NguIdle` | (energy on state) | Allocate Energy, Idle Tick Boost, Rebirth | `IdleBatchBCSmokeTests.NguIdle_AllocateEnergyThenTick_ProducesFromSpend` |
 | 09 | Melvor Idle | `MelvorIdle` | `IdleSkillNode` | Train Skill, Claim Offline | `IdleBatchBCSmokeTests.MelvorIdle_GrindSkillNode_LevelsViaSimTick` |
 | 10 | Egg, Inc. | `EggInc` | `BuyableGenerator` | Hatch Burst, Upgrade Habitat, Soul Prestige | `IdleBatchBCSmokeTests.EggInc_HatchBurst_RaisesCurrencyAndPassive` |
@@ -54,7 +54,7 @@ Authoring / UI / persist: `IdleSliceBootstrap`, `IdleSliceUIController`, `IdleSa
 | 12 | Tap Titans 2 | `TapTitans2` | `IdleCombatState`, `BuyableGenerator` | Tap / Attack, Buy Hero DPS, Prestige | `IdleBatchBCSmokeTests.TapTitans2_TapKill_AdvancesZoneAndGrantsGold` |
 | 13 | Idle Heroes | `IdleHeroes` | `IdleCombatState`, `IdleGachaState` | Gacha Pull, Claim AFK | `IdleBatchBCSmokeTests.IdleHeroes_GachaPull_RaisesHeroDps` |
 | 14 | AFK Arena | `AfkArena` | (AFK chest on state) | Campaign Progress, Open AFK Chest | `IdleBatchBCSmokeTests.AfkArena_SimFillsChestThenClaim_GrantsCurrency` |
-| 15 | Legend of Mushroom | `LegendOfMushroom` | `IdleGachaState` | Rub Lamp, Farm Stage Gold | `IdleBatchBCSmokeTests.LegendOfMushroom_RubLampThreeTimes_SpendsAndAdvancesStage` |
+| 15 | Legend of Mushroom | `LegendOfMushroom` | `IdleGachaState` | Rub Lamp (Farm Stage Gold until Stage≥1) | `IdleBatchBCSmokeTests.LegendOfMushroom_RubLampThreeTimes_SpendsAndAdvancesStage` |
 | 16 | Capybara Go! | `CapybaraGo` | `IdleNarrativeState` | Take Step, Next Step, Lucky Find | `IdleBatchBCSmokeTests.CapybaraGo_StepsThenAdvance_RaisesLevel` |
 | 17 | Cats & Soup | `CatsAndSoup` | `IdleAssignmentStation` | Assign Cat, Unassign (station cook → Primary) | `IdleBatchBCSmokeTests.CatsAndSoup_AssignCatThenSim_ProducesOutput` |
 | 18 | Neko Atsume | `NekoAtsume` | (check-in on state) | Place Food, Place Toys, Check In (clears cats) | `IdleBatchBCSmokeTests.NekoAtsume_PlaceFood_SpendsAndAttractsCats` (+ PlaceToys / CheckIn_Clears*) |
@@ -94,5 +94,7 @@ All 19 matrix titles have MVP prefabs. Next expansion (do **not** implement unti
 | Candidate | Core verb | Gap filled |
 |-----------|-----------|------------|
 | **Synergism** | Buy upgrades → nested prestige; achievements as buyables | Achievement-gated generators (completionism → power), distinct from Antimatter layers / Realm factions |
+
+Name trap: legacy `Assets/Scripts/ECS/Systems/Idle/SynergySystem.cs` (`ProducerComponent` arcade synergy) is **not** matrix Synergism #20 — do not treat that system as the deferred candidate.
 
 Details: `docs/idle_mechanics_matrix.md` § Matrix coverage gap.

@@ -4,12 +4,12 @@ Branch: `antigravity/toolkit-persist`
 Matrix: `docs/idle_mechanics_matrix.md` (19 titles + candidate #20 Synergism deferred)  
 Compose: `docs/idle-toolkit-compose.md`
 
-## Evidence (latest — round_04 impl_03)
+## Evidence (latest — round_05 impl_05)
 
 | Check | Result |
 |-------|--------|
 | Prefabs `Assets/ToolkitExamples/Idle/*` | 19/19 present |
-| EditMode AllSmoke (`IdleBatchA` + `IdleBatchBC` + `IdleKernelCorrectness`) | **PASS 89/89** — tip `Logs/IdleAllSmoke-Summary.txt` + `Logs/IdleAllSmoke-impl03-r4b.log` (`pass=89 fail=0`) |
+| EditMode AllSmoke (`IdleBatchA` + `IdleBatchBC` + `IdleKernelCorrectness`) | **PASS 91/91** — tip `Logs/IdleAllSmoke-Summary.txt` (`pass=91 fail=0`; XML `passed="91"`). Historical: `IdleAllSmoke-impl03-r4b.log` was 89/89 — superseded. |
 | Fixture presence (1 named smoke per matrix title) | **19/19** |
 | Play Mode (MCP Hyper-Casual-Runner) | UNVERIFIED — MCP still on `thepcgtoolkit` |
 
@@ -18,7 +18,7 @@ Compose: `docs/idle-toolkit-compose.md`
 | Claim | Value |
 |-------|--------|
 | Fixture presence | **19/19** |
-| EditMode NUnit green (AllSmoke) | **89/89** (A+BC+Kernel; tip Summary is authoritative) |
+| EditMode NUnit green (AllSmoke) | **91/91** (A+BC+Kernel; tip Summary is authoritative) |
 | Matrix core-verb + causal beat | **~17/19 OK** — Antimatter + AFK Arena remain PARTIAL (see scorecard) |
 | Play-mode verified | **0/19** |
 
@@ -43,7 +43,7 @@ Compose: `docs/idle-toolkit-compose.md`
 | 15 | Legend of Mushroom | Rub Lamp | OK — 3 pulls from 0; spend; stage |
 | 16 | Capybara Go! | Step-based Narrative | OK — advance gated on earned steps; fail-closed + success paths |
 | 17 | Cats & Soup | Assign Cats | OK — assign + station + sim; SurvivePersist workers; station AFK → Primary |
-| 18 | Neko Atsume | Place Food/Toys | OK — spend + attract; SurvivePersist CheckInCats |
+| 18 | Neko Atsume | Place Food/Toys | OK — spend + attract; SurvivePersist CheckInCats; wall-clock AFK → CheckInCats |
 | 19 | Fallout Shelter | Assign Dwellers | OK — station + PendingClaim; SurvivePersist; station AFK → Pending |
 
 Still **out of scope** for “verb verified” marketing: Play Mode, prefab↔bootstrap wiring, multi-slice crosstalk stress, full Soul Eggs / nested eternity layers, AFK combat path.
@@ -63,15 +63,17 @@ Fixtures: `ADarkRoom_NarrativeWoodStoke_SurvivePersistNowReload`, `CatsAndSoup_A
 
 **Station AFK (Kernel B):** Cats/Fallout with `AssignedWorkers &gt; 0` earn wall-clock station output via `IdleOfflineCatchUp` (bootstrap defaults OutputPerWorker=1.5, Interval=1s, 8h cap) — Cats → PrimaryCurrency; Fallout → PendingClaim. Zero workers still grants 0 and preserves the D23 stamp.
 
+**Neko AFK (Kernel B / D26 cozy):** wall-clock accrues `CheckInCats` at 1 / 5s (cap 20) + `HasOfflineClaim`; does not bank Primary (claim pays cats). Sub-interval or full buffer grants 0 and preserves the D23 stamp.
+
 ## Run tests (batchmode; do not pass `-quit`)
 
 ```text
 Unity.exe -batchmode -nographics -projectPath D:\Git\Hyper-Casual-Runner ^
   -executeMethod HyperCasualRunner.Editor.IdleBatchATestRunner.RunAllIdleSmokeAndExit ^
-  -logFile Logs/IdleAllSmoke-impl03-r4b.log
+  -logFile Logs/IdleAllSmoke-batchmode.log
 ```
 
-Separate: `RunAndExit` → `Logs/IdleBatchA-Summary.txt`; `RunBatchBCAndExit` → `Logs/IdleBatchBC-Summary.txt` (runner no longer overwrites Batch A paths when running BC/All). AllSmoke includes `IdleKernelCorrectnessTests`. Tip `Logs/IdleAllSmoke-Summary.txt` is authoritative for the live EditMode count.
+Separate: `RunAndExit` → `Logs/IdleBatchA-Summary.txt`; `RunBatchBCAndExit` → `Logs/IdleBatchBC-Summary.txt` (runner no longer overwrites Batch A paths when running BC/All). AllSmoke includes `IdleKernelCorrectnessTests`. Tip `Logs/IdleAllSmoke-Summary.txt` is authoritative for the live EditMode count (prefer over progress if they disagree).
 
 ## Human Play-Smoke
 

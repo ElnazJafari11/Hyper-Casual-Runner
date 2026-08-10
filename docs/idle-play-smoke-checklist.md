@@ -45,8 +45,8 @@ Note: `05_ADarkRoom_*` is Batch B/C, not Batch A.
 | `12_TapTitans2_TapDps_Slice` | Tap / Attack → Buy Hero DPS → Prestige | [ ] |
 | `13_IdleHeroes_GachaCombat_Slice` | Gacha Pull → Claim AFK (auto-combat passive) | [ ] |
 | `14_AFKArena_Chest_Slice` | Campaign Progress → Open AFK Chest | [ ] |
-| `15_LegendOfMushroom_Lamp_Slice` | Rub Lamp → Farm Stage Gold | [ ] |
-| `16_CapybaraGo_Steps_Slice` | Take Step → Next Step → Lucky Find | [ ] |
+| `15_LegendOfMushroom_Lamp_Slice` | Rub Lamp → auto-lamp at Stage≥1 | [ ] |
+| `16_CapybaraGo_Steps_Slice` | Take Step unlocks auto-tiles → Next Step → Lucky Find | [ ] |
 | `17_CatsAndSoup_Assign_Slice` | Assign Cat → Unassign | [ ] |
 | `18_NekoAtsume_CheckIn_Slice` | Place Food → Place Toys → Check In | [ ] |
 | `19_FalloutShelter_Dwellers_Slice` | Assign Dweller → Unassign → Claim Production | [ ] |
