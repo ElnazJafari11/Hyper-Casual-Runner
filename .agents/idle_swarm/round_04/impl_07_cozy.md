@@ -76,7 +76,8 @@ NekoAtsume_CheckInCats_SurvivePersistNowReload => Passed
 
 - **Completed:** Persistence doc honesty (D18 SurvivePersist); cheap station AFK for Cats/Fallout; STAMP_POLICY + EditMode fixtures
 - **Stubs created:** none
-- **Deviations:** none (optional AFK taken because cheap — AssignedWorkers × bootstrap station defaults)
+- **Deviations:** Persistence progress copy scooped into `6da58d0` before this commit; optional AFK taken because cheap (AssignedWorkers × bootstrap station defaults). D33 `SyncSkillNodeFromSlice` helpers rode in the same `IdleOfflineCatchUp.cs` edit (concurrent Melvor).
 - **Flash Base:** none
 - **Escalations:** none
-- **Commit:** (this local commit; never push)
+- **Commit:** `ad4e712a506fe9ae0658a62eb27d38c04eb5ee7d` (local only, never push)
+- **Progress Persistence scoop:** `6da58d0b4a39dd4fd7f7ee5db7049c2fd1c4647d`
