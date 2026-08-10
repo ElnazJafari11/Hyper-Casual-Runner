@@ -1576,5 +1576,93 @@ namespace HyperCasualRunner.Tests
             Assert.GreaterOrEqual(state.ProgressionLevel, levelBefore,
                 "Skill ticks from catch-up must be applied on bootstrap load path");
         }
+
+        [Test]
+        public void Melvor_AttachThenCatchUp_SyncsSkillNodeAndPersistsPending()
+        {
+            // R4 P0/P1 / D33: Attach IdleSkillNode → CatchUp → SyncSkillNode → immediate Save
+            // asserts node Level/Xp match slice + Pending durable without waiting for 2s autosave.
+            int arch = (int)IdleArchetype.MelvorIdle;
+            GameProgressData.ClearIdleSlice(arch);
+            GameProgressData.SaveIdleSlice(
+                arch, 0, 0, 1f, 1, 1, 1.0, 0,
+                pendingClaim: 0, hasOfflineClaim: false);
+            GameProgressData.LastIdleUpdateTime = System.DateTime.UtcNow.AddSeconds(-300)
+                .ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+
+            var slice = CreateSlice(IdleArchetype.MelvorIdle, 0);
+            var state = _em.GetComponentData<IdleSliceState>(slice);
+            state.ProgressionLevel = 1;
+            state.SkillXp = 0;
+            state.PassiveRate = 1.0;
+            state.GlobalMultiplier = 1f;
+            state.PendingClaim = 0;
+            state.HasOfflineClaim = false;
+            _em.SetComponentData(slice, state);
+
+            // Mirror AttachArchetypeExtras Melvor arm (pre-CatchUp level).
+            _em.AddComponentData(slice, new IdleSkillNode
+            {
+                SkillId = 1,
+                Level = 1,
+                Xp = 0,
+                XpToLevel = 25,
+                TickInterval = 1f,
+                Timer = 0f,
+                IsActive = true
+            });
+
+            state = _em.GetComponentData<IdleSliceState>(slice);
+            double gained = IdleOfflineCatchUp.ApplyPersistedElapsed(ref state);
+            _em.SetComponentData(slice, state);
+
+            Assert.Greater(gained, 200, "300s Melvor CatchUp must bank PendingClaim");
+            Assert.Greater(state.PendingClaim, 200);
+            Assert.Greater(state.ProgressionLevel, 1, "300s skill ticks must raise ProgressionLevel");
+
+            var stale = _em.GetComponentData<IdleSkillNode>(slice);
+            Assert.AreEqual(1, stale.Level, "Pre-sync node must still be attach-time level (D33 orphan)");
+
+            IdleOfflineCatchUp.SyncSkillNodeFromSlice(ref stale, in state);
+            _em.SetComponentData(slice, stale);
+
+            var skill = _em.GetComponentData<IdleSkillNode>(slice);
+            Assert.AreEqual(state.ProgressionLevel, skill.Level,
+                "SyncSkillNodeFromSlice must match post-CatchUp ProgressionLevel");
+            Assert.AreEqual(state.SkillXp, skill.Xp);
+            Assert.AreEqual(IdleOfflineCatchUp.XpToLevelFor(state.ProgressionLevel), skill.XpToLevel);
+
+            // P1: Persist immediately after stamp (bootstrap PersistNow mirror — no 2s wait).
+            double banked = state.PendingClaim;
+            int levelAfterCatchUp = state.ProgressionLevel;
+            GameProgressData.SaveIdleSlice(
+                arch,
+                state.PrimaryCurrency,
+                state.PrestigeCurrency,
+                state.GlobalMultiplier,
+                state.ProgressionLevel,
+                1,
+                state.PassiveRate,
+                0,
+                pendingClaim: state.PendingClaim,
+                hasOfflineClaim: state.HasOfflineClaim);
+
+            Assert.IsTrue(GameProgressData.TryLoadIdleSlice(
+                arch,
+                out _, out _, out _, out var loadedLevel, out _, out _,
+                out _, out _, out _, out _, out _, out _, out _, out var pending, out var hasClaim));
+            Assert.AreEqual(banked, pending, 0.01,
+                "PendingClaim must restore from immediate post-CatchUp SaveIdleSlice");
+            Assert.IsTrue(hasClaim);
+            Assert.AreEqual(levelAfterCatchUp, loadedLevel);
+
+            var simSys = _world.CreateSystem<IdleSliceSimulationSystem>();
+            PumpSim(simSys, 1f, dt: 1f);
+            var afterSim = _em.GetComponentData<IdleSliceState>(slice);
+            var skillAfter = _em.GetComponentData<IdleSkillNode>(slice);
+            Assert.GreaterOrEqual(afterSim.ProgressionLevel, levelAfterCatchUp,
+                "One sim tick must not drop ProgressionLevel below CatchUp level");
+            Assert.GreaterOrEqual(skillAfter.Level, levelAfterCatchUp);
+        }
     }
 }

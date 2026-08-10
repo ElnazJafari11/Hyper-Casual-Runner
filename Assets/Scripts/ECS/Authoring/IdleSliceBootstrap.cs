@@ -104,10 +104,11 @@ namespace HyperCasualRunner.ECS.Authoring
             // so offline grants use raw PassiveRate, not stale Mult² prefs.
             // D23: ApplyPersistedElapsed stamps LastIdleUpdateTime only when grant > 0.
             // D33: Melvor CatchUp mutates slice Level/XP; rewrite IdleSkillNode to match.
+            double catchUpGained = 0;
             if (_loadedFromPrefs)
             {
                 var st = em.GetComponentData<IdleSliceState>(_sliceEntity);
-                IdleOfflineCatchUp.ApplyPersistedElapsed(ref st);
+                catchUpGained = IdleOfflineCatchUp.ApplyPersistedElapsed(ref st);
                 em.SetComponentData(_sliceEntity, st);
                 if (st.Archetype == IdleArchetype.MelvorIdle && em.HasComponent<IdleSkillNode>(_sliceEntity))
                 {
@@ -118,6 +119,11 @@ namespace HyperCasualRunner.ECS.Authoring
             }
 
             _spawned = true;
+
+            // R4 P1: CatchUp stamps wall-clock on grant>0 before the ≤2s autosave; flush Pending/
+            // Primary immediately so force-kill between CatchUp and Persist cannot lose the bank.
+            if (_loadedFromPrefs && catchUpGained > 0)
+                PersistNow();
         }
 
         private IdleSliceState BuildInitialState()
