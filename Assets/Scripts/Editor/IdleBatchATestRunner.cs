@@ -27,7 +27,8 @@ namespace HyperCasualRunner.Editor
             "Logs/IdleAllSmoke-Summary.txt",
             "Logs/IdleAllSmoke-TestResults.xml",
             "HyperCasualRunner.Tests.IdleBatchASmokeTests",
-            "HyperCasualRunner.Tests.IdleBatchBCSmokeTests");
+            "HyperCasualRunner.Tests.IdleBatchBCSmokeTests",
+            "HyperCasualRunner.Tests.IdleKernelCorrectnessTests");
 
         private static void RunFixturesAndExit(string summaryPath, string resultsPath, params string[] fixtures)
         {

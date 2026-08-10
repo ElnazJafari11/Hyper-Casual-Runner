@@ -4,12 +4,12 @@ Branch: `antigravity/toolkit-persist`
 Matrix: `docs/idle_mechanics_matrix.md` (19 titles + candidate #20 Synergism deferred)  
 Compose: `docs/idle-toolkit-compose.md`
 
-## Evidence (latest — round_04 tip Summary)
+## Evidence (latest — round_04 impl_03)
 
 | Check | Result |
 |-------|--------|
 | Prefabs `Assets/ToolkitExamples/Idle/*` | 19/19 present |
-| EditMode AllSmoke (`IdleBatchA` + `IdleBatchBC`) | **PASS 72/72** — tip `Logs/IdleAllSmoke-Summary.txt` (`pass=72 fail=0`) |
+| EditMode AllSmoke (`IdleBatchA` + `IdleBatchBC` + `IdleKernelCorrectness`) | **PASS 89/89** — tip `Logs/IdleAllSmoke-Summary.txt` + `Logs/IdleAllSmoke-impl03-r4b.log` (`pass=89 fail=0`) |
 | Fixture presence (1 named smoke per matrix title) | **19/19** |
 | Play Mode (MCP Hyper-Casual-Runner) | UNVERIFIED — MCP still on `thepcgtoolkit` |
 
@@ -18,11 +18,9 @@ Compose: `docs/idle-toolkit-compose.md`
 | Claim | Value |
 |-------|--------|
 | Fixture presence | **19/19** |
-| EditMode NUnit green (AllSmoke) | **72/72** (includes extras beyond matrix 19; tip Summary is authoritative) |
+| EditMode NUnit green (AllSmoke) | **89/89** (A+BC+Kernel; tip Summary is authoritative) |
 | Matrix core-verb + causal beat | **~17/19 OK** — Antimatter + AFK Arena remain PARTIAL (see scorecard) |
 | Play-mode verified | **0/19** |
-
-Note: `RunAllIdleSmokeAndExit` may also list `IdleKernelCorrectnessTests`, but do **not** raise the AllSmoke claim above tip Summary until a successful run rewrites `Logs/IdleAllSmoke-Summary.txt`.
 
 ## Per-game EditMode verb status (round_04 review_09)
 
@@ -70,10 +68,10 @@ Fixtures: `ADarkRoom_NarrativeWoodStoke_SurvivePersistNowReload`, `CatsAndSoup_A
 ```text
 Unity.exe -batchmode -nographics -projectPath D:\Git\Hyper-Casual-Runner ^
   -executeMethod HyperCasualRunner.Editor.IdleBatchATestRunner.RunAllIdleSmokeAndExit ^
-  -logFile Logs/IdleAllSmoke-impl04-llm.log
+  -logFile Logs/IdleAllSmoke-impl03-r4b.log
 ```
 
-Separate: `RunAndExit` → `Logs/IdleBatchA-Summary.txt`; `RunBatchBCAndExit` → `Logs/IdleBatchBC-Summary.txt` (runner no longer overwrites Batch A paths when running BC/All). Prefer tip `Logs/IdleAllSmoke-Summary.txt` over progress for live EditMode count if they disagree.
+Separate: `RunAndExit` → `Logs/IdleBatchA-Summary.txt`; `RunBatchBCAndExit` → `Logs/IdleBatchBC-Summary.txt` (runner no longer overwrites Batch A paths when running BC/All). AllSmoke includes `IdleKernelCorrectnessTests`. Tip `Logs/IdleAllSmoke-Summary.txt` is authoritative for the live EditMode count.
 
 ## Human Play-Smoke
 
