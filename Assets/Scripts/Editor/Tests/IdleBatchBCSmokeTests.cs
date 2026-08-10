@@ -155,6 +155,49 @@ namespace HyperCasualRunner.Tests
         }
 
         [Test]
+        public void RealmGrinder_AlignGood_RaisesPassiveIncomeViaFactionBonus()
+        {
+            var slice = CreateSlice(IdleArchetype.RealmGrinder, 50);
+            _em.AddComponentData(slice, new BuyableGenerator
+            {
+                GeneratorId = 1, OwnedCount = 0, BaseCost = 15, CostGrowth = 1.15f,
+                BaseCps = 1, RequiresManager = false, IsAutomated = true
+            });
+
+            var buySys = _world.CreateSystem<IdleBuyGeneratorSystem>();
+            var buyEvt = _em.CreateEntity();
+            _em.AddComponentData(buyEvt, new IdleBuyGeneratorEvent { GeneratorId = 1, Amount = 1 });
+            buySys.Update(_world.Unmanaged);
+
+            var afterBuild = _em.GetComponentData<IdleSliceState>(slice);
+            Assert.Greater(afterBuild.PassiveRate, 0, "Need owned gens so factionBonus multiplies PassiveRate");
+            Assert.AreEqual(0, afterBuild.FactionId, "Start Neutral");
+            double baseline = afterBuild.PrimaryCurrency;
+            double rate = afterBuild.PassiveRate;
+
+            var simSys = _world.CreateSystem<IdleSliceSimulationSystem>();
+            PumpSim(simSys, 2f, dt: 1f);
+            double neutralGain = _em.GetComponentData<IdleSliceState>(slice).PrimaryCurrency - baseline;
+            Assert.AreEqual(rate * 1.0 * 2.0, neutralGain, 0.001, "Neutral factionBonus must be 1.0");
+
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.PrimaryCurrency = baseline;
+            _em.SetComponentData(slice, st);
+            _em.SetComponentData(slice, new CurrentRunStats { CurrentGold = baseline, BaseDamage = 5 });
+
+            var alignSys = _world.CreateSystem<IdleFactionAlignSystem>();
+            var evt = _em.CreateEntity();
+            _em.AddComponentData(evt, new IdleFactionAlignEvent { TargetSlice = slice, FactionId = 1 });
+            alignSys.Update(_world.Unmanaged);
+            Assert.AreEqual(1, _em.GetComponentData<IdleSliceState>(slice).FactionId);
+
+            PumpSim(simSys, 2f, dt: 1f);
+            double goodGain = _em.GetComponentData<IdleSliceState>(slice).PrimaryCurrency - baseline;
+            Assert.Greater(goodGain, neutralGain, "Good Align must raise Passive income via factionBonus");
+            Assert.AreEqual(rate * 1.5 * 2.0, goodGain, 0.001, "Good factionBonus must be 1.5");
+        }
+
+        [Test]
         public void RealmGrinder_AlignFlip_CostsPrimaryCurrency()
         {
             var slice = CreateSlice(IdleArchetype.RealmGrinder, 50);
