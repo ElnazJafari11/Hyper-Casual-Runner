@@ -24,13 +24,15 @@
 
 | Prefab | Expected HUD verbs | Core beat | Done? |
 |--------|--------------------|-----------|-------|
-| `01_CookieClicker_Generators_Slice` | Click Cookie → Buy Generator → Prestige | currency + gens + prestige | [ ] |
+| `01_CookieClicker_Generators_Slice` | Click Cookie → Buy Generator → Prestige | currency + gens + prestige | [ ] **BLOCKED** |
 | `02_ClickerHeroes_TapKill_Slice` | Tap / Attack → Buy Hero DPS → Prestige | zone / gold | [ ] |
-| `03_AdventureCapitalist_Managers_Slice` | Collect → Buy Business → Hire Manager → Angel Reset | manager automates | [ ] |
-| `04_UniversalPaperclips_Phase_Slice` | Make Paperclip → Buy Autoclipper → Phase Shift | phase prestige | [ ] |
+| `03_AdventureCapitalist_Managers_Slice` | Collect → Buy Business → Hire Manager → Angel Reset | manager automates | [ ] **BLOCKED** |
+| `04_UniversalPaperclips_Phase_Slice` | Make Paperclip → Buy Autoclipper → Phase Shift | phase prestige | [ ] **BLOCKED** |
 | `06_AntimatterDimensions_Layers_Slice` | Buy Dimension → Click Antimatter → Prestige Layer | owned + layer | [ ] |
 
 Note: `05_ADarkRoom_*` is Batch B/C, not Batch A.
+
+**R5-A4 (round_05 impl_08):** Prefabs **01 / 03 / 04** Play Mode remain **BLOCKED** — Unity MCP is pinned to `thepcgtoolkit`, not Hyper-Casual-Runner; no Play session or capture on this project. EditMode Batch A `23/23` is not Play evidence. Receipt: `.agents/idle_swarm/round_05/impl_08_batchA.md`.
 
 ## Batch B/C (optional)
 
