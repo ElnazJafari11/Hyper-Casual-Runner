@@ -4,8 +4,8 @@
 **Review:** `.agents/idle_swarm/round_05/review_04_prestige.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
-**Mode:** Optional P2 only if cheap — else verify + document  
-**Commit:** `c66f7b3` (local only, no push)
+**Mode:** Optional P2 only if cheap — Evil 1.25 assert + Cosmetics AllSmoke  
+**Commit:** _(filled after local commit)_  
 **Push:** never (local commit only)
 
 ---
@@ -14,43 +14,70 @@
 
 1. Quality bar = MVP toolkit slice — high — `docs/project-context.md`.
 2. Review says no P0/P1 prestige reopen; residual = thin polish — high — `review_04_prestige.md`.
-3. Prior agent `dd9499c0` left no receipt — high — `impl_09_prestige.md` missing at relaunch.
-4. Cheap P2 candidates: Evil `factionBonus` 1.25 assert; Cosmetics into AllSmoke — high — review residual table.
+3. Cheap P2 candidates: Evil `factionBonus` 1.25 assert; Cosmetics into AllSmoke — high — review residual table.
+4. Concurrent swarm edits race `IdleBatchBCSmokeTests.cs` — high — Evil fixture was wiped mid-batch twice; dedicated fixture file avoids that channel.
 
 ---
 
 ## Verdict
 
-**No code change.** Both cheap optional P2 items are already present on HEAD. Prestige lane stays green; Play Mode still unverified (out of scope).
-
 | Optional P2 | Status | Evidence |
 |-------------|--------|----------|
-| Evil `factionBonus` 1.25 EditMode assert | **ALREADY LANDED** | `IdleBatchBCSmokeTests.RealmGrinder_AlignEvil_RaisesPassiveIncomeViaFactionBonus` asserts `rate * 1.25 * 2.0` |
-| Cosmetics TargetSlice into AllIdleSmoke | **ALREADY LANDED** | `IdleBatchATestRunner.RunAllIdleSmokeAndExit` includes `CosmeticsShopTests` (+ Kernel + Batch A/BC) |
+| Evil `factionBonus` 1.25 EditMode assert | **ADDED** | `IdlePrestigeFactionBonusTests.RealmGrinder_AlignEvil_RaisesPassiveIncomeViaFactionBonus` asserts `rate * 1.25 * 2.0` |
+| Cosmetics TargetSlice into AllIdleSmoke | **ALREADY ON HEAD** (peer `2be3171`) | Runner includes `CosmeticsShopTests`; TargetSlice Passed in this pass |
+| Fold Evil fixture into AllIdleSmoke | **ADDED** | Runner filter adds `IdlePrestigeFactionBonusTests` |
+| Compose honesty | **UPDATED** | RG cell cites `IdlePrestigeFactionBonusTests…AlignEvil…` |
 | Phase↔Prestige `[UpdateBefore]` | **SKIPPED** | Review deferred; not cheap / not required |
 | Prestige disable-vs-destroy asymmetry | **SKIPPED** | Review deferred |
-| Play Mode walkthrough | **SKIPPED / BLOCKED** | No HCR interactive MCP editor |
+| Play Mode walkthrough | **SKIPPED** | Out of this slot; HCR MCP editor not connected |
 
 ---
 
-## Acceptance criteria
+## Acceptance criteria → evidence
 
 | Criterion | Result | Evidence |
 |-----------|--------|----------|
-| Cheap Evil 1.25 assert exists or added | **MET (pre-existing)** | `IdleBatchBCSmokeTests.cs` ~L201–240 |
-| Cheap Cosmetics AllSmoke inclusion exists or added | **MET (pre-existing)** | `IdleBatchATestRunner.cs` L26–32 |
-| No gold-plate AD Reality / Align redesign | **MET** | No redesign edits |
-| Receipt written; local commit only | **MET** | this file |
+| Evil Passive tick locks `factionBonus` 1.25 over fixed dt | **PASS** | `RealmGrinder_AlignEvil_RaisesPassiveIncomeViaFactionBonus => Passed` (`Logs/IdlePrestige-impl09-r5b.log`) |
+| Cosmetics TargetSlice covered by AllIdleSmoke | **PASS** | `CosmeticsShopSystem_TargetSlice_SpendsOwningSliceOnly => Passed` (same log) |
+| No gold-plate AD Reality / Align redesign | **PASS** | Coverage-only |
+| Receipt + local commit only | **PASS** | this file; no push |
+
+---
+
+## Changes
+
+- `Assets/Scripts/Editor/Tests/IdlePrestigeFactionBonusTests.cs` (+ `.meta`) — Evil 1.25 income fixture (race-safe dedicated file)
+- `Assets/Scripts/Editor/IdleBatchATestRunner.cs` — include `IdlePrestigeFactionBonusTests` in AllIdleSmoke
+- `docs/idle-toolkit-compose.md` — RG cell cites dedicated Evil fixture
+- this receipt (corrects false “Evil already on HEAD” claim in `c66f7b3`)
 
 ---
 
 ## Deviations
 
-- Relaunched by orchestrator after Workspace Disconnected killed Task bubble; work done inline (verify + receipt) instead of a fresh Task worker.
-- Tip `Logs/IdleAllSmoke-Summary.txt` still shows `pass=91` — count honesty is owned by R5 tests/LLM seats, not re-run here (avoid Unity lock thrash).
+- Prior relaunch receipt `c66f7b3` claimed Evil + Cosmetics already on HEAD; Cosmetics was later folded by tests seat `2be3171`, but Evil was **not** on HEAD (working-tree BC fixture was peer-wiped). This slot adds Evil for real via a dedicated fixture file.
+- Did not pin Phase↔Prestige order / destroy-or-disable / Play Mode (still deferred polish).
+- AllSmoke summary stayed `pass=103` while still executing AlignEvil (peer suite churn); criterion is fixture Passed, not tip count.
+
+---
+
+## Verification
+
+AllIdleSmoke (`Logs/IdlePrestige-impl09-r5b.log` + `Logs/IdleAllSmoke-Summary.txt`):
+
+```
+Starting EditMode fixtures: ... CosmeticsShopTests, IdlePrestigeFactionBonusTests
+CosmeticsShopSystem_TargetSlice_SpendsOwningSliceOnly => Passed
+RealmGrinder_AlignEvil_RaisesPassiveIncomeViaFactionBonus => Passed
+result=Passed pass=103 fail=0 skip=0 inconclusive=0 duration=3.4890533
+```
+
+Unity exit code `0`.
 
 ---
 
 ## STATUS
 
-**VERIFIED** (optional P2 already on disk; no further prestige code this slot).
+**VERIFIED** (optional P2): Evil `factionBonus` 1.25 EditMode lock + Cosmetics TargetSlice in AllIdleSmoke.  
+**UNVERIFIED:** Play Mode ToolkitExamples feel.  
+**RISKS:** Concurrent swarm may still race shared docs/runner; dedicated Evil fixture file is the mitigation for BC stomps.

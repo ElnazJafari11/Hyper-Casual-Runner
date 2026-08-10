@@ -29,7 +29,8 @@ namespace HyperCasualRunner.Editor
             "HyperCasualRunner.Tests.IdleBatchASmokeTests",
             "HyperCasualRunner.Tests.IdleBatchBCSmokeTests",
             "HyperCasualRunner.Tests.IdleKernelCorrectnessTests",
-            "HyperCasualRunner.Tests.CosmeticsShopTests");
+            "HyperCasualRunner.Tests.CosmeticsShopTests",
+            "HyperCasualRunner.Tests.IdlePrestigeFactionBonusTests");
 
         private static void RunFixturesAndExit(string summaryPath, string resultsPath, params string[] fixtures)
         {
