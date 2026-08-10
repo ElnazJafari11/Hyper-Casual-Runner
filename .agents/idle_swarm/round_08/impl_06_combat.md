@@ -4,7 +4,7 @@
 **Source review:** `.agents/idle_swarm/round_08/review_03_combat.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Prior close:** R5-F1 `e016b13` / R4-F1 persist; R6 deferred `e554ebc`; R7 deferred `68c0cf4` (+ note `297305f`)  
-**Receipt commit:** *(filled after local commit)*  
+**Receipt commit:** `4f721a5ebeaabd64ecdd0f9bae8afc7188de2b5b` (local — never push)  
 
 ---
 
