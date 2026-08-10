@@ -86,4 +86,4 @@
 **ROUTE:** Executor (plan = review_01 remaining P0 D24)  
 **VERIFICATION:** `doctor` once — wrong Unity / no HCR instance  
 **D24:** **UNVERIFIED / BLOCKED** (evidence gap, not a new code wipe)  
-**COMMIT:** (filled after local commit) — never push
+**COMMIT:** `6a36c7e1457c92e03d93d54887b0431878bcf71d` local only — never push
