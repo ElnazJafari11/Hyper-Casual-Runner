@@ -10,6 +10,8 @@ namespace HyperCasualRunner.UI
         
         private VisualElement _hubPanel;
         private GameObject _currentLevelInstance;
+        private readonly System.Collections.Generic.List<System.Action> _skinButtonRefreshers =
+            new System.Collections.Generic.List<System.Action>();
 
         private void OnEnable()
         {
@@ -64,6 +66,8 @@ namespace HyperCasualRunner.UI
             // Shared GameProgressData skin unlock / CurrentSkinIndex is owned by idle Cosmetics
             // (CosmeticPurchaseEventComponent + prestige). Hub may equip already-unlocked skins only;
             // locked skins point players to Idle Cosmetics (no gold UnlockSkin).
+            // Hub equip list is skins 0–2 only; Emerald Neon (index 3) is Idle Cosmetics–only
+            // (intentional prototype asymmetry — not a second unlock path).
             var shopTitle = new Label("Skin Shop");
             shopTitle.style.fontSize = 36;
             shopTitle.style.color = Color.white;
@@ -77,6 +81,7 @@ namespace HyperCasualRunner.UI
             shopHint.style.unityTextAlign = TextAnchor.MiddleCenter;
             shopContainer.Add(shopHint);
 
+            _skinButtonRefreshers.Clear();
             AddShopItem(shopContainer, 0, "Default Blue", shopTitle);
             AddShopItem(shopContainer, 1, "Crimson Red", shopTitle);
             AddShopItem(shopContainer, 2, "Solid Gold", shopTitle);
@@ -151,11 +156,19 @@ namespace HyperCasualRunner.UI
                     GameProgressData.CurrentSkinIndex = index;
 
                 titleRef.text = $"Hyper-Casual Toolkit 1.0  |  Gold: {GameProgressData.TotalGold}";
+                RefreshAllSkinButtons();
                 ReturnToHub();
             };
 
             updateBtnUI();
+            _skinButtonRefreshers.Add(updateBtnUI);
             container.Add(btn);
+        }
+
+        private void RefreshAllSkinButtons()
+        {
+            for (int i = 0; i < _skinButtonRefreshers.Count; i++)
+                _skinButtonRefreshers[i]?.Invoke();
         }
 
         private void LoadLevel(GameObject prefab)

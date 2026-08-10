@@ -8,6 +8,8 @@ namespace HyperCasualRunner.UI
     /// <summary>
     /// Deferred sandbox binder for IdleGameHUD.uxml. Idle slice play uses IdleSliceUIController.
     /// Resolves UIDocument only via IdleGameHudBinder.Active (never FindObjectOfType).
+    /// UI3-05: binder stays unused on live Idle prefabs (instance count 0). Currency labels still
+    /// read CurrentRunStats gold — do not revive without switching primary/prestige to IdleSliceState.
     /// </summary>
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     public partial class IdleUIManagerSystem : SystemBase
@@ -75,6 +77,9 @@ namespace HyperCasualRunner.UI
                 _buttonBound = true;
             }
 
+            // TODO: [STUB] Runner-shaped sandbox currency (UI3-05). While IdleGameHudBinder
+            // instance count is 0 this path is dead. If revived, bind Gold/Prestige from
+            // IdleSliceState.PrimaryCurrency / PrestigeCurrency (not CurrentRunStats alone).
             foreach (var runStats in SystemAPI.Query<RefRO<CurrentRunStats>>())
             {
                 if (_goldLabel != null)

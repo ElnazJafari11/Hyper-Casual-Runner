@@ -3,6 +3,8 @@
   DEFERRED sandbox HUD — not wired to ToolkitExamples/Idle/*_Slice.prefab.
   Live idle MVP path: IdleSliceUIController (Actions + Cosmetics tabs).
   To use this asset: assign as UIDocument sourceAsset and add IdleGameHudBinder.
+  UI3-05: GoldLabel currently mirrors CurrentRunStats (runner-shaped). Before revival,
+  switch primary/prestige labels to IdleSliceState — do not wire binder until then.
 -->
 <ui:UXML
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
