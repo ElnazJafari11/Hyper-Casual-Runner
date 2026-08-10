@@ -414,6 +414,32 @@ namespace HyperCasualRunner.UI
                 $"HP: {s.EnemyHp}/{s.EnemyMaxHp} | Cats: {s.CheckInCats} | " +
                 $"Chest: {s.AfkChestSeconds:N0}s | Pending: {s.PendingClaim:N1}";
 
+            Entity sliceEntity = Entity.Null;
+            if (_bootstrap != null && _bootstrap.IsSpawned &&
+                em.Exists(_bootstrap.SliceEntity))
+                sliceEntity = _bootstrap.SliceEntity;
+
+            if (sliceEntity != Entity.Null && em.HasComponent<IdleGachaState>(sliceEntity))
+            {
+                var g = em.GetComponentData<IdleGachaState>(sliceEntity);
+                _stats.text += $"\nPulls: {g.PullCount} | BestRarity: {g.BestRarity} | Stage: {g.Stage}";
+            }
+
+            if (sliceEntity != Entity.Null && em.HasComponent<IdleCombatState>(sliceEntity) &&
+                s.Archetype == IdleArchetype.IdleHeroes)
+            {
+                var c = em.GetComponentData<IdleCombatState>(sliceEntity);
+                _stats.text += $" | HeroDps: {c.HeroDps:N1}";
+            }
+
+            if (sliceEntity != Entity.Null && em.HasComponent<IdleNarrativeState>(sliceEntity) &&
+                s.Archetype == IdleArchetype.CapybaraGo)
+            {
+                var n = em.GetComponentData<IdleNarrativeState>(sliceEntity);
+                string explore = n.ExploreUnlocked != 0 ? "unlocked" : "locked";
+                _stats.text += $"\nRoomOrStep: {n.RoomOrStep} | Soft: {n.SoftCurrency:N0} | Explore: {explore}";
+            }
+
             if (s.Archetype == IdleArchetype.NguIdle)
             {
                 _stats.text += $"\nEnergy: {s.EnergyAllocated:N0}/{s.EnergyPool:N0}";

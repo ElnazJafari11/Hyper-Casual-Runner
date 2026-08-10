@@ -82,7 +82,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HyperCasualRunner.ECS.Authoring.IdleSliceBootstrap
   Archetype: 14
   DisplayName: Legend of Mushroom
-  HowToPlay: "Rub lamp (gacha gear) \u2192 unlock auto-lamp at stage 1 \u2192 farm gold."
+  HowToPlay: "Rub lamp (gacha gear) \u2192 unlock auto-lamp at stage 1 (auto-lamp sustains)."
   StartingCurrency: 30
   ClickPower: 1
   GeneratorBaseCost: 15
