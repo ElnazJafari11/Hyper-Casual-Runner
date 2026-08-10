@@ -25,7 +25,9 @@ namespace HyperCasualRunner.Tests
             IdleArchetype.NguIdle,
             IdleArchetype.MelvorIdle,
             IdleArchetype.AfkArena,
+            IdleArchetype.IdleHeroes,
             IdleArchetype.LegendOfMushroom,
+            IdleArchetype.CapybaraGo,
             IdleArchetype.ADarkRoom,
             IdleArchetype.CatsAndSoup,
             IdleArchetype.NekoAtsume,
@@ -964,6 +966,81 @@ namespace HyperCasualRunner.Tests
         }
 
         [Test]
+        public void IdleHeroes_Kill_DoesNotDropStageInflatedProgressionLevel()
+        {
+            // R3-F1: Stage-inflated Level above Zone must survive combat kill Max (not clobber to Zone).
+            // Level=8 > Zone+1 so unconditional Level=Zone would regress to 6.
+            var slice = CreateSlice(IdleArchetype.IdleHeroes, 0);
+            _em.AddComponentData(slice, new IdleCombatState
+            {
+                TapDamage = 1, HeroDps = 50, Zone = 5, GoldPerKill = 5,
+                EnemyHp = 10f, EnemyMaxHp = 10f
+            });
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.ProgressionLevel = 8;
+            _em.SetComponentData(slice, st);
+
+            var sim = _world.CreateSystem<IdleSliceSimulationSystem>();
+            PumpSim(sim, 0.5f, dt: 0.5f);
+
+            var after = _em.GetComponentData<IdleSliceState>(slice);
+            var combat = _em.GetComponentData<IdleCombatState>(slice);
+            Assert.AreEqual(6, combat.Zone, "One kill advances Zone 5→6");
+            Assert.GreaterOrEqual(after.ProgressionLevel, 8,
+                "Kill must not drop Stage-inflated ProgressionLevel");
+            Assert.GreaterOrEqual(after.ProgressionLevel, combat.Zone);
+        }
+
+        [Test]
+        public void ClickerHeroes_TapKill_DoesNotDropStageInflatedProgressionLevel()
+        {
+            // R3-F1 tap-kill writer (CH/TT2); IH clicks are auto-combat-only no-ops.
+            var slice = CreateSlice(IdleArchetype.ClickerHeroes, 0);
+            _em.AddComponentData(slice, new IdleCombatState
+            {
+                TapDamage = 20, HeroDps = 0, Zone = 5, GoldPerKill = 5,
+                EnemyHp = 10f, EnemyMaxHp = 10f
+            });
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.ProgressionLevel = 6; // acceptance: Stage-inflated Level=6, Zone=5
+            st.ClickPower = 20;
+            _em.SetComponentData(slice, st);
+
+            var clickSys = _world.CreateSystem<IdleClickProduceSystem>();
+            var evt = _em.CreateEntity();
+            _em.AddComponentData(evt, new IdleClickEvent { Multiplier = 1f });
+            clickSys.Update(_world.Unmanaged);
+
+            var after = _em.GetComponentData<IdleSliceState>(slice);
+            var combat = _em.GetComponentData<IdleCombatState>(slice);
+            Assert.AreEqual(6, combat.Zone);
+            Assert.GreaterOrEqual(after.ProgressionLevel, 6,
+                "Tap-kill must keep ProgressionLevel ≥ prior Stage-inflated Level (never 5)");
+        }
+
+        [Test]
+        public void IdleHeroes_ClaimBelowTenSeconds_NoPayout()
+        {
+            // R3-F2: seconds∈[1,10) + HasOfflineClaim=false → no payout for IH chest.
+            var slice = CreateSlice(IdleArchetype.IdleHeroes, 40);
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.AfkChestSeconds = 5f;
+            st.HasOfflineClaim = false;
+            st.ProgressionLevel = 2;
+            _em.SetComponentData(slice, st);
+
+            var claimSys = _world.CreateSystem<IdleClaimOfflineSystem>();
+            var evt = _em.CreateEntity();
+            _em.AddComponentData(evt, new IdleClaimOfflineEvent());
+            claimSys.Update(_world.Unmanaged);
+
+            var after = _em.GetComponentData<IdleSliceState>(slice);
+            Assert.AreEqual(40, after.PrimaryCurrency, 0.001, "Sub-10s IH claim must pay 0");
+            Assert.AreEqual(5f, after.AfkChestSeconds, 0.01f, "Chest seconds must remain until gate met");
+            Assert.IsFalse(after.HasOfflineClaim);
+        }
+
+        [Test]
         public void LegendOfMushroom_AutoLamp_PullsAfterStageUnlock()
         {
             // Stage>=1 + lamp loot: start with one pull's worth; auto-lamp must sustain further pulls without Farm click.
@@ -1017,6 +1094,104 @@ namespace HyperCasualRunner.Tests
             var after = _em.GetComponentData<IdleSliceState>(slice);
             Assert.GreaterOrEqual(narr.RoomOrStep, 5, "Auto-tiles must raise RoomOrStep without narrative events");
             Assert.Greater(after.GlobalMultiplier, before, "Auto steps must fire milestone mult every 5 tiles");
+        }
+
+        [Test]
+        public void CapybaraGo_ColdStart_AutoTilesRequireTakeStep()
+        {
+            // Mirrors bootstrap ExploreUnlocked=0: sim alone must not advance; one Take Step unlocks auto-tiles.
+            var slice = CreateSlice(IdleArchetype.CapybaraGo, 0);
+            _em.AddComponentData(slice, new IdleNarrativeState
+            {
+                RoomOrStep = 0, StokeCount = 0, ExploreUnlocked = 0, Wood = 0, SoftCurrency = 0, AutoTimer = 0f
+            });
+
+            var sim = _world.CreateSystem<IdleSliceSimulationSystem>();
+            PumpSim(sim, 3f, dt: 0.5f);
+            Assert.AreEqual(0, _em.GetComponentData<IdleNarrativeState>(slice).RoomOrStep,
+                "Cold-start sim must not auto-advance while ExploreUnlocked=0");
+
+            var narrSys = _world.CreateSystem<IdleNarrativeActionSystem>();
+            FireNarrative(narrSys, 0); // Take Step → unlock
+            Assert.AreEqual(1, _em.GetComponentData<IdleNarrativeState>(slice).ExploreUnlocked);
+
+            PumpSim(sim, 2.5f, dt: 0.5f);
+            Assert.GreaterOrEqual(_em.GetComponentData<IdleNarrativeState>(slice).RoomOrStep, 2,
+                "After Take Step unlock, auto-tiles must advance RoomOrStep");
+        }
+
+        [Test]
+        public void LegendOfMushroom_Stage_PersistsRoundTrip_AutoLampStillFires()
+        {
+            GameProgressData.ClearIdleSlice((int)IdleArchetype.LegendOfMushroom);
+            GameProgressData.SaveIdleSlice(
+                (int)IdleArchetype.LegendOfMushroom, 15, 0, 1f, 1, 1, 0, 0,
+                gachaStage: 1, gachaPullCount: 3, gachaBestRarity: 2);
+
+            Assert.IsTrue(GameProgressData.TryLoadIdleSlice(
+                (int)IdleArchetype.LegendOfMushroom,
+                out _, out _, out _, out _, out _, out _, out _,
+                out _, out _, out _, out _, out _, out _, out _, out _,
+                out var stage, out var pulls, out var rarity,
+                out _, out _, out _, out _));
+            Assert.AreEqual(1, stage, "LoM Stage must survive reload");
+            Assert.AreEqual(3, pulls);
+            Assert.AreEqual(2, rarity);
+
+            var slice = CreateSlice(IdleArchetype.LegendOfMushroom, 15);
+            _em.AddComponentData(slice, new IdleGachaState
+            {
+                PullCount = pulls, PullCost = 10, BestRarity = rarity, Stage = stage, AutoTimer = 0f
+            });
+            var sim = _world.CreateSystem<IdleSliceSimulationSystem>();
+            PumpSim(sim, 5f, dt: 0.5f);
+            Assert.GreaterOrEqual(_em.GetComponentData<IdleGachaState>(slice).PullCount, 5,
+                "Restored Stage≥1 must still sustain auto-lamp pulls");
+            GameProgressData.ClearIdleSlice((int)IdleArchetype.LegendOfMushroom);
+        }
+
+        [Test]
+        public void CapybaraGo_ExploreUnlocked_PersistsRoundTrip()
+        {
+            GameProgressData.ClearIdleSlice((int)IdleArchetype.CapybaraGo);
+            GameProgressData.SaveIdleSlice(
+                (int)IdleArchetype.CapybaraGo, 0, 0, 1.5f, 2, 1, 0, 0,
+                narrRoomOrStep: 7, narrExploreUnlocked: 1, narrSoftCurrency: 12.5);
+
+            Assert.IsTrue(GameProgressData.TryLoadIdleSlice(
+                (int)IdleArchetype.CapybaraGo,
+                out _, out _, out var mult, out var level, out _, out _, out _,
+                out _, out _, out _, out _, out _, out _, out _, out _,
+                out _, out _, out _,
+                out var step, out var explore, out var soft, out _));
+            Assert.AreEqual(1, explore, "ExploreUnlocked must survive reload");
+            Assert.AreEqual(7, step);
+            Assert.AreEqual(12.5, soft, 0.001);
+            Assert.AreEqual(1.5f, mult, 0.001f);
+            Assert.AreEqual(2, level);
+            GameProgressData.ClearIdleSlice((int)IdleArchetype.CapybaraGo);
+        }
+
+        [Test]
+        public void IdleHeroes_AfkChestSeconds_PersistsRoundTrip()
+        {
+            GameProgressData.ClearIdleSlice((int)IdleArchetype.IdleHeroes);
+            GameProgressData.SaveIdleSlice(
+                (int)IdleArchetype.IdleHeroes, 40, 0, 1f, 3, 2, 2, 0,
+                gachaStage: 2, gachaPullCount: 6, gachaBestRarity: 4,
+                afkChestSeconds: 8.5f);
+
+            Assert.IsTrue(GameProgressData.TryLoadIdleSlice(
+                (int)IdleArchetype.IdleHeroes,
+                out _, out _, out _, out _, out _, out _, out _,
+                out _, out _, out _, out _, out _, out _, out _, out _,
+                out var stage, out var pulls, out var rarity,
+                out _, out _, out _, out var chest));
+            Assert.AreEqual(8.5f, chest, 0.01f, "IH AfkChestSeconds must survive reload");
+            Assert.AreEqual(2, stage);
+            Assert.AreEqual(6, pulls);
+            Assert.AreEqual(4, rarity);
+            GameProgressData.ClearIdleSlice((int)IdleArchetype.IdleHeroes);
         }
 
         [Test]
