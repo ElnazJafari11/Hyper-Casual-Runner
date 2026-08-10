@@ -46,9 +46,9 @@ Note: `05_ADarkRoom_*` is Batch B/C, not Batch A.
 | `14_AFKArena_Chest_Slice` | Campaign Progress → Open AFK Chest | [ ] |
 | `15_LegendOfMushroom_Lamp_Slice` | Rub Lamp → Farm Stage Gold | [ ] |
 | `16_CapybaraGo_Steps_Slice` | Take Step → Next Step → Lucky Find | [ ] |
-| `17_CatsAndSoup_Assign_Slice` | Assign Cat → Unassign | [ ] |
-| `18_NekoAtsume_CheckIn_Slice` | Place Food → Place Toys → Check In | [ ] |
-| `19_FalloutShelter_Dwellers_Slice` | Assign Dweller → Unassign → Claim Production | [ ] |
+| `17_CatsAndSoup_Assign_Slice` | Assign Cat → station cook → Unassign | [ ] |
+| `18_NekoAtsume_CheckIn_Slice` | Place Food / Place Toys → wait → Check In (clears cats) | [ ] |
+| `19_FalloutShelter_Dwellers_Slice` | Assign Dweller → Pending buffer → Claim Production drains | [ ] |
 
 ## Marking Playable
 

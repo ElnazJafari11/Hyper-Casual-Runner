@@ -82,8 +82,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HyperCasualRunner.ECS.Authoring.IdleSliceBootstrap
   Archetype: 16
   DisplayName: Cats & Soup
-  HowToPlay: "Assign cats to stations \u2192 they cook passively \u2192 unassign
-    freely."
+  HowToPlay: "Assign cats to stations \u2192 station ticks cook into currency \u2192 unassign freely."
   StartingCurrency: 0
   ClickPower: 1
   GeneratorBaseCost: 15

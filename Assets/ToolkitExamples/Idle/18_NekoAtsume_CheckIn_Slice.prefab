@@ -82,7 +82,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HyperCasualRunner.ECS.Authoring.IdleSliceBootstrap
   Archetype: 17
   DisplayName: Neko Atsume
-  HowToPlay: "Place food \u2192 wait for cats \u2192 check in to collect (zen idle)."
+  HowToPlay: "Place food/toys \u2192 wait for cats \u2192 check in clears cats and pays (zen idle)."
   StartingCurrency: 20
   ClickPower: 1
   GeneratorBaseCost: 15

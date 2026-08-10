@@ -82,7 +82,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HyperCasualRunner.ECS.Authoring.IdleSliceBootstrap
   Archetype: 18
   DisplayName: Fallout Shelter
-  HowToPlay: "Assign dwellers to rooms \u2192 production ticks \u2192 claim output."
+  HowToPlay: "Assign dwellers \u2192 room ticks buffer Pending \u2192 Claim Production drains it."
   StartingCurrency: 0
   ClickPower: 1
   GeneratorBaseCost: 15
