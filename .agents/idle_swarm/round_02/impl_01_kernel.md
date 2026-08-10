@@ -4,7 +4,8 @@
 **Sources:** `.agents/idle_swarm/round_02/review_01_kernel.md`, `review_05_production.md`, `STAMP_POLICY.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
-**Push:** never (local commit only)
+**Commit:** `8d2407c2002994119a6a82ef8f2b6913d239d6a0` (local only — never push)  
+**Push:** never
 
 ---
 
