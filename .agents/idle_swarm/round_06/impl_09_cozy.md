@@ -84,4 +84,4 @@ Note: Unity process exit code `-1073741819` (access violation on quit) after sum
 - **Deviations:** none from review (required empty). Soft polish not taken.
 - **Flash Base:** none
 - **Escalations:** none
-- **Commit:** (local only, never push) — receipt only
+- **Commit:** `cd9261003e185a05022325e689688b7b95d9a886` (receipt + R6 cozy review; local only, never push)
