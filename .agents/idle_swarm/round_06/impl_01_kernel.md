@@ -4,7 +4,7 @@
 **Review:** `.agents/idle_swarm/round_06/review_01_kernel.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
-**Commit:** (filled after local commit)  
+**Commit:** `dc1a472fd9ee92d01f6e12c953d93bf1ea69cea8` (local only, no push)  
 **Mode:** Finish cheapest P1s present in WT; D24 document BLOCKED only (one `doctor`, no Play thrash)  
 **Push:** never (local commit only)  
 **Gacha:** out of scope — peer `impl_04_gacha` already landed (`8319c9b` / `ec0cd12`)
@@ -109,4 +109,4 @@ Log: Logs/IdleKernel-impl01-r6e.log
 **ROUTE:** Executor (review_01 P1s + D24 blocker doc)  
 **D27 / D29 / D31:** **VERIFIED** (EditMode 15/15 + compile_check)  
 **D24:** **UNVERIFIED / BLOCKED**  
-**COMMIT:** local only — never push
+**COMMIT:** `dc1a472fd9ee92d01f6e12c953d93bf1ea69cea8` local only — never push
