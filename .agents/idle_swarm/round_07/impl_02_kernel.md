@@ -4,6 +4,7 @@
 **Review:** `.agents/idle_swarm/round_07/review_01_kernel.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
+**Commit:** `9dc099740dbe2910e75b0006f83970f76c9a46da` (local only, no push)  
 **Mode:** D24 stays BLOCKED (one `doctor` max, no Play thrash); land cheap P1 D26 IH/AFK closed-app chest CatchUp  
 **Push:** never (local commit only)
 
@@ -99,4 +100,4 @@ Log: Logs/IdleKernel-impl02-r7.log
 **ROUTE:** Executor (review_01 P1 D26 + D24 blocker doc)  
 **D26 IH/AFK:** **VERIFIED** (EditMode 16/16 + compile_check)  
 **D24:** **UNVERIFIED / BLOCKED**  
-**COMMIT:** `9dc0997` local only — never push
+**COMMIT:** `9dc099740dbe2910e75b0006f83970f76c9a46da` local only — never push
