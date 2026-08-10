@@ -343,6 +343,7 @@ namespace HyperCasualRunner.ECS.Systems
 
     /// <summary>
     /// Realm Grinder Align: set FactionId only. No free Mult/Level — income path uses factionBonus in sim.
+    /// First Align (neutral→1/2) is free; re-pick flip costs <see cref="IdlePrestigeMath.RealmGrinderAlignFlipCost"/>.
     /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct IdleFactionAlignSystem : ISystem
@@ -370,8 +371,24 @@ namespace HyperCasualRunner.ECS.Systems
                     var slice = em.GetComponentData<IdleSliceState>(sliceEntity);
                     if (slice.Archetype == IdleArchetype.RealmGrinder)
                     {
-                        slice.FactionId = faction;
-                        em.SetComponentData(sliceEntity, slice);
+                        int prior = slice.FactionId;
+                        if (prior == faction)
+                        {
+                            // Same faction — honest no-op (no charge).
+                        }
+                        else if (prior != 0 &&
+                                 slice.PrimaryCurrency < IdlePrestigeMath.RealmGrinderAlignFlipCost)
+                        {
+                            // Re-pick without funds — honest no-op.
+                        }
+                        else
+                        {
+                            if (prior != 0)
+                                slice.PrimaryCurrency -= IdlePrestigeMath.RealmGrinderAlignFlipCost;
+                            slice.FactionId = faction;
+                            em.SetComponentData(sliceEntity, slice);
+                            IdleEventTarget.SyncPairedRunGold(em, sliceEntity, slice.PrimaryCurrency);
+                        }
                     }
                 }
 
@@ -406,8 +423,14 @@ namespace HyperCasualRunner.ECS.Systems
                 {
                     var slice = em.GetComponentData<IdleSliceState>(sliceEntity);
                     double pending = slice.PendingClaim;
+                    // IH/AfkArena: chest gate matches sim (≥10s / HasOfflineClaim). Neko cats + PendingClaim stay separate.
+                    bool ihOrAfk = slice.Archetype == IdleArchetype.IdleHeroes ||
+                                   slice.Archetype == IdleArchetype.AfkArena;
+                    bool chestReady = ihOrAfk
+                        ? (slice.HasOfflineClaim || slice.AfkChestSeconds >= 10f)
+                        : (slice.AfkChestSeconds >= 1f);
                     bool hasClaim = slice.HasOfflineClaim || pending > 0 ||
-                                    slice.AfkChestSeconds >= 1f || slice.CheckInCats > 0;
+                                    chestReady || slice.CheckInCats > 0;
 
                     if (!hasClaim)
                     {
@@ -435,8 +458,9 @@ namespace HyperCasualRunner.ECS.Systems
                         slice.CheckInCats = 0;
                     }
 
+                    float chestGate = ihOrAfk ? 10f : 1f;
                     slice.HasOfflineClaim = slice.PendingClaim > 0 ||
-                                           slice.AfkChestSeconds >= 1f ||
+                                           slice.AfkChestSeconds >= chestGate ||
                                            slice.CheckInCats > 0;
                     em.SetComponentData(sliceEntity, slice);
                     IdleEventTarget.SyncPairedRunGold(em, sliceEntity, slice.PrimaryCurrency);
@@ -474,6 +498,8 @@ namespace HyperCasualRunner.ECS.Systems
                     var slice = em.GetComponentData<IdleSliceState>(sliceEntity);
 
                     // Phase shift is Paperclips / Antimatter only (hard prestige uses PrestigeSystem).
+                    // AD: PhaseIndex drives named bands via IdlePrestigeMath.GetAntimatterPhaseBand (MVP honesty).
+                    // TODO: [STUB] Multi-Dim buyable tiers (Dim2/Dim3) deferred — single Dim + named bands only.
                     if (slice.Archetype == IdleArchetype.UniversalPaperclips ||
                         slice.Archetype == IdleArchetype.AntimatterDimensions)
                     {

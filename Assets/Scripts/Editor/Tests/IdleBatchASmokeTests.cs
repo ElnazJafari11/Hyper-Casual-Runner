@@ -188,6 +188,13 @@ namespace HyperCasualRunner.Tests
             Assert.Greater(after.PassiveRate, 0, "Manager should unlock automation CPS");
             Assert.IsTrue(_em.GetComponentData<IdleManager>(slice).IsHired);
             Assert.IsTrue(_em.GetComponentData<BuyableGenerator>(slice).IsAutomated);
+
+            // Post-hire income tick (mirror Cookie): PassiveRate alone is not enough.
+            var simSys = _world.CreateSystem<IdleSliceSimulationSystem>();
+            double beforeTick = after.PrimaryCurrency;
+            PumpSim(simSys, 1f);
+            Assert.Greater(_em.GetComponentData<IdleSliceState>(slice).PrimaryCurrency, beforeTick,
+                "Post-hire PumpSim must accrue PrimaryCurrency from manager CPS");
         }
 
         [Test]
@@ -621,6 +628,50 @@ namespace HyperCasualRunner.Tests
             Assert.AreEqual(100 - expectedCost, after.PrimaryCurrency, 0.05,
                 "Next buy cost must use BaseCost * growth^OwnedCount");
             Assert.AreEqual(4, _em.GetComponentData<BuyableGenerator>(slice).OwnedCount);
+        }
+
+        [Test]
+        public void A6_LoadCatchUp_UsesRawPassiveNotStaleMultSquared()
+        {
+            // R3-A2 / OL-sync: stale Mult² Passive on disk must not Mult³ offline grants.
+            // Bootstrap contract: SyncGeneratorOwnedCountFromState BEFORE IdleOfflineCatchUp.Apply.
+            const int owned = 3;
+            const double baseCps = 1.0;
+            const float mult = 2f;
+            double stalePassive = owned * baseCps * mult; // 6 — Mult baked into saved PassiveRate
+            var state = new IdleSliceState
+            {
+                Archetype = IdleArchetype.CookieClicker,
+                PrimaryCurrency = 100,
+                PrestigeCurrency = 0,
+                GlobalMultiplier = mult,
+                ProgressionLevel = 0,
+                ClickPower = 1,
+                PassiveRate = stalePassive,
+                OwnedGenerators = owned,
+                ManagersHired = 0,
+                PhaseIndex = 0
+            };
+            var gen = new BuyableGenerator
+            {
+                GeneratorId = 1,
+                OwnedCount = 0,
+                BaseCost = 15,
+                CostGrowth = 1.15f,
+                BaseCps = baseCps,
+                RequiresManager = false,
+                IsAutomated = true
+            };
+
+            IdlePrestigeMath.SyncGeneratorOwnedCountFromState(ref gen, ref state, owned, automated: true);
+            Assert.AreEqual(3.0, state.PassiveRate, 0.001, "Sync must rebuild raw Owned×BaseCps before catch-up");
+
+            double before = state.PrimaryCurrency;
+            double gained = IdleOfflineCatchUp.Apply(ref state, 1.0);
+            Assert.AreEqual(6.0, gained, 0.05, "Catch-up must be raw×Mult×dt (3×2×1), not Mult³ (12)");
+            Assert.AreEqual(6.0, state.PrimaryCurrency - before, 0.05);
+            Assert.AreEqual(106.0, state.PrimaryCurrency, 0.05);
+            Assert.AreEqual(3.0, state.PassiveRate, 0.001, "Post-load PassiveRate stays raw 3");
         }
 
         [Test]

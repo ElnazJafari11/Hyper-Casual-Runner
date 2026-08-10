@@ -36,6 +36,7 @@ namespace HyperCasualRunner.ECS.Authoring
         private int _loadedPhase;
         private int _loadedFaction;
         private float _loadedEnergy;
+        private bool _loadedFromPrefs;
 
         public Entity SliceEntity => _sliceEntity;
         public bool IsSpawned => _spawned && !_destroyed;
@@ -89,6 +90,17 @@ namespace HyperCasualRunner.ECS.Authoring
             em.SetComponentEnabled<PrestigeEventComponent>(_sliceEntity, false);
 
             AttachArchetypeExtras(em, _sliceEntity, initial);
+
+            // D25: CatchUp AFTER SyncGeneratorOwnedCountFromState (inside AttachArchetypeExtras)
+            // so offline grants use raw PassiveRate, not stale Mult² prefs.
+            // D23: ApplyPersistedElapsed stamps LastIdleUpdateTime only when grant > 0.
+            if (_loadedFromPrefs)
+            {
+                var st = em.GetComponentData<IdleSliceState>(_sliceEntity);
+                IdleOfflineCatchUp.ApplyPersistedElapsed(ref st);
+                em.SetComponentData(_sliceEntity, st);
+            }
+
             _spawned = true;
         }
 
@@ -117,7 +129,8 @@ namespace HyperCasualRunner.ECS.Authoring
                 EnergyAllocated = 0,
                 SkillXp = 0,
                 CheckInCats = 0,
-                HasOfflineClaim = false
+                HasOfflineClaim = false,
+                PendingClaim = 0
             };
 
             switch (Archetype)
@@ -150,6 +163,7 @@ namespace HyperCasualRunner.ECS.Authoring
             _loadedPhase = 0;
             _loadedFaction = 0;
             _loadedEnergy = 0f;
+            _loadedFromPrefs = false;
 
             if (LoadPersistedProgress &&
                 GameProgressData.TryLoadIdleSlice(
@@ -166,7 +180,9 @@ namespace HyperCasualRunner.ECS.Authoring
                     out var faction,
                     out var energy,
                     out var mgrHired,
-                    out var energyPool))
+                    out var energyPool,
+                    out var pendingClaim,
+                    out var hasOfflineClaim))
             {
                 state.PrimaryCurrency = primary;
                 state.PrestigeCurrency = prestige;
@@ -180,36 +196,20 @@ namespace HyperCasualRunner.ECS.Authoring
                 state.FactionId = faction;
                 state.EnergyAllocated = energy;
                 state.EnergyPool = energyPool > 0f ? energyPool : state.EnergyPool;
+                // Melvor/Fallout claim-bank must survive PersistNow after catch-up stamps time.
+                state.PendingClaim = pendingClaim;
+                state.HasOfflineClaim = hasOfflineClaim || pendingClaim > 0.5;
                 _loadedGens = gens;
                 _loadedManagersHired = managers;
                 _loadedPhase = phase;
                 _loadedFaction = faction;
                 _loadedEnergy = energy;
                 _loadedManagerHired = mgrHired;
-
-                // Sole Kernel B wall-clock catch-up (OS is Producer-only; see round_02/STAMP_POLICY.md).
-                ApplyPersistedOfflineCatchUp(ref state);
+                // Catch-up deferred until after AttachArchetypeExtras PassiveRate sync (D25).
+                _loadedFromPrefs = true;
             }
 
             return state;
-        }
-
-        private static void ApplyPersistedOfflineCatchUp(ref IdleSliceState state)
-        {
-            string lastTimeStr = GameProgressData.LastIdleUpdateTime;
-            if (string.IsNullOrEmpty(lastTimeStr)) return;
-            if (!System.DateTime.TryParse(
-                    lastTimeStr,
-                    null,
-                    System.Globalization.DateTimeStyles.RoundtripKind,
-                    out System.DateTime lastTime))
-                return;
-
-            double elapsed = (System.DateTime.UtcNow - lastTime).TotalSeconds;
-            if (elapsed <= 0) return;
-
-            IdleOfflineCatchUp.Apply(ref state, elapsed);
-            GameProgressData.LastIdleUpdateTime = System.DateTime.UtcNow.ToString("O");
         }
 
         public void PersistNow()
@@ -246,7 +246,9 @@ namespace HyperCasualRunner.ECS.Authoring
                 s.FactionId,
                 s.EnergyAllocated,
                 mgrHired,
-                s.EnergyPool);
+                s.EnergyPool,
+                pendingClaim: s.PendingClaim,
+                hasOfflineClaim: s.HasOfflineClaim);
         }
 
         private void AttachArchetypeExtras(EntityManager em, Entity slice, IdleSliceState initial)
@@ -255,6 +257,8 @@ namespace HyperCasualRunner.ECS.Authoring
             {
                 case IdleArchetype.CookieClicker:
                 case IdleArchetype.AdventureCapitalist:
+                // TODO: [STUB] Antimatter multi-Dim tiers (Dim2/Dim3 buyables) deferred —
+                // MVP uses one BuyableGenerator + named PhaseIndex bands (GetAntimatterPhaseBand).
                 case IdleArchetype.AntimatterDimensions:
                 case IdleArchetype.UniversalPaperclips:
                 case IdleArchetype.EggInc:

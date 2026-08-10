@@ -3,6 +3,7 @@ using UnityEngine.UIElements;
 using Unity.Entities;
 using HyperCasualRunner.ECS.Authoring;
 using HyperCasualRunner.ECS.Components;
+using HyperCasualRunner.ECS.Systems;
 
 namespace HyperCasualRunner.UI
 {
@@ -416,6 +417,12 @@ namespace HyperCasualRunner.UI
             if (s.Archetype == IdleArchetype.NguIdle)
             {
                 _stats.text += $"\nEnergy: {s.EnergyAllocated:N0}/{s.EnergyPool:N0}";
+            }
+
+            if (s.Archetype == IdleArchetype.AntimatterDimensions)
+            {
+                string band = IdlePrestigeMath.GetAntimatterPhaseBand(s.PhaseIndex);
+                _stats.text += $"\nLayer: {band} (Phase {s.PhaseIndex})";
             }
 
             if (s.Archetype == IdleArchetype.RealmGrinder && s.FactionId != 0)

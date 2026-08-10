@@ -9,6 +9,11 @@ namespace HyperCasualRunner.ECS.Systems
     public static class IdlePrestigeMath
     {
         /// <summary>
+        /// Realm Grinder: first Align (neutral→faction) is free; re-pick flip spends this PrimaryCurrency.
+        /// </summary>
+        public const double RealmGrinderAlignFlipCost = 25.0;
+
+        /// <summary>
         /// floor(sqrt(currency/50)); soft floor of 1 when currency &gt;= 25.
         /// Returns 0 below threshold (no prestige grant).
         /// </summary>
@@ -17,6 +22,18 @@ namespace HyperCasualRunner.ECS.Systems
             double converted = System.Math.Floor(System.Math.Sqrt(System.Math.Max(0, primaryCurrency) / 50.0));
             if (converted < 1 && primaryCurrency >= 25) converted = 1;
             return converted < 1 ? 0 : converted;
+        }
+
+        /// <summary>
+        /// AD MVP: PhaseIndex maps to named layer bands (not full Infinity/Eternity economies).
+        /// Multi-Dim buyable tiers remain deferred — see TODO STUB on Antimatter bootstrap.
+        /// </summary>
+        public static string GetAntimatterPhaseBand(int phaseIndex)
+        {
+            if (phaseIndex <= 0) return "Dimension";
+            if (phaseIndex == 1) return "Infinity";
+            if (phaseIndex == 2) return "Eternity";
+            return "Reality";
         }
 
         public static bool ArchetypeUsesManagerGate(IdleArchetype archetype)

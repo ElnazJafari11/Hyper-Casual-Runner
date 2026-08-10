@@ -141,10 +141,51 @@ namespace HyperCasualRunner.Tests
 
             var after = _em.GetComponentData<IdleSliceState>(slice);
             Assert.AreEqual(1, after.FactionId);
+            Assert.AreEqual(35.0, after.PrimaryCurrency, 0.001,
+                "First Align (neutral→faction) is free");
             Assert.AreEqual(multBefore, after.GlobalMultiplier, 0.001f,
                 "Align must not free-stack GlobalMultiplier");
             Assert.AreEqual(levelBefore, after.ProgressionLevel,
                 "Align must not free ProgressionLevel");
+        }
+
+        [Test]
+        public void RealmGrinder_AlignFlip_CostsPrimaryCurrency()
+        {
+            var slice = CreateSlice(IdleArchetype.RealmGrinder, 50);
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.FactionId = 1;
+            _em.SetComponentData(slice, st);
+
+            var alignSys = _world.CreateSystem<IdleFactionAlignSystem>();
+            var evt = _em.CreateEntity();
+            _em.AddComponentData(evt, new IdleFactionAlignEvent { TargetSlice = slice, FactionId = 2 });
+            alignSys.Update(_world.Unmanaged);
+
+            var after = _em.GetComponentData<IdleSliceState>(slice);
+            Assert.AreEqual(2, after.FactionId, "Re-pick Align must set new faction");
+            Assert.AreEqual(50.0 - IdlePrestigeMath.RealmGrinderAlignFlipCost, after.PrimaryCurrency, 0.001,
+                "Faction flip must spend AlignFlipCost");
+            Assert.AreEqual(after.PrimaryCurrency, _em.GetComponentData<CurrentRunStats>(slice).CurrentGold, 0.001,
+                "Run gold must stay synced after Align spend");
+        }
+
+        [Test]
+        public void RealmGrinder_AlignFlip_InsufficientCurrency_IsNoOp()
+        {
+            var slice = CreateSlice(IdleArchetype.RealmGrinder, 10);
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.FactionId = 1;
+            _em.SetComponentData(slice, st);
+
+            var alignSys = _world.CreateSystem<IdleFactionAlignSystem>();
+            var evt = _em.CreateEntity();
+            _em.AddComponentData(evt, new IdleFactionAlignEvent { TargetSlice = slice, FactionId = 2 });
+            alignSys.Update(_world.Unmanaged);
+
+            var after = _em.GetComponentData<IdleSliceState>(slice);
+            Assert.AreEqual(1, after.FactionId, "Underfunded flip must leave FactionId");
+            Assert.AreEqual(10.0, after.PrimaryCurrency, 0.001, "Underfunded flip must not spend");
         }
 
         [Test]
@@ -1033,6 +1074,124 @@ namespace HyperCasualRunner.Tests
             Assert.AreEqual(65.0, state.PrimaryCurrency, 0.001);
             Assert.AreEqual(0.0, state.PendingClaim, 0.001);
             Assert.IsFalse(state.HasOfflineClaim);
+        }
+
+        [Test]
+        public void Melvor_PendingClaim_SurvivesPersistAndColdReload()
+        {
+            // R3 P0: catch-up banks PendingClaim then PersistNow stamps time — claim must survive reload.
+            int arch = (int)IdleArchetype.MelvorIdle;
+            GameProgressData.ClearIdleSlice(arch);
+
+            GameProgressData.SaveIdleSlice(
+                arch, 0, 0, 1f, 1, 1, 1.0, 0,
+                pendingClaim: 0, hasOfflineClaim: false);
+            string stamped = System.DateTime.UtcNow.AddHours(-1)
+                .ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+            GameProgressData.LastIdleUpdateTime = stamped;
+
+            // Mirror BuildInitialState load + post-attach ApplyPersistedElapsed.
+            Assert.IsTrue(GameProgressData.TryLoadIdleSlice(
+                arch,
+                out var primary, out _, out var mult, out var level, out _, out var passive,
+                out _, out _, out _, out _, out _, out _, out _, out var pending, out var hasClaim));
+            var state = new IdleSliceState
+            {
+                Archetype = IdleArchetype.MelvorIdle,
+                PrimaryCurrency = primary,
+                GlobalMultiplier = mult > 0f ? mult : 1f,
+                ProgressionLevel = level,
+                PassiveRate = passive,
+                PendingClaim = pending,
+                HasOfflineClaim = hasClaim,
+                SkillXp = 0
+            };
+            double gained = IdleOfflineCatchUp.ApplyPersistedElapsed(ref state);
+            Assert.Greater(gained, 3000, "1h Melvor catch-up must bank PendingClaim");
+            Assert.Greater(state.PendingClaim, 3000);
+            Assert.IsTrue(state.HasOfflineClaim);
+            Assert.AreNotEqual(stamped, GameProgressData.LastIdleUpdateTime,
+                "Positive grant must stamp LastIdleUpdateTime");
+            double banked = state.PendingClaim;
+            int levelAfterCatchUp = state.ProgressionLevel;
+
+            // PersistNow / quit mirror — stamps now again and must write PendingClaim.
+            GameProgressData.SaveIdleSlice(
+                arch,
+                state.PrimaryCurrency,
+                state.PrestigeCurrency,
+                state.GlobalMultiplier,
+                state.ProgressionLevel,
+                1,
+                state.PassiveRate,
+                0,
+                pendingClaim: state.PendingClaim,
+                hasOfflineClaim: state.HasOfflineClaim);
+
+            // Cold reload with no new AFK window: restore PendingClaim; ApplyPersistedElapsed ~0.
+            Assert.IsTrue(GameProgressData.TryLoadIdleSlice(
+                arch,
+                out primary, out _, out mult, out level, out _, out passive,
+                out _, out _, out _, out _, out _, out _, out _, out pending, out hasClaim));
+            var reloaded = new IdleSliceState
+            {
+                Archetype = IdleArchetype.MelvorIdle,
+                PrimaryCurrency = primary,
+                GlobalMultiplier = mult > 0f ? mult : 1f,
+                ProgressionLevel = level,
+                PassiveRate = passive,
+                PendingClaim = pending,
+                HasOfflineClaim = hasClaim
+            };
+            Assert.AreEqual(banked, reloaded.PendingClaim, 0.01,
+                "PendingClaim must restore from SaveIdleSlice without a second AFK window");
+            Assert.IsTrue(reloaded.HasOfflineClaim);
+            Assert.AreEqual(levelAfterCatchUp, reloaded.ProgressionLevel);
+
+            double secondGain = IdleOfflineCatchUp.ApplyPersistedElapsed(ref reloaded);
+            Assert.Less(secondGain, 5.0, "Just-stamped reload must not re-accrue a full AFK window");
+            Assert.AreEqual(banked, reloaded.PendingClaim, 5.0,
+                "Cold reload must keep catch-up PendingClaim durable");
+        }
+
+        [Test]
+        public void Melvor_BootstrapLoadPath_CatchUpBanksPendingAndSkillLevel()
+        {
+            // R3 required: timestamp + TryLoad + ApplyPersistedElapsed (not bare Apply alone).
+            int arch = (int)IdleArchetype.MelvorIdle;
+            GameProgressData.ClearIdleSlice(arch);
+            GameProgressData.SaveIdleSlice(
+                arch, 0, 0, 1f, 1, 1, 1.0, 0,
+                pendingClaim: 0, hasOfflineClaim: false);
+            GameProgressData.LastIdleUpdateTime = System.DateTime.UtcNow.AddSeconds(-120)
+                .ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+
+            Assert.IsTrue(GameProgressData.TryLoadIdleSlice(
+                arch,
+                out var primary, out _, out var mult, out var level, out _, out var passive,
+                out _, out _, out _, out _, out _, out _, out _, out var pending, out var hasClaim));
+
+            var state = new IdleSliceState
+            {
+                Archetype = IdleArchetype.MelvorIdle,
+                PrimaryCurrency = primary,
+                GlobalMultiplier = mult > 0f ? mult : 1f,
+                ProgressionLevel = level > 0 ? level : 1,
+                PassiveRate = passive,
+                PendingClaim = pending,
+                HasOfflineClaim = hasClaim,
+                SkillXp = 0
+            };
+            IdleOfflineCatchUp.EnsureMelvorPassiveDefault(ref state);
+            int levelBefore = state.ProgressionLevel;
+            double gained = IdleOfflineCatchUp.ApplyPersistedElapsed(ref state);
+
+            Assert.Greater(gained, 100);
+            Assert.Greater(state.PendingClaim, 100);
+            Assert.AreEqual(0.0, state.PrimaryCurrency, 0.001, "Melvor banks PendingClaim, not Primary");
+            Assert.IsTrue(state.HasOfflineClaim);
+            Assert.GreaterOrEqual(state.ProgressionLevel, levelBefore,
+                "Skill ticks from catch-up must be applied on bootstrap load path");
         }
     }
 }
