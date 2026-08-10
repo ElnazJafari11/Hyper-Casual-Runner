@@ -4,7 +4,7 @@
 **Source review:** `review_05_production.md` (+ late note: P0 = Melvor IdleSkillNode desync / kernel D33)  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
-**Commit:** (filled after local commit)  
+**Commit:** `2b21929d922f51974373e0632526024b7ddc02ab` (local only — never push)  
 **Push:** never
 
 ---
