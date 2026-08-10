@@ -4,7 +4,7 @@
 **Source review:** `.agents/idle_swarm/round_05/review_03_combat.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Code commit:** `e016b13ff703daab14d1e062af573bb3be4cc5cc`  
-**Receipt note commit:** (filled after local commit — never push)
+**Receipt note commit:** `a5d9966` (local only — never push)
 
 ---
 
