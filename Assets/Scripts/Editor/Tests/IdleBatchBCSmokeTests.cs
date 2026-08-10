@@ -1413,6 +1413,53 @@ namespace HyperCasualRunner.Tests
         }
 
         [Test]
+        public void CatsAndSoup_OfflineCatchUp_StationWorkers_AddsPrimary()
+        {
+            // 2 workers × 1.5 OutputPerWorker × 10s / 1s Interval = 30 Primary (not Pending).
+            var state = new IdleSliceState
+            {
+                Archetype = IdleArchetype.CatsAndSoup,
+                PrimaryCurrency = 1,
+                GlobalMultiplier = 1f,
+                PassiveRate = 0,
+                AssignedWorkers = 2,
+                PendingClaim = 0,
+                HasOfflineClaim = false
+            };
+            double gained = IdleOfflineCatchUp.Apply(ref state, 10);
+            Assert.AreEqual(30.0, gained, 0.001);
+            Assert.AreEqual(31.0, state.PrimaryCurrency, 0.001);
+            Assert.AreEqual(0.0, state.PendingClaim, 0.001);
+            Assert.IsFalse(state.HasOfflineClaim);
+
+            state.AssignedWorkers = 0;
+            state.PrimaryCurrency = 0;
+            Assert.AreEqual(0.0, IdleOfflineCatchUp.Apply(ref state, 60), 0.001,
+                "Zero workers must grant 0 (D23 stamp preserved on ApplyPersistedElapsed)");
+        }
+
+        [Test]
+        public void FalloutShelter_OfflineCatchUp_StationWorkers_BanksPendingClaim()
+        {
+            // 1 worker × 1.5 × GlobalMultiplier 2 × 8s = 24 PendingClaim.
+            var state = new IdleSliceState
+            {
+                Archetype = IdleArchetype.FalloutShelter,
+                PrimaryCurrency = 0,
+                GlobalMultiplier = 2f,
+                PassiveRate = 0,
+                AssignedWorkers = 1,
+                PendingClaim = 0,
+                HasOfflineClaim = false
+            };
+            double gained = IdleOfflineCatchUp.Apply(ref state, 8);
+            Assert.AreEqual(24.0, gained, 0.001);
+            Assert.AreEqual(24.0, state.PendingClaim, 0.001);
+            Assert.AreEqual(0.0, state.PrimaryCurrency, 0.001);
+            Assert.IsTrue(state.HasOfflineClaim);
+        }
+
+        [Test]
         public void Melvor_PendingClaim_SurvivesPersistAndColdReload()
         {
             // R3 P0: catch-up banks PendingClaim then PersistNow stamps time — claim must survive reload.

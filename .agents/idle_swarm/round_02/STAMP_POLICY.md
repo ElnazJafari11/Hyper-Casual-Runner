@@ -32,8 +32,11 @@
 
 | Archetype | Catch-up destination | Claim UI |
 |-----------|----------------------|----------|
-| Melvor | `PendingClaim` + skill XP ticks; **no** `AfkChestSeconds` bump | Already has Claim Offline |
+| Melvor | `PendingClaim` + skill XP ticks; **no** `AfkChestSeconds` bump; after CatchUp **sync** `IdleSkillNode` Level/Xp/XpToLevel from slice (D33) | Already has Claim Offline |
 | Egg / Miner (`PassiveRate > 0`) | **Direct** `PrimaryCurrency` | **None** — not required under this bank style |
+| Cats & Soup (`AssignedWorkers > 0`) | **Direct** `PrimaryCurrency` via station rate (bootstrap OutputPerWorker/Interval) | None |
+| Fallout Shelter (`AssignedWorkers > 0`) | `PendingClaim` via station rate | Already has Claim |
+| Cats/Fallout with 0 workers | Grant 0 — leave stamp (D23) | — |
 | Other PassiveRate slices | Same as Egg/Miner (direct Primary) | None unless a later round switches to PendingClaim |
 
 If a future change banks Egg/Miner into `PendingClaim`, Claim UI (or auto-drain) becomes required in the same change.
@@ -56,3 +59,4 @@ If a future change banks Egg/Miner into `PendingClaim`, Claim UI (or auto-drain)
 - Melvor catch-up leaves `AfkChestSeconds` at 0.
 - EditMode: `ApplyPersistedElapsed` with PassiveRate=0 non-Melvor + past stamp → timestamp **unchanged** (D23).
 - EditMode: Sync raw PassiveRate then CatchUp with Mult² stale prefs → grant == `ComputePassiveRate * Mult * t` (D25).
+- EditMode: Melvor attach IdleSkillNode L1/Xp0 → ApplyPersistedElapsed (≥ enough ticks to level) → SyncSkillNodeFromSlice → node Level/Xp match slice and stay matched after one sim tick (D33).

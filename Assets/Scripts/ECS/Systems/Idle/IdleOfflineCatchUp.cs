@@ -15,8 +15,16 @@ namespace HyperCasualRunner.ECS.Systems
         public const double CapSeconds = 8.0 * 60.0 * 60.0;
 
         /// <summary>
+        /// Matches <c>IdleSliceBootstrap.AttachArchetypeExtras</c> station defaults for Cats/Fallout.
+        /// Catch-up uses <see cref="IdleSliceState.AssignedWorkers"/> (no station component on the pure-state path).
+        /// </summary>
+        public const double StationOutputPerWorker = 1.5;
+        public const float StationIntervalSeconds = 1f;
+
+        /// <summary>
         /// Apply elapsed wall-clock time into slice state.
         /// Melvor banks into <see cref="IdleSliceState.PendingClaim"/> (+ skill XP); never bumps AfkChestSeconds.
+        /// Cats &amp; Soup / Fallout Shelter with AssignedWorkers&gt;0 simulate station ticks (Primary vs Pending).
         /// Egg/Miner and other PassiveRate&gt;0 archetypes add directly to PrimaryCurrency (no Claim UI required).
         /// Returns currency granted or banked (0 if nothing applied).
         /// </summary>
@@ -37,6 +45,12 @@ namespace HyperCasualRunner.ECS.Systems
                 return gained;
             }
 
+            if (state.Archetype == IdleArchetype.CatsAndSoup ||
+                state.Archetype == IdleArchetype.FalloutShelter)
+            {
+                return ApplyStationCatchUp(ref state, capped);
+            }
+
             if (state.PassiveRate > 0)
             {
                 double gained = state.PassiveRate * state.GlobalMultiplier * capped;
@@ -45,6 +59,33 @@ namespace HyperCasualRunner.ECS.Systems
             }
 
             return 0;
+        }
+
+        /// <summary>
+        /// Wall-clock station ticks: rate = AssignedWorkers × OutputPerWorker × GlobalMultiplier / Interval.
+        /// Cats → PrimaryCurrency; Fallout → PendingClaim (+ HasOfflineClaim). Zero workers → 0 (D23 stamp preserved).
+        /// </summary>
+        public static double ApplyStationCatchUp(ref IdleSliceState state, double cappedSeconds)
+        {
+            int workers = state.AssignedWorkers;
+            if (workers <= 0) return 0;
+
+            float interval = StationIntervalSeconds <= 0f ? 1f : StationIntervalSeconds;
+            double gained = workers * StationOutputPerWorker * state.GlobalMultiplier *
+                            (cappedSeconds / interval);
+            if (gained <= 0) return 0;
+
+            if (state.Archetype == IdleArchetype.FalloutShelter)
+            {
+                state.PendingClaim += gained;
+                state.HasOfflineClaim = state.PendingClaim > 0.5;
+            }
+            else
+            {
+                state.PrimaryCurrency += gained;
+            }
+
+            return gained;
         }
 
         /// <summary>
@@ -90,7 +131,7 @@ namespace HyperCasualRunner.ECS.Systems
 
             int level = state.ProgressionLevel > 0 ? state.ProgressionLevel : 1;
             int xp = state.SkillXp;
-            int xpToLevel = level <= 1 ? 25 : (20 + level * 10);
+            int xpToLevel = XpToLevelFor(level);
 
             for (int i = 0; i < ticks; i++)
             {
@@ -98,11 +139,30 @@ namespace HyperCasualRunner.ECS.Systems
                 if (xp < xpToLevel) continue;
                 xp = 0;
                 level += 1;
-                xpToLevel = 20 + level * 10;
+                xpToLevel = XpToLevelFor(level);
             }
 
             state.SkillXp = xp;
             state.ProgressionLevel = level;
+        }
+
+        /// <summary>
+        /// D33: Rewrite <see cref="IdleSkillNode"/> from post-CatchUp slice Level/XP so online
+        /// authority cannot clobber CatchUp gains on the next skill tick.
+        /// </summary>
+        public static void SyncSkillNodeFromSlice(ref IdleSkillNode skill, in IdleSliceState state)
+        {
+            int level = state.ProgressionLevel > 0 ? state.ProgressionLevel : 1;
+            skill.Level = level;
+            skill.Xp = state.SkillXp;
+            skill.XpToLevel = XpToLevelFor(level);
+        }
+
+        /// <summary>Level 1 threshold is 25; after that 20+level*10 (matches IdleSkillNode online).</summary>
+        public static int XpToLevelFor(int level)
+        {
+            int l = level > 0 ? level : 1;
+            return l <= 1 ? 25 : (20 + l * 10);
         }
     }
 }
