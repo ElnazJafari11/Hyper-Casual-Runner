@@ -4,7 +4,7 @@
 **Source review:** `round_07/review_06_gacha.md`  
 **Date:** 2026-08-10  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
-**Commit:** local only (never push) — pending hash after commit
+**Commit:** local only (never push) — `09b9b72`
 
 ---
 
