@@ -3,7 +3,7 @@
 **Agent:** implement 1/10 (PRIORITY)  
 **Reviews:** `.agents/idle_swarm/round_07/review_09_tests.md` + `review_10_llm.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
-**Commit:** local only (no push)
+**Commit:** local only (no push) — `8161fc4`
 
 ---
 
