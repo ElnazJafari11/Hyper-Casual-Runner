@@ -46,7 +46,7 @@ Authoring / UI / persist: `IdleSliceBootstrap`, `IdleSliceUIController`, `IdleSa
 | 04 | Universal Paperclips | `UniversalPaperclips` | `BuyableGenerator` | Make Paperclip, Buy Autoclipper, Phase Shift | `IdleBatchASmokeTests.Paperclips_ManufactureThenPhaseShift_ConvertsToPrestige` |
 | 05 | A Dark Room | `ADarkRoom` | `IdleNarrativeState` | Stoke Fire, Explore, Craft | `IdleBatchBCSmokeTests.ADarkRoom_StokeThenExplore_AdvancesProgression` |
 | 06 | Antimatter Dimensions | `AntimatterDimensions` | `BuyableGenerator` | Buy Dimension, Click Antimatter, Prestige Layer | `IdleBatchASmokeTests.Antimatter_BuyDimension_RaisesOwnedAndCps` |
-| 07 | Realm Grinder | `RealmGrinder` | `BuyableGenerator` | Build, Align Good, Align Evil, Rebirth | `IdleBatchBCSmokeTests.RealmGrinder_BuildThenAlignFaction_RaisesMultAndLevel` |
+| 07 | Realm Grinder | `RealmGrinder` | `BuyableGenerator` | Build, Align Good, Align Evil, Rebirth | `IdleBatchBCSmokeTests.RealmGrinder_AlignFaction_SetsFactionWithoutFreeMult` (+ `RealmGrinder_Rebirth_ResetsRun_KeepsFaction`) |
 | 08 | NGU Idle | `NguIdle` | (energy on state) | Allocate Energy, Idle Tick Boost, Rebirth | `IdleBatchBCSmokeTests.NguIdle_AllocateEnergyThenTick_ProducesFromSpend` |
 | 09 | Melvor Idle | `MelvorIdle` | `IdleSkillNode` | Train Skill, Claim Offline | `IdleBatchBCSmokeTests.MelvorIdle_GrindSkillNode_LevelsViaSimTick` |
 | 10 | Egg, Inc. | `EggInc` | `BuyableGenerator` | Hatch Burst, Upgrade Habitat, Soul Prestige | `IdleBatchBCSmokeTests.EggInc_HatchBurst_RaisesCurrencyAndPassive` |
