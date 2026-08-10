@@ -389,50 +389,56 @@ namespace HyperCasualRunner.UI
             if (_stats == null) return;
             if (!TryGetEm(out var em)) return;
 
-            IdleSliceState s;
-            if (_bootstrap != null && _bootstrap.IsSpawned &&
-                em.Exists(_bootstrap.SliceEntity) &&
-                em.HasComponent<IdleSliceState>(_bootstrap.SliceEntity))
+            Entity sliceEntity = ResolveTargetSlice(em);
+            if (sliceEntity == Entity.Null || !em.HasComponent<IdleSliceState>(sliceEntity))
             {
-                s = em.GetComponentData<IdleSliceState>(_bootstrap.SliceEntity);
-            }
-            else
-            {
+                // Fallback: any IdleSliceState when ResolveTargetSlice requires singleton.
                 using var q = em.CreateEntityQuery(typeof(IdleSliceState));
                 if (q.IsEmptyIgnoreFilter) return;
-                var arr = q.ToComponentDataArray<IdleSliceState>(Unity.Collections.Allocator.Temp);
-                if (arr.Length == 0) { arr.Dispose(); return; }
-                s = arr[0];
-                arr.Dispose();
+                using var entities = q.ToEntityArray(Unity.Collections.Allocator.Temp);
+                if (entities.Length == 0) return;
+                sliceEntity = entities[0];
+            }
+
+            var s = em.GetComponentData<IdleSliceState>(sliceEntity);
+
+            // R5-F1: CH/TT2/IH HUD reads IdleCombatState SoT (Zone/HP/DPS/tap), not Stage-inflated Level alone.
+            bool combatHud = em.HasComponent<IdleCombatState>(sliceEntity) &&
+                             (s.Archetype == IdleArchetype.ClickerHeroes ||
+                              s.Archetype == IdleArchetype.TapTitans2 ||
+                              s.Archetype == IdleArchetype.IdleHeroes);
+
+            int zoneLabel = s.ProgressionLevel;
+            string hpLabel = $"{s.EnemyHp}/{s.EnemyMaxHp}";
+            IdleCombatState combat = default;
+            if (combatHud)
+            {
+                combat = em.GetComponentData<IdleCombatState>(sliceEntity);
+                zoneLabel = combat.Zone;
+                hpLabel = $"{combat.EnemyHp:N0}/{combat.EnemyMaxHp:N0}";
             }
 
             _stats.text =
                 $"Currency: {s.PrimaryCurrency:N1} | Prestige: {s.PrestigeCurrency:N0} | " +
-                $"Lv/Zone: {s.ProgressionLevel} | CPS: {s.PassiveRate:N2} | " +
+                $"Lv/Zone: {zoneLabel} | CPS: {s.PassiveRate:N2} | " +
                 $"Gens: {s.OwnedGenerators} | Mult: {s.GlobalMultiplier:N2}\n" +
                 $"Click: {s.ClickPower:N1} | Workers: {s.AssignedWorkers}/{s.MaxWorkers} | " +
-                $"HP: {s.EnemyHp}/{s.EnemyMaxHp} | Cats: {s.CheckInCats} | " +
+                $"HP: {hpLabel} | Cats: {s.CheckInCats} | " +
                 $"Chest: {s.AfkChestSeconds:N0}s | Pending: {s.PendingClaim:N1}";
 
-            Entity sliceEntity = Entity.Null;
-            if (_bootstrap != null && _bootstrap.IsSpawned &&
-                em.Exists(_bootstrap.SliceEntity))
-                sliceEntity = _bootstrap.SliceEntity;
-
-            if (sliceEntity != Entity.Null && em.HasComponent<IdleGachaState>(sliceEntity))
+            if (em.HasComponent<IdleGachaState>(sliceEntity))
             {
                 var g = em.GetComponentData<IdleGachaState>(sliceEntity);
                 _stats.text += $"\nPulls: {g.PullCount} | BestRarity: {g.BestRarity} | Stage: {g.Stage}";
             }
 
-            if (sliceEntity != Entity.Null && em.HasComponent<IdleCombatState>(sliceEntity) &&
-                s.Archetype == IdleArchetype.IdleHeroes)
+            if (combatHud)
             {
-                var c = em.GetComponentData<IdleCombatState>(sliceEntity);
-                _stats.text += $" | HeroDps: {c.HeroDps:N1}";
+                _stats.text +=
+                    $"\nHeroDps: {combat.HeroDps:N1} | TapDamage: {combat.TapDamage:N1} | Zone: {combat.Zone}";
             }
 
-            if (sliceEntity != Entity.Null && em.HasComponent<IdleNarrativeState>(sliceEntity) &&
+            if (em.HasComponent<IdleNarrativeState>(sliceEntity) &&
                 s.Archetype == IdleArchetype.CapybaraGo)
             {
                 var n = em.GetComponentData<IdleNarrativeState>(sliceEntity);

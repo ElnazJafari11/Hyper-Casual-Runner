@@ -158,6 +158,90 @@ namespace HyperCasualRunner.Tests
         }
 
         /// <summary>
+        /// R5-F1: CH/TT2/IH stats must show HeroDps, TapDamage, and true IdleCombatState.Zone
+        /// (not Stage-inflated ProgressionLevel alone).
+        /// </summary>
+        [TestCase(IdleArchetype.ClickerHeroes)]
+        [TestCase(IdleArchetype.TapTitans2)]
+        [TestCase(IdleArchetype.IdleHeroes)]
+        public void IdleSliceUIController_CombatHud_ShowsHeroDpsTapDamageTrueZone(IdleArchetype arch)
+        {
+            var em = _world.EntityManager;
+            var slice = em.CreateEntity();
+            em.AddComponentData(slice, new IdleSliceState
+            {
+                Archetype = arch,
+                PrimaryCurrency = 10,
+                PrestigeCurrency = 0,
+                GlobalMultiplier = 1f,
+                ProgressionLevel = 8, // Stage-inflated — HUD Zone must still read combat.Zone=5
+                ClickPower = 5,
+                PassiveRate = 2,
+                OwnedGenerators = 1,
+                EnemyHp = 20,
+                EnemyMaxHp = 20,
+                MaxWorkers = 5
+            });
+            em.AddComponentData(slice, new IdleCombatState
+            {
+                TapDamage = 4.5,
+                HeroDps = 12.0,
+                Zone = 5,
+                GoldPerKill = 15,
+                EnemyHp = 40,
+                EnemyMaxHp = 145
+            });
+
+            var go = new GameObject("IdleSliceHudCombat_" + arch);
+            try
+            {
+                var doc = go.AddComponent<UIDocument>();
+                AssignPanelSettings(doc);
+
+                var bootstrap = go.AddComponent<IdleSliceBootstrap>();
+                bootstrap.DisplayName = "Combat HUD " + arch;
+                bootstrap.HowToPlay = "R5-F1 EditMode";
+                bootstrap.Archetype = arch;
+                bootstrap.LoadPersistedProgress = false;
+
+                var controller = go.AddComponent<IdleSliceUIController>();
+
+                bool needsRuntimePanel = doc.panelSettings == null;
+                if (needsRuntimePanel)
+                    LogAssert.Expect(LogType.Error, new Regex("UI Toolkit\\.meta"));
+
+                controller.EnsureHudBuilt();
+
+                LogAssert.ignoreFailingMessages = true;
+                var refresh = typeof(IdleSliceUIController).GetMethod(
+                    "RefreshStats",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.IsNotNull(refresh, "RefreshStats must exist for EditMode invoke");
+                refresh.Invoke(controller, null);
+
+                var root = controller.RootVisualElement;
+                LogAssert.ignoreFailingMessages = false;
+                Assert.IsNotNull(root, "UIDocument rootVisualElement should exist after PanelSettings.");
+
+                var stats = root.Q<Label>("StatsLabel");
+                Assert.IsNotNull(stats, "StatsLabel missing");
+                string text = stats.text ?? "";
+
+                StringAssert.Contains("HeroDps: 12.0", text, arch + " HUD must show HeroDps");
+                StringAssert.Contains("TapDamage: 4.5", text, arch + " HUD must show TapDamage");
+                StringAssert.Contains("Zone: 5", text, arch + " HUD must show true combat Zone");
+                StringAssert.Contains("Lv/Zone: 5", text,
+                    arch + " Lv/Zone label must prefer IdleCombatState.Zone over ProgressionLevel=8");
+                StringAssert.DoesNotContain("Lv/Zone: 8", text,
+                    arch + " must not display Stage-inflated Level as Zone when combat SoT present");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+            }
+        }
+
+        /// <summary>
         /// EditMode panels often do not route ClickEvent through Clickable; invoke clicked subscribers directly.
         /// </summary>
         private static void SimulateClick(Button button)
