@@ -75,4 +75,4 @@ Log: Logs/IdleCombat-impl01-r5.log → Exit code 0 (Ok)
 - **Deviations:** Surgical commit excludes peer LoM farm-hide + UI5 cosmetics shop smoke that were mixed in the stalled agent's working tree; those remain uncommitted WIP for their owners. Fresh test re-run skipped due to concurrent HCR Unity.  
 - **Flash Base:** none  
 - **Escalations:** none  
-- **Commit:** *(filled after local commit)*
+- **Commit:** `e016b13ff703daab14d1e062af573bb3be4cc5cc` (local only, no push)
