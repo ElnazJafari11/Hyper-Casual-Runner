@@ -3,7 +3,7 @@
 **Agent:** implement 8/10  
 **Source review:** `review_08_ui.md`  
 **Architecture:** UI Toolkit only  
-**Commit:** `09034e9` local only (no push)
+**Commit:** `9ffe8f3` local only (no push)
 
 ---
 
