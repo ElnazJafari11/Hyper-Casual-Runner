@@ -208,7 +208,8 @@ namespace HyperCasualRunner
             int assignedWorkers = 0,
             int checkInCats = 0,
             int narrStokeCount = 0,
-            double narrWood = 0)
+            double narrWood = 0,
+            int skillXp = 0)
         {
             PlayerPrefs.SetString(IdleKey(archetype, "Primary"), primaryCurrency.ToString("R", CultureInfo.InvariantCulture));
             PlayerPrefs.SetString(IdleKey(archetype, "Prestige"), prestigeCurrency.ToString("R", CultureInfo.InvariantCulture));
@@ -239,9 +240,15 @@ namespace HyperCasualRunner
             PlayerPrefs.SetInt(IdleKey(archetype, "Cats"), checkInCats);
             PlayerPrefs.SetInt(IdleKey(archetype, "NarrStoke"), narrStokeCount);
             PlayerPrefs.SetString(IdleKey(archetype, "NarrWood"), narrWood.ToString("R", CultureInfo.InvariantCulture));
+            // Melvor intra-level XP bar (R5): default 0 keeps pre-R5 call sites honest.
+            PlayerPrefs.SetInt(IdleKey(archetype, "SkillXp"), skillXp);
             LastIdleUpdateTime = System.DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture);
             Save();
         }
+
+        /// <summary>Load Melvor SkillXp. Missing key → 0 (safe for pre-R5 saves).</summary>
+        public static int LoadSkillXp(int archetype) =>
+            PlayerPrefs.GetInt(IdleKey(archetype, "SkillXp"), 0);
 
         /// <summary>Load cozy-only extras. Missing keys → zeros (safe for pre-D18 saves).</summary>
         public static IdleSliceCozyPersist LoadIdleCozyPersist(int archetype)
@@ -544,6 +551,7 @@ namespace HyperCasualRunner
             PlayerPrefs.DeleteKey(IdleKey(archetype, "Cats"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrStoke"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrWood"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "SkillXp"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "CombatZone"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "CombatEnemyHp"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "CombatEnemyMaxHp"));

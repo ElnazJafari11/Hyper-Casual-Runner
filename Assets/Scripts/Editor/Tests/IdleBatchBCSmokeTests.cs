@@ -1611,6 +1611,40 @@ namespace HyperCasualRunner.Tests
         }
 
         [Test]
+        public void NekoAtsume_OfflineCatchUp_AccruesCheckInCats()
+        {
+            // 50s / 5s interval = 10 cats; Primary untouched; claim flag set (D26).
+            var state = new IdleSliceState
+            {
+                Archetype = IdleArchetype.NekoAtsume,
+                PrimaryCurrency = 20,
+                GlobalMultiplier = 1f,
+                PassiveRate = 0,
+                CheckInCats = 0,
+                HasOfflineClaim = false
+            };
+            double gained = IdleOfflineCatchUp.Apply(ref state, 50);
+            Assert.AreEqual(10.0, gained, 0.001);
+            Assert.AreEqual(10, state.CheckInCats);
+            Assert.AreEqual(20.0, state.PrimaryCurrency, 0.001, "Neko CatchUp must not double-bank Primary");
+            Assert.IsTrue(state.HasOfflineClaim);
+
+            // Cap 20: 18 + floor(60/5)=12 → only +2.
+            state.CheckInCats = 18;
+            state.HasOfflineClaim = false;
+            Assert.AreEqual(2.0, IdleOfflineCatchUp.Apply(ref state, 60), 0.001);
+            Assert.AreEqual(20, state.CheckInCats);
+            Assert.IsTrue(state.HasOfflineClaim);
+
+            // Already full / sub-interval → 0 (D23 stamp preserved on ApplyPersistedElapsed).
+            state.HasOfflineClaim = false;
+            Assert.AreEqual(0.0, IdleOfflineCatchUp.Apply(ref state, 120), 0.001,
+                "Full buffer must grant 0");
+            Assert.AreEqual(0.0, IdleOfflineCatchUp.Apply(ref state, 4), 0.001,
+                "Sub-interval must grant 0");
+        }
+
+        [Test]
         public void Melvor_PendingClaim_SurvivesPersistAndColdReload()
         {
             // R3 P0: catch-up banks PendingClaim then PersistNow stamps time — claim must survive reload.
@@ -1726,6 +1760,59 @@ namespace HyperCasualRunner.Tests
             Assert.IsTrue(state.HasOfflineClaim);
             Assert.GreaterOrEqual(state.ProgressionLevel, levelBefore,
                 "Skill ticks from catch-up must be applied on bootstrap load path");
+        }
+
+        [Test]
+        public void Melvor_SpawnBootstrap_TrySpawn_SyncsSkillNodeAndPersistsPending()
+        {
+            // R5 P1: live IdleSliceBootstrap.TrySpawn (not hand-mirrored Attach→CatchUp→Sync→Save).
+            // Prefs + T−300s → TrySpawn must CatchUp, D33 sync node, R4 PersistNow Pending (+ R5 SkillXp).
+            int arch = (int)IdleArchetype.MelvorIdle;
+            GameProgressData.ClearIdleSlice(arch);
+            GameProgressData.SaveIdleSlice(
+                arch, 0, 0, 1f, 1, 1, 1.0, 0,
+                pendingClaim: 0, hasOfflineClaim: false, skillXp: 0);
+            GameProgressData.LastIdleUpdateTime = System.DateTime.UtcNow.AddSeconds(-300)
+                .ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+
+            var boot = SpawnBootstrap(IdleArchetype.MelvorIdle);
+            try
+            {
+                var slice = boot.SliceEntity;
+                Assert.IsTrue(_em.HasComponent<IdleSkillNode>(slice), "Melvor TrySpawn must attach IdleSkillNode");
+                var state = _em.GetComponentData<IdleSliceState>(slice);
+                var skill = _em.GetComponentData<IdleSkillNode>(slice);
+
+                Assert.AreEqual(state.ProgressionLevel, skill.Level,
+                    "Live TrySpawn D33: IdleSkillNode.Level must match ProgressionLevel");
+                Assert.AreEqual(state.SkillXp, skill.Xp,
+                    "Live TrySpawn D33: IdleSkillNode.Xp must match slice SkillXp");
+                Assert.Greater(state.PendingClaim, 0,
+                    "300s Melvor CatchUp via TrySpawn must bank PendingClaim");
+                Assert.Greater(state.ProgressionLevel, 1,
+                    "300s skill ticks via TrySpawn must raise ProgressionLevel");
+
+                double banked = state.PendingClaim;
+                int xpAfter = state.SkillXp;
+                int levelAfter = state.ProgressionLevel;
+
+                // R4 PersistNow already ran inside TrySpawn when catchUpGained > 0 — no 2s wait.
+                Assert.IsTrue(GameProgressData.TryLoadIdleSlice(
+                    arch,
+                    out _, out _, out _, out var loadedLevel, out _, out _,
+                    out _, out _, out _, out _, out _, out _, out _, out var pending, out var hasClaim));
+                Assert.AreEqual(banked, pending, 0.01,
+                    "Cold TryLoad must restore Pending flushed by live TrySpawn PersistNow");
+                Assert.IsTrue(hasClaim);
+                Assert.AreEqual(levelAfter, loadedLevel);
+                Assert.AreEqual(xpAfter, GameProgressData.LoadSkillXp(arch),
+                    "R5: SkillXp must survive TrySpawn PersistNow cold load");
+            }
+            finally
+            {
+                Object.DestroyImmediate(boot.gameObject);
+                GameProgressData.ClearIdleSlice(arch);
+            }
         }
 
         [Test]

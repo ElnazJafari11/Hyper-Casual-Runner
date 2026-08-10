@@ -240,6 +240,8 @@ namespace HyperCasualRunner.ECS.Authoring
                 state.PendingClaim = pendingClaim;
                 state.HasOfflineClaim = hasOfflineClaim || pendingClaim > 0.5;
                 state.AfkChestSeconds = afkChest;
+                // Melvor intra-level XP (R5); attach IdleSkillNode reads initial.SkillXp.
+                state.SkillXp = System.Math.Max(0, GameProgressData.LoadSkillXp((int)Archetype));
                 var cozy = GameProgressData.LoadIdleCozyPersist((int)Archetype);
                 state.AssignedWorkers = System.Math.Clamp(cozy.AssignedWorkers, 0, state.MaxWorkers);
                 state.CheckInCats = System.Math.Max(0, cozy.CheckInCats);
@@ -306,6 +308,19 @@ namespace HyperCasualRunner.ECS.Authoring
                 narrWood = n.Wood;
             }
 
+            // Melvor: node is online XP SoT mid-bar; sync slice before prefs write.
+            int skillXp = s.SkillXp;
+            if (em.HasComponent<IdleSkillNode>(_sliceEntity))
+            {
+                var skill = em.GetComponentData<IdleSkillNode>(_sliceEntity);
+                skillXp = skill.Xp;
+                if (s.SkillXp != skillXp)
+                {
+                    s.SkillXp = skillXp;
+                    em.SetComponentData(_sliceEntity, s);
+                }
+            }
+
             GameProgressData.SaveIdleSlice(
                 (int)s.Archetype,
                 s.PrimaryCurrency,
@@ -333,7 +348,8 @@ namespace HyperCasualRunner.ECS.Authoring
                 s.AssignedWorkers,
                 s.CheckInCats,
                 narrStoke,
-                narrWood);
+                narrWood,
+                skillXp);
 
             // R4-F1: combat SoT is separate from Level — Stage-inflated ProgressionLevel must not
             // become Zone on cold start. Only write when IdleCombatState is present.

@@ -222,9 +222,11 @@ namespace HyperCasualRunner.ECS.Systems
                     skill.ValueRW.Level += 1;
                     skill.ValueRW.XpToLevel = 20 + skill.ValueRO.Level * 10;
                     slice.ValueRW.ProgressionLevel = skill.ValueRO.Level;
-                    slice.ValueRW.SkillXp = skill.ValueRO.Xp;
                     slice.ValueRW.ClickPower += 1;
                 }
+                // R5: keep slice SkillXp in lockstep every tick (PersistNow reads node, but prefs
+                // callers / CatchUp still key off slice.SkillXp).
+                slice.ValueRW.SkillXp = skill.ValueRO.Xp;
 
                 if (SystemAPI.HasComponent<CurrentRunStats>(entity))
                 {
