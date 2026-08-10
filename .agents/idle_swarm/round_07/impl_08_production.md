@@ -1,21 +1,20 @@
-# Round 07 IMPLEMENT 08/10 — Production / Offline / Managers (verify-only)
+# Round 07 IMPLEMENT 08/10 ? Production / Offline / Managers
 
 **Agent:** 8/10 (IMPLEMENT)  
 **Source review:** `review_05_production.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
-**Prior stall:** `162da1d7` (stalled; no `impl_08_production.md` landed)  
-**Commit:** `b807d61d384085a6002133a179b779824236760b` (local only — never push)  
-**Push:** never  
+**Commit:** (filled after local commit)  
+**Push:** never
 
 ---
 
 ## ASSUMPTIONS
 
-1. Round 07 production **[required] = none** — R6 optional bar met; R5 Melvor TrySpawn + SkillXp bar still closed — **high** — `review_05_production.md` backlog.  
-2. Optional ClickPower CatchUp only if cheap; else verify-only — **high** — user query.  
-3. ClickPower offline parity stays deferred: Melvor UI `Train Skill` still `FireClick(1f)`; online skill level-up still `ClickPower += 1`; `ApplyMelvorSkillTicks` / `SyncSkillNodeFromSlice` do not touch ClickPower — **high** — UI + CatchUp + sim read-back.  
-4. Quality bar = toolkit MVP EditMode — **high** — `docs/project-context.md`.  
+1. Round 07 production **[required] = none** ? R6 optional bar still closed ? **high** ? `review_05_production.md` backlog.
+2. Optional CatchUp ClickPower parity is cheap: `ApplyMelvorSkillTicks` can mirror online `ClickPower += 1` per level ? **high** ? online path in `IdleSliceSimulationSystem`; Melvor Train Skill uses `IdleClickProduceSystem` gain = `ClickPower * mult` (FireClick(1f) is multiplier, not fixed currency).
+3. Quality bar = toolkit MVP EditMode ? **high** ? `docs/project-context.md`.
+4. Play Mode AFK / per-archetype stamp / Egg-Miner live TrySpawn / IH-AFK chest remain deferred ? **high** ? review backlog.
 
 ---
 
@@ -23,17 +22,19 @@
 
 | Item | Status | Criteria |
 |------|--------|----------|
-| **[required] none** | **n/a** | No required Production item this round. |
-| **[optional] CatchUp ClickPower parity** | **skipped** | Not cheap / not warranted — Train Skill ignores ClickPower; MVP-acceptable per review P2 / deferred backlog. |
-| Production EditMode reconfirm (Melvor/Egg/Miner/Neko CatchUp + manager re-lock + stamp order) | **met** | IdleBatchBC `68/68` Passed; key production fixtures Passed (see VERIFICATION). |
-| Deferred Play Mode / per-archetype stamp / IH-AFK chest / Egg-Miner live-bootstrap / elevators / soft-cap | **skipped** | deferred in review |
+| **[required] none** | **n/a** | R6 bar met; no required Production item. |
+| **[optional] CatchUp ClickPower parity** | **met** | Offline Melvor level-ups bump `ClickPower` by levels gained; EditMode asserts on BC + Kernel fixtures. |
+| Deferred Play Mode / per-archetype stamp / IH-AFK chest / Egg-Miner live bootstrap / elevators / soft-cap | **skipped** | deferred in review |
 
 ---
 
 ## Changes
 
-- `.agents/idle_swarm/round_07/impl_08_production.md` — this receipt.  
-- **No gameplay / runtime / test code changes** — verify-only; ClickPower CatchUp skipped.  
+- `Assets/Scripts/ECS/Systems/Idle/IdleOfflineCatchUp.cs` ? `ApplyMelvorSkillTicks` adds `ClickPower += levelsGained` (matches online skill level-up).
+- `Assets/Scripts/Editor/Tests/IdleBatchBCSmokeTests.cs` ? `Melvor_OfflineCatchUp_BanksPendingClaimCapped` asserts ClickPower delta.
+- `Assets/Scripts/Editor/Tests/IdleKernelCorrectnessTests.cs` ? Melvor CatchUp/D33 fixture asserts ClickPower delta.
+- `.agents/idle_swarm/round_07/review_05_production.md` ? source review (trace).
+- `.agents/idle_swarm/round_07/impl_08_production.md` ? this receipt.
 
 ---
 
@@ -42,32 +43,32 @@
 ```
 ASSUMPTIONS: 4 verified
 
-Static:
-  IdleSliceUIController Melvor "Train Skill" => FireClick(1f) (line 318)
-  IdleOfflineCatchUp.ApplyMelvorSkillTicks / SyncSkillNodeFromSlice => no ClickPower writes
-  IdleSliceSimulationSystem online skill level-up => ClickPower += 1 (unchanged asymmetry)
+IdleBatchBC (Logs/IdleProduction-impl08-r7b.log -> Logs/IdleBatchBC-Summary.txt):
+  result=Passed pass=69 fail=0 skip=0 inconclusive=0 duration=9.481185
 
-IdleBatchBC (Logs/IdleBatchBC-impl08-r7.log / IdleBatchBC-Summary.txt):
-  result=Passed pass=68 fail=0 skip=0 inconclusive=0 duration=5.8381635
-  Melvor_SpawnBootstrap_TrySpawn_SyncsSkillNodeAndPersistsPending => Passed
-  EggInc_OfflineCatchUp_AddsPrimaryCurrency => Passed
-  IdleMiner_OfflineCatchUp_AddsPrimaryCurrency_NoPendingClaim => Passed
-  IdleMiner_Prestige_ReLocksManager_BuyAloneDoesNotAutomate => Passed
-  NekoAtsume_OfflineCatchUp_AccruesCheckInCats => Passed
-  NekoAtsume_SpawnBootstrap_TrySpawn_AccruesCheckInCatsAndPersists => Passed
-  PlayOrder_OfflineSimulationThenMelvorCatchUp_PreservesStamp => Passed
+Key fixtures (all Passed):
+  Melvor_OfflineCatchUp_BanksPendingClaimCapped  (ClickPower delta assert)
+  Melvor_SpawnBootstrap_TrySpawn_SyncsSkillNodeAndPersistsPending
+  NekoAtsume_SpawnBootstrap_TrySpawn_AccruesCheckInCatsAndPersists
+  EggInc_OfflineCatchUp_AddsPrimaryCurrency
+  IdleMiner_OfflineCatchUp_AddsPrimaryCurrency_NoPendingClaim
+  IdleMiner_Prestige_ReLocksManager_BuyAloneDoesNotAutomate
+  PlayOrder_OfflineSimulationThenMelvorCatchUp_PreservesStamp
+
+IdleKernelCorrectness (Logs/IdleKernel-impl08-r7-TestResults.xml):
+  total=16 passed=16 failed=0 result=Passed
+  (includes Melvor CatchUp/D33 ClickPower delta assert)
 ```
 
-**STATUS:** VERIFIED (EditMode)  
-**Play Mode:** UNVERIFIED (deferred; MCP pin is `thepcgtoolkit@96e3a310` only)  
+**STATUS:** VERIFIED (EditMode Batch BC + Kernel Correctness with ClickPower asserts)  
+**Play Mode:** UNVERIFIED (deferred)
 
 ---
 
 ## Deviations
 
-- Prior attempt `162da1d7` stalled with no receipt; restarted as verify-only + optional ClickPower assessment.  
-- ClickPower CatchUp intentionally skipped (Train Skill still fixed `FireClick(1f)`; review marks parity deferred until that changes).  
-- Concurrent HCR batchmode contention delayed dedicated verify; final tip writer is `Logs/IdleBatchBC-impl08-r7.log` with Summary `pass=68` `duration=5.8381635`.  
+- Executed optional ClickPower (review listed deferred) because it is cheap and Train Skill already keys off ClickPower via `IdleClickProduceSystem` ? FireClick(1f) is a multiplier, not a fixed grant.
+- Concurrent swarm agents briefly overwrote in-progress edits; re-applied and re-verified before commit.
 
 ## Flash Base
 

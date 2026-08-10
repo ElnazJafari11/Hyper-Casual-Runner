@@ -456,6 +456,7 @@ namespace HyperCasualRunner.Tests
             var st = _em.GetComponentData<IdleSliceState>(slice);
             st.ProgressionLevel = 1;
             st.SkillXp = 0;
+            st.ClickPower = 1;
             st.PassiveRate = 1;
             st.GlobalMultiplier = 1f;
             st.PendingClaim = 0;
@@ -474,6 +475,8 @@ namespace HyperCasualRunner.Tests
 
             // Mirror bootstrap: CatchUp then SyncSkillNodeFromSlice.
             st = _em.GetComponentData<IdleSliceState>(slice);
+            double clickBefore = st.ClickPower;
+            int levelBefore = st.ProgressionLevel;
             double gained = IdleOfflineCatchUp.ApplyPersistedElapsed(ref st);
             _em.SetComponentData(slice, st);
             Assert.Greater(gained, 50);
@@ -484,6 +487,8 @@ namespace HyperCasualRunner.Tests
             _em.SetComponentData(slice, skill);
 
             Assert.Greater(st.ProgressionLevel, 1, "60s CatchUp must level past 1");
+            Assert.AreEqual(clickBefore + (st.ProgressionLevel - levelBefore), st.ClickPower, 0.001,
+                "CatchUp Melvor level-ups must bump ClickPower (+1 each) like online");
             Assert.AreEqual(st.ProgressionLevel, skill.Level, "D33: node Level must match slice after sync");
             Assert.AreEqual(st.SkillXp, skill.Xp, "D33: node Xp must match slice after sync");
             Assert.AreEqual(IdleOfflineCatchUp.XpToLevelFor(skill.Level), skill.XpToLevel);

@@ -179,12 +179,17 @@ namespace HyperCasualRunner.ECS.Systems
             return gained;
         }
 
-        /// <summary>Matches IdleSkillNode tick: +5 XP / second, level curve 25 then 20+level*10.</summary>
+        /// <summary>
+        /// Matches IdleSkillNode tick: +5 XP / second, level curve 25 then 20+level*10.
+        /// Online level-up bumps ClickPower by 1; CatchUp mirrors that so Melvor Train Skill
+        /// (<c>IdleClickProduceSystem</c> gain = ClickPower * mult) keeps offline parity.
+        /// </summary>
         public static void ApplyMelvorSkillTicks(ref IdleSliceState state, int ticks)
         {
             if (ticks <= 0) return;
 
             int level = state.ProgressionLevel > 0 ? state.ProgressionLevel : 1;
+            int startLevel = level;
             int xp = state.SkillXp;
             int xpToLevel = XpToLevelFor(level);
 
@@ -199,6 +204,9 @@ namespace HyperCasualRunner.ECS.Systems
 
             state.SkillXp = xp;
             state.ProgressionLevel = level;
+            int levelsGained = level - startLevel;
+            if (levelsGained > 0)
+                state.ClickPower += levelsGained;
         }
 
         /// <summary>

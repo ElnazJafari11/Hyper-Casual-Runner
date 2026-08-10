@@ -1633,17 +1633,23 @@ namespace HyperCasualRunner.Tests
                 PrimaryCurrency = 0,
                 GlobalMultiplier = 1f,
                 PassiveRate = 1.0,
-                ProgressionLevel = 0,
+                ProgressionLevel = 1,
+                ClickPower = 1,
                 SkillXp = 0,
                 PendingClaim = 0,
                 HasOfflineClaim = false
             };
 
+            double clickBefore = state.ClickPower;
+            int levelBefore = state.ProgressionLevel;
             double gained = IdleOfflineCatchUp.Apply(ref state, 60);
             Assert.AreEqual(60.0, gained, 0.001);
             Assert.AreEqual(60.0, state.PendingClaim, 0.001);
             Assert.AreEqual(0.0, state.PrimaryCurrency, 0.001);
             Assert.IsTrue(state.HasOfflineClaim);
+            Assert.Greater(state.ProgressionLevel, levelBefore, "60s CatchUp must level Melvor skill");
+            Assert.AreEqual(clickBefore + (state.ProgressionLevel - levelBefore), state.ClickPower, 0.001,
+                "CatchUp level-ups must bump ClickPower like online IdleSkillNode ticks");
 
             state.PendingClaim = 0;
             state.HasOfflineClaim = false;
