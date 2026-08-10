@@ -10,6 +10,7 @@ namespace HyperCasualRunner.Tests
     /// <summary>
     /// Kernel P0/P1 correctness gates from review_01_kernel (multi-slice, mult, offline, claim).
     /// Round 02: D14 stamp race, D15 Kernel B = IdleOfflineCatchUp, D16 claim conservation.
+    /// Round 03: D23 zero-grant stamp, D25 CatchUp-after-Sync PassiveRate.
     /// </summary>
     [TestFixture]
     public class IdleKernelCorrectnessTests
@@ -249,6 +250,95 @@ namespace HyperCasualRunner.Tests
             claimSys.Update(_world.Unmanaged);
 
             Assert.AreEqual(10, _em.GetComponentData<IdleSliceState>(slice).PrimaryCurrency, 0.001);
+        }
+
+        [Test]
+        public void ApplyPersistedElapsed_ZeroGrant_DoesNotStampLastIdleUpdateTime()
+        {
+            // D23: PassiveRate=0 non-Melvor → Apply returns 0 → AFK stamp must survive.
+            string stamp = System.DateTime.UtcNow.AddSeconds(-60)
+                .ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+            GameProgressData.LastIdleUpdateTime = stamp;
+
+            var state = new IdleSliceState
+            {
+                Archetype = IdleArchetype.NekoAtsume,
+                PrimaryCurrency = 20,
+                GlobalMultiplier = 1f,
+                PassiveRate = 0,
+                PendingClaim = 0
+            };
+
+            double gained = IdleOfflineCatchUp.ApplyPersistedElapsed(ref state);
+            Assert.AreEqual(0.0, gained, 0.001);
+            Assert.AreEqual(stamp, GameProgressData.LastIdleUpdateTime,
+                "D23: zero-grant CatchUp must not wipe LastIdleUpdateTime");
+            Assert.AreEqual(20.0, state.PrimaryCurrency, 0.001);
+        }
+
+        [Test]
+        public void BootstrapLoadPath_SyncBeforeCatchUp_UsesRawPassiveNotMultSquared()
+        {
+            // D25: stale Mult² PassiveRate in prefs must be Sync'd before CatchUp.
+            // Mult=2, Owned=3, BaseCps=1 → raw Passive=3; 60s → grant 3*2*60=360 (not 9*2*60=1080).
+            const double baseCps = 1.0;
+            const int owned = 3;
+            const float mult = 2f;
+            const double staleMultSquaredPassive = 9.0; // Mult² * Owned * BaseCps
+            const double elapsed = 60.0;
+
+            var state = new IdleSliceState
+            {
+                Archetype = IdleArchetype.CookieClicker,
+                PrimaryCurrency = 100,
+                GlobalMultiplier = mult,
+                PassiveRate = staleMultSquaredPassive,
+                OwnedGenerators = owned
+            };
+            var gen = new BuyableGenerator
+            {
+                GeneratorId = 1,
+                OwnedCount = 0,
+                BaseCost = 15,
+                CostGrowth = 1.15f,
+                BaseCps = baseCps,
+                RequiresManager = false,
+                IsAutomated = true
+            };
+
+            // Mirror bootstrap: AttachArchetypeExtras Sync, then Apply (CatchUp).
+            IdlePrestigeMath.SyncGeneratorOwnedCountFromState(ref gen, ref state, owned, automated: true);
+            Assert.AreEqual(3.0, state.PassiveRate, 0.001,
+                "Sync must rebuild raw PassiveRate = BaseCps*Owned before CatchUp");
+
+            double gained = IdleOfflineCatchUp.Apply(ref state, elapsed);
+            double expected = IdlePrestigeMath.ComputePassiveRate(baseCps, owned) * mult * elapsed;
+            Assert.AreEqual(expected, gained, 0.001, "CatchUp grant must be raw×Mult×t (not Mult²)");
+            Assert.AreEqual(100.0 + expected, state.PrimaryCurrency, 0.001);
+            // AreNotEqual has no double-delta overload (CS1503 if passed 0.001 as message).
+            Assert.That(System.Math.Abs(gained - (staleMultSquaredPassive * mult * elapsed)), Is.GreaterThan(0.001),
+                "CatchUp must not apply Mult twice (stale Mult² PassiveRate path)");
+        }
+
+        [Test]
+        public void ApplyPersistedElapsed_PositiveGrant_StampsLastIdleUpdateTime()
+        {
+            string stamp = System.DateTime.UtcNow.AddSeconds(-60)
+                .ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+            GameProgressData.LastIdleUpdateTime = stamp;
+
+            var state = new IdleSliceState
+            {
+                Archetype = IdleArchetype.EggInc,
+                PrimaryCurrency = 0,
+                GlobalMultiplier = 1f,
+                PassiveRate = 2
+            };
+
+            double gained = IdleOfflineCatchUp.ApplyPersistedElapsed(ref state);
+            Assert.Greater(gained, 50);
+            Assert.AreNotEqual(stamp, GameProgressData.LastIdleUpdateTime,
+                "Positive grant must consume AFK stamp");
         }
     }
 }
