@@ -4,7 +4,7 @@
 **Source review:** `round_04/review_06_gacha.md`  
 **Date:** 2026-08-10  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
-**Commit:** local only (never push) — see git log tip after this receipt
+**Commit:** local only (never push) — `015d40e`
 
 ---
 
