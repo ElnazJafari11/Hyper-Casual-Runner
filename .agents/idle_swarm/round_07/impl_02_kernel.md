@@ -99,4 +99,4 @@ Log: Logs/IdleKernel-impl02-r7.log
 **ROUTE:** Executor (review_01 P1 D26 + D24 blocker doc)  
 **D26 IH/AFK:** **VERIFIED** (EditMode 16/16 + compile_check)  
 **D24:** **UNVERIFIED / BLOCKED**  
-**COMMIT:** local only — never push
+**COMMIT:** `9dc0997` local only — never push
