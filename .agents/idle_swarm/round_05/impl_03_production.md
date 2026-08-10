@@ -4,7 +4,7 @@
 **Source review:** `review_05_production.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
-**Commit:** `388eb0205284b4591630028e46d40f944cce781b` (local only — never push)  
+**Commit:** `388eb0205284b4591630028e46d40f944cce781b` (impl); receipt evidence note `0c449066fbdaa003cbc7780bc80922d7f63e9330` (local only — never push)  
 **Push:** never
 
 ---
