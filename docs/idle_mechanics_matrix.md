@@ -28,7 +28,7 @@ This document maps the top-tier idle games into a unified matrix of mechanics. I
 
 ## Matrix coverage gap (candidate #20)
 
-All 19 rows above have EditMode-verified MVP slices. The next expansion slot (not implemented) fills a missing **second-axis** pattern:
+All 19 rows above have EditMode MVP fixtures present (AllSmoke NUnit green ≠ full matrix verb closure — see `docs/idle-toolkit-progress.md` scorecard, ~17/19 OK). The next expansion slot (not implemented) fills a missing **second-axis** pattern:
 
 | Candidate | Core Verb | Why it fills a gap |
 | :--- | :--- | :--- |

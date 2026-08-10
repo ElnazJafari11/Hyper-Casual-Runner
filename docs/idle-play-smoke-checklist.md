@@ -6,7 +6,8 @@
 
 ## Status (honest)
 
-- EditMode-verified: **19/19** (`IdleBatchASmokeTests` + `IdleBatchBCSmokeTests`)
+- EditMode fixtures: **19/19** present (`IdleBatchASmokeTests` + `IdleBatchBCSmokeTests`)
+- Matrix core-verb scorecard: **~17/19 OK** (Antimatter + AFK Arena PARTIAL) — see `docs/idle-toolkit-progress.md`; AllSmoke green ≠ verb closure
 - Play Mode: **0/19** until each row below is smoked in **this** project and `docs/idle-toolkit-progress.md` Play column is updated
 - Piece catalog: `docs/idle-toolkit-compose.md`
 - Menus: `IdleToolkit/MVP/…` (idle) vs `IdleToolkit/RunnerSlices/…` (21 runner slices)

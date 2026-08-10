@@ -4,31 +4,31 @@ Branch: `antigravity/toolkit-persist`
 Matrix: `docs/idle_mechanics_matrix.md` (19 titles + candidate #20 Synergism deferred)  
 Compose: `docs/idle-toolkit-compose.md`
 
-## Evidence (latest — round_02 impl_09)
+## Evidence (latest — round_03 impl_09)
 
 | Check | Result |
 |-------|--------|
 | Prefabs `Assets/ToolkitExamples/Idle/*` | 19/19 present |
-| EditMode AllSmoke (`IdleBatchA` + `IdleBatchBC`) | **PASS 56/56** — `Logs/IdleAllSmoke-Summary.txt` (`result=Passed pass=56 fail=0`); target fixtures also in `Logs/IdleCombat-impl03-r2.log` |
+| EditMode AllSmoke (`IdleBatchA` + `IdleBatchBC`) | **PASS 65/65** — `Logs/IdleAllSmoke-Summary.txt` + `Logs/IdleAllSmoke-impl09-r3c.log` |
 | Fixture presence (1 named smoke per matrix title) | **19/19** |
 | Play Mode (MCP Hyper-Casual-Runner) | UNVERIFIED — MCP still on `thepcgtoolkit` |
 
-**Do not equate fixture / NUnit green with full matrix verb closure.** AllSmoke proves EditMode asserts; the scorecard below is the verb bar (review_09 / round_02 review_09).
+**Do not equate fixture / NUnit green with full matrix verb closure.** AllSmoke proves EditMode asserts; the scorecard below is the verb bar (round_03 review_09).
 
 | Claim | Value |
 |-------|--------|
 | Fixture presence | **19/19** |
-| EditMode NUnit green (AllSmoke) | **56/56** (includes extras beyond matrix 19) |
+| EditMode NUnit green (AllSmoke) | **65/65** (includes extras beyond matrix 19) |
 | Matrix core-verb + causal beat | **~17/19 OK** — Antimatter + AFK Arena remain PARTIAL (see scorecard) |
 | Play-mode verified | **0/19** |
 
-## Per-game EditMode verb status (round_02 impl_09)
+## Per-game EditMode verb status (round_03 impl_09)
 
 | # | Game | Matrix core verb | Verb score |
 |---|------|------------------|------------|
 | 1 | Cookie Clicker | Click → Buy Generators | OK — click funds buy; spend + OwnedCount + CPS sim |
 | 2 | Clicker Heroes | Tap to Kill → Buy Heroes | OK — kill then buy; gold + combat sync |
-| 3 | AdVenture Capitalist | Buy Businesses (+ managers) | OK — buy then hire; no pre-owned; hire spend |
+| 3 | AdVenture Capitalist | Buy Businesses (+ managers) | OK — buy then hire; post-hire PumpSim income tick |
 | 4 | Universal Paperclips | Manufacture → Phase-Shift | OK — manufacture then phase |
 | 5 | A Dark Room | Stoke → Explore | OK — wood/stoke + explore |
 | 6 | Antimatter Dimensions | Buy Dimensions | PARTIAL — buy + spend only; no nested layer/eternity; Cookie-like |
@@ -36,7 +36,7 @@ Compose: `docs/idle-toolkit-compose.md`
 | 8 | NGU Idle | Allocate Energy | OK — allocate then TickEnergy; SkillXp/level beyond free alloc=1 |
 | 9 | Melvor Idle | Grind Skills | OK — IdleSkillNode + sim (not click) |
 | 10 | Egg, Inc. | Hatch (Tap Burst) | OK — hatch + CPS tick |
-| 11 | Idle Miner Tycoon | Upgrade Shafts (+ managers) | OK — buy then hire |
+| 11 | Idle Miner Tycoon | Upgrade Shafts (+ managers) | OK — buy then hire; post-hire PumpSim income tick |
 | 12 | Tap Titans 2 | Tap / Hero DPS | OK — tap-kill + gold + respawn + Hero DPS fractional sim |
 | 13 | Idle Heroes | Auto-Combat | OK — IdleCombatState DPS (not gacha stand-in) |
 | 14 | AFK Arena | Auto-Combat (+ AFK chest) | PARTIAL — Campaign + AFK Chest (compose); not IdleCombatState auto-combat |
