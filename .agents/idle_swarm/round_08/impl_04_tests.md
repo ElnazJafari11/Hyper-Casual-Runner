@@ -4,6 +4,7 @@
 **Review:** `.agents/idle_swarm/round_08/review_09_tests.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
+**Commit:** `99c6f649dd4424447f5ee9c3ea8f2f61f6dacf1d` (local only, no push)  
 **Push:** never (local commit only)  
 **Mode:** Verify tip honesty vs HEAD; re-run AllSmoke **only if tip stale**. Tip lock held → **no AllSmoke re-run**.
 
