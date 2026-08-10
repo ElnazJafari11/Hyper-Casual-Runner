@@ -3,7 +3,7 @@
 **Agent:** implement 3/10  
 **Source review:** `.agents/idle_swarm/round_02/review_03_combat.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
-**Commit:** pending local hash (never push)
+**Commit:** `b83e90efe3b8292e915cbd292d08ba8060886b3a` (local only — never push)
 
 ---
 
@@ -39,7 +39,8 @@
 ## Deviations
 
 - None vs R2-F1..F3 acceptance. Concurrent swarm agents held the project lock briefly; verification waited for a free lock window.  
-- PrestigeSystem runner-only path already used renamed locals (`runnerConverted` / `sliceConverted`) from a parallel kernel edit; combat sync landed on that tip.
+- `IdleSliceActionSystems` Stage/Zone Max edits were scooped into concurrent kernel commit `8d2407c` before this commit; tip still contains R2-F1 and is covered by the new BC smoke.  
+- PrestigeSystem runner-only gate rename (`runnerConverted` / `sliceConverted`) co-landed with R2-F2 Level sync in this commit (needed for green AllSmoke tip).
 
 ---
 
