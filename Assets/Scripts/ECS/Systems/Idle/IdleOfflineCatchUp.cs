@@ -32,8 +32,9 @@ namespace HyperCasualRunner.ECS.Systems
         /// Melvor banks into <see cref="IdleSliceState.PendingClaim"/> (+ skill XP); never bumps AfkChestSeconds.
         /// Cats &amp; Soup / Fallout Shelter with AssignedWorkers&gt;0 simulate station ticks (Primary vs Pending).
         /// Neko Atsume accrues <see cref="IdleSliceState.CheckInCats"/> (D26 cozy face; no Primary double-bank).
+        /// Idle Heroes / AFK Arena accrue <see cref="IdleSliceState.AfkChestSeconds"/> (D26 IH/AFK; no Primary double-bank).
         /// Egg/Miner and other PassiveRate&gt;0 archetypes add directly to PrimaryCurrency (no Claim UI required).
-        /// Returns currency granted or banked, or cats added for Neko (0 if nothing applied).
+        /// Returns currency granted or banked, cats added (Neko), or chest seconds added (IH/AFK); 0 if nothing applied.
         /// </summary>
         public static double Apply(ref IdleSliceState state, double elapsedSeconds)
         {
@@ -60,6 +61,10 @@ namespace HyperCasualRunner.ECS.Systems
 
             if (state.Archetype == IdleArchetype.NekoAtsume)
                 return ApplyNekoCatchUp(ref state, capped);
+
+            if (state.Archetype == IdleArchetype.IdleHeroes ||
+                state.Archetype == IdleArchetype.AfkArena)
+                return ApplyChestCatchUp(ref state, capped);
 
             if (state.PassiveRate > 0)
             {
@@ -117,6 +122,25 @@ namespace HyperCasualRunner.ECS.Systems
             state.CheckInCats = after;
             state.HasOfflineClaim = true;
             return added;
+        }
+
+        /// <summary>
+        /// D26 IH/AFK face: elapsed wall-clock → AfkChestSeconds (+ HasOfflineClaim at ≥10s).
+        /// Matches online <c>IdleSliceSimulationSystem</c> chest accrual. Does not touch PrimaryCurrency
+        /// (claim pays chest formula). PassiveRate remains online HeroDps / display only — never banked here.
+        /// Zero capped → 0 (D23).
+        /// </summary>
+        public static double ApplyChestCatchUp(ref IdleSliceState state, double cappedSeconds)
+        {
+            if (cappedSeconds <= 0) return 0;
+
+            float before = state.AfkChestSeconds;
+            if (before < 0f) before = 0f;
+            float after = before + (float)cappedSeconds;
+            state.AfkChestSeconds = after;
+            if (after >= 10f)
+                state.HasOfflineClaim = true;
+            return cappedSeconds;
         }
 
         /// <summary>

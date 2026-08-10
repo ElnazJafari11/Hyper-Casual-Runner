@@ -13,6 +13,7 @@ namespace HyperCasualRunner.Tests
     /// Round 03: D23 zero-grant stamp, D25 CatchUp-after-Sync PassiveRate.
     /// Round 04: D33 Melvor IdleSkillNode sync after CatchUp.
     /// Round 06: D27 two-step claim (pending then chest); D31 destroy-if-ephemeral.
+    /// Round 07: D26 IH/AFK closed-app chest CatchUp (no Primary double-bank).
     /// </summary>
     [TestFixture]
     public class IdleKernelCorrectnessTests
@@ -399,6 +400,47 @@ namespace HyperCasualRunner.Tests
             Assert.Greater(gained, 50);
             Assert.AreNotEqual(stamp, GameProgressData.LastIdleUpdateTime,
                 "Positive grant must consume AFK stamp");
+        }
+
+        [Test]
+        public void IhAfk_OfflineCatchUp_FillsChestNotPrimary()
+        {
+            // D26 IH/AFK: closed-app CatchUp must match online chest UX — fill AfkChestSeconds,
+            // never bank PassiveRate into Primary. Claim pays the chest formula later.
+            var ih = new IdleSliceState
+            {
+                Archetype = IdleArchetype.IdleHeroes,
+                PrimaryCurrency = 40,
+                GlobalMultiplier = 1f,
+                PassiveRate = 3, // bootstrap default — HeroDps online, not offline Primary
+                ProgressionLevel = 2,
+                AfkChestSeconds = 0f,
+                HasOfflineClaim = false
+            };
+            double ihGained = IdleOfflineCatchUp.Apply(ref ih, 60);
+            Assert.AreEqual(60.0, ihGained, 0.001, "Chest arm returns seconds added");
+            Assert.AreEqual(60f, ih.AfkChestSeconds, 0.01f);
+            Assert.AreEqual(40.0, ih.PrimaryCurrency, 0.001, "IH CatchUp must not double-bank Primary");
+            Assert.IsTrue(ih.HasOfflineClaim, "≥10s chest must set HasOfflineClaim");
+
+            var afk = new IdleSliceState
+            {
+                Archetype = IdleArchetype.AfkArena,
+                PrimaryCurrency = 15,
+                GlobalMultiplier = 1f,
+                PassiveRate = 1, // bootstrap default
+                ProgressionLevel = 1,
+                AfkChestSeconds = 4f,
+                HasOfflineClaim = false
+            };
+            double afkGained = IdleOfflineCatchUp.Apply(ref afk, 5);
+            Assert.AreEqual(5.0, afkGained, 0.001);
+            Assert.AreEqual(9f, afk.AfkChestSeconds, 0.01f, "Chest seconds accumulate from prior fill");
+            Assert.AreEqual(15.0, afk.PrimaryCurrency, 0.001, "AFK CatchUp must not double-bank Primary");
+            Assert.IsFalse(afk.HasOfflineClaim, "Sub-10s chest must not set claim flag");
+
+            // Zero elapsed → 0 (D23 stamp preserved on ApplyPersistedElapsed).
+            Assert.AreEqual(0.0, IdleOfflineCatchUp.Apply(ref afk, 0), 0.001);
         }
 
         [Test]

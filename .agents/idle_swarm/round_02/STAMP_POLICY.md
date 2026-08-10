@@ -39,6 +39,7 @@
 | Cats/Fallout with 0 workers | Grant 0 — leave stamp (D23) | — |
 | Neko Atsume | `CheckInCats` += floor(elapsed / 5s) capped at 20; sets `HasOfflineClaim`; **no** Primary bump (D26 cozy) | Already has Check In / Claim |
 | Neko at cap / elapsed &lt; 5s | Grant 0 — leave stamp (D23) | — |
+| Idle Heroes / AFK Arena | `AfkChestSeconds` += elapsed (cap 8h); `HasOfflineClaim` at ≥10s; **no** Primary bump (D26 IH/AFK) — PassiveRate is online HeroDps/display only | Already has Claim Offline / Open Chest |
 | Other PassiveRate slices | Same as Egg/Miner (direct Primary) | None unless a later round switches to PendingClaim |
 
 If a future change banks Egg/Miner into `PendingClaim`, Claim UI (or auto-drain) becomes required in the same change.
@@ -78,3 +79,4 @@ If any automated producer applies catch-up in the same Init pass **before** boot
 - EditMode: `ApplyPersistedElapsed` with PassiveRate=0 non-Melvor + past stamp → timestamp **unchanged** (D23).
 - EditMode: Sync raw PassiveRate then CatchUp with Mult² stale prefs → grant == `ComputePassiveRate * Mult * t` (D25).
 - EditMode: Melvor attach IdleSkillNode L1/Xp0 → ApplyPersistedElapsed (≥ enough ticks to level) → SyncSkillNodeFromSlice → node Level/Xp match slice and stay matched after one sim tick (D33).
+- EditMode: IH/AFK CatchUp with PassiveRate&gt;0 + elapsed → AfkChestSeconds rises, Primary unchanged, HasOfflineClaim at ≥10s (D26 IH/AFK).
