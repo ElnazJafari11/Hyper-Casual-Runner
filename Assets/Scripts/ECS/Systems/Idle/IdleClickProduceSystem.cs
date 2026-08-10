@@ -105,7 +105,8 @@ namespace HyperCasualRunner.ECS.Systems
                 {
                     slice.PrimaryCurrency += combat.GoldPerKill * slice.GlobalMultiplier;
                     combat.Zone += 1;
-                    slice.ProgressionLevel = combat.Zone;
+                    // Max with Stage-inflated Level — never clobber ProgressionLevel back down to Zone.
+                    slice.ProgressionLevel = System.Math.Max(slice.ProgressionLevel, combat.Zone);
                     combat.EnemyMaxHp = 20f + combat.Zone * 25f;
                     combat.EnemyHp = combat.EnemyMaxHp;
                     combat.GoldPerKill = 5 + combat.Zone * 2;
