@@ -5,7 +5,7 @@
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
 **Mode:** Optional P2 only if cheap — Evil 1.25 assert + Cosmetics AllSmoke  
-**Commit:** _(filled after local commit)_  
+**Commit:** `8480305` (local only, no push)  
 **Push:** never (local commit only)
 
 ---
