@@ -4,12 +4,12 @@ Branch: `antigravity/toolkit-persist`
 Matrix: `docs/idle_mechanics_matrix.md` (19 titles + candidate #20 Synergism deferred)  
 Compose: `docs/idle-toolkit-compose.md`
 
-## Evidence (latest — round_07 impl_03)
+## Evidence (latest — round_07 impl_01)
 
 | Check | Result |
 |-------|--------|
 | Prefabs `Assets/ToolkitExamples/Idle/*` | 19/19 present |
-| EditMode AllSmoke (`IdleBatchA` + `IdleBatchBC` + `IdleKernelCorrectness` + `CosmeticsShop` + `IdlePrestigeFactionBonusTests`) | **PASS 114/114** — tip `Logs/IdleAllSmoke-Summary.txt` + tip-writing log `Logs/IdleAllSmoke-impl03-r7.log` (`pass=114 fail=0` `duration=7.2796769`). Historical: prestige `IdlePrestige-impl09-r5b.log` wrote the prior 103 tip (`duration=3.4890533`) and is superseded; `IdleAllSmoke-impl04-r5b.log` earlier 103 without PrestigeFaction also obsolete; tip 91 / progress 89 cites remain obsolete. |
+| EditMode AllSmoke (`IdleBatchA` + `IdleBatchBC` + `IdleKernelCorrectness` + `CosmeticsShop` + `IdlePrestigeFactionBonusTests`) | **PASS 115/115** — tip `Logs/IdleAllSmoke-Summary.txt` + tip-writing log `Logs/IdleAllSmoke-impl01-r7b.log` (`pass=115 fail=0` `duration=10.9292972`). Historical: `IdleAllSmoke-impl03-r7.log` wrote prior 114 tip (`duration=7.2796769`) and is superseded; prestige `IdlePrestige-impl09-r5b.log` prior 103 tip (`duration=3.4890533`) also obsolete; tip 91 / progress 89 cites remain obsolete. |
 | Fixture presence (1 named smoke per matrix title) | **19/19** |
 | Play Mode (MCP Hyper-Casual-Runner) | UNVERIFIED — MCP still on `thepcgtoolkit` |
 
@@ -18,7 +18,7 @@ Compose: `docs/idle-toolkit-compose.md`
 | Claim | Value |
 |-------|--------|
 | Fixture presence | **19/19** |
-| EditMode NUnit green (AllSmoke) | **114/114** (A+BC+Kernel+Cosmetics+PrestigeFaction; tip Summary is authoritative) |
+| EditMode NUnit green (AllSmoke) | **115/115** (A+BC+Kernel+Cosmetics+PrestigeFaction; tip Summary is authoritative) |
 | Matrix core-verb + causal beat | **~17/19 OK** — Antimatter + AFK Arena remain PARTIAL (see scorecard) |
 | Play-mode verified | **0/19** |
 
@@ -70,7 +70,7 @@ Fixtures: `ADarkRoom_NarrativeWoodStoke_SurvivePersistNowReload`, `CatsAndSoup_A
 ```text
 Unity.exe -batchmode -nographics -projectPath D:\Git\Hyper-Casual-Runner ^
   -executeMethod HyperCasualRunner.Editor.IdleBatchATestRunner.RunAllIdleSmokeAndExit ^
-  -logFile Logs/IdleAllSmoke-impl03-r7.log
+  -logFile Logs/IdleAllSmoke-impl01-r7b.log
 ```
 
 Separate: `RunAndExit` → `Logs/IdleBatchA-Summary.txt`; `RunBatchBCAndExit` → `Logs/IdleBatchBC-Summary.txt` (runner no longer overwrites Batch A paths when running BC/All). AllSmoke includes `IdleKernelCorrectnessTests` + `CosmeticsShopTests` + `IdlePrestigeFactionBonusTests` (HUD smoke still separate). Tip `Logs/IdleAllSmoke-Summary.txt` is authoritative for the live EditMode count (prefer duration-matched tip-writing log over progress if they disagree).
