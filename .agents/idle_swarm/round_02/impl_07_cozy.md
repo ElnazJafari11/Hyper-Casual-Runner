@@ -80,4 +80,4 @@ Logs/IdleBatchBC-impl07-cozy.log → ADarkRoom_* / CatsAndSoup_* / NekoAtsume_* 
 - **Deviations:** ECB lines were scooped into shared `IdleSliceActionSystems.cs` commit `8d2407c` by concurrent offline/kernel work after this agent applied them; cozy commit stages HowTo/docs/receipt only
 - **Flash Base:** none
 - **Escalations:** none
-- **Commit:** _(local hash after commit; never push)_
+- **Commit:** `97e2f972943a5cd17219390c08c3fe92dde9bf41` (local only, never push)
