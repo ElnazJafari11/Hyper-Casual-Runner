@@ -3,7 +3,7 @@
 **Agent:** implement 3/10  
 **Review:** `.agents/idle_swarm/round_06/review_09_tests.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
-**Commit:** local only (no push) — see git log after commit
+**Commit:** local only (no push) — `bd597b0`
 
 ---
 
