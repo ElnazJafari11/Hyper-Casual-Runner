@@ -4,6 +4,7 @@
 **Review:** `.agents/idle_swarm/round_05/review_01_kernel.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
+**Commit:** `6a36c7e1457c92e03d93d54887b0431878bcf71d` (local only, no push)  
 **Mode:** P0 D24 only — try `doctor` once; if wrong Unity, document blocker (no thrash)  
 **Push:** never (local commit only)
 
