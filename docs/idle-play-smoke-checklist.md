@@ -40,6 +40,8 @@ Note: `05_ADarkRoom_*` is Batch B/C, not Batch A.
 
 **R8-A4 (round_08 impl_05):** Prefabs **01 / 03 / 04** still **BLOCKED** — `doctor` on HCR: discovered `thepcgtoolkit@96e3a310` only; registered_sessions empty; HCR batchmode process present but **not** bridge-registered for Play. EditMode cite remains valid dedicated `Logs/IdleBatchA-impl05-r7.log` + Summary `23/23`. Receipt: `.agents/idle_swarm/round_08/impl_05_batchA.md`.
 
+**R9-A4 (round_09 impl_02):** Prefabs **01 / 03 / 04** still **BLOCKED** — `doctor` on HCR: discovered `thepcgtoolkit@96e3a310` only; registered_sessions empty; no interactive Hyper-Casual-Runner editor (TheCheckout batchmode ≠ HCR). EditMode cite remains valid dedicated `Logs/IdleBatchA-impl05-r7.log` + Summary `23/23` (do not cite R6 `impl07-r6.log`). Receipt: `.agents/idle_swarm/round_09/impl_02_batchA.md`.
+
 ## Batch B/C (optional)
 
 | Prefab | Expected HUD verbs | Done? |
