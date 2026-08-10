@@ -5,7 +5,7 @@
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
 **Prior stall:** `68b475af` (unknown revision / never landed; no receipt)  
-**Commit:** *(filled after local commit)*  
+**Commit:** `ed123af62d596cf54cd29b97177a31e2ffcb2050` (local only — never push)  
 **Push:** never
 
 ---
