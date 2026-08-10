@@ -282,8 +282,31 @@ namespace HyperCasualRunner.Tests
             Assert.Greater(after.PrestigeCurrency, 0);
             Assert.AreEqual(0, after.PrimaryCurrency);
             Assert.AreEqual(1, combat.Zone);
+            Assert.AreEqual(combat.Zone, after.ProgressionLevel,
+                "After prestige, ProgressionLevel must match reset combat Zone");
             Assert.AreEqual(20f, combat.EnemyHp, 0.01f);
             Assert.Greater(after.GlobalMultiplier, 1f);
+        }
+
+        [Test]
+        public void ClickerHeroes_FractionalTapDamage_RemovesHalfHp()
+        {
+            var slice = CreateSlice(IdleArchetype.ClickerHeroes, 0, false);
+            _em.AddComponentData(slice, new IdleCombatState
+            {
+                TapDamage = 0.5, HeroDps = 0, Zone = 1, GoldPerKill = 5,
+                EnemyHp = 10f, EnemyMaxHp = 10f
+            });
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.ClickPower = 0.5;
+            st.GlobalMultiplier = 1f;
+            _em.SetComponentData(slice, st);
+
+            var clickSys = _world.CreateSystem<IdleClickProduceSystem>();
+            FireClick(clickSys, slice);
+
+            float hp = _em.GetComponentData<IdleCombatState>(slice).EnemyHp;
+            Assert.AreEqual(9.5f, hp, 0.01f, $"TapDamage=0.5 must remove 0.5 HP (no Max(1) floor), got {hp}");
         }
 
         [Test]
@@ -419,6 +442,57 @@ namespace HyperCasualRunner.Tests
 
             var after = _em.GetComponentData<IdleSliceState>(slice);
             Assert.AreEqual(0.0, after.PrestigeCurrency, 0.001, "Below threshold must not grant prestige");
+        }
+
+        [Test]
+        public void PrestigeSystem_RunnerOnly_ZeroGold_DoesNotAward()
+        {
+            // No IdleSliceState — runner HUD path must not flat +1.
+            var stats = _em.CreateEntity();
+            _em.AddComponentData(stats, new PersistentPlayerStats
+            {
+                PrestigeCurrency = 5.0,
+                PermanentDamageMultiplier = 1f,
+                PermanentGoldMultiplier = 1f
+            });
+            var run = _em.CreateEntity();
+            _em.AddComponentData(run, new CurrentRunStats { CurrentGold = 0, CurrentDistance = 10 });
+
+            var prestigeSys = _world.CreateSystem<PrestigeSystem>();
+            var evt = _em.CreateEntity();
+            _em.AddComponentData(evt, new PrestigeEventComponent { TargetSlice = Entity.Null });
+            prestigeSys.Update(_world.Unmanaged);
+
+            Assert.AreEqual(5.0, _em.GetComponentData<PersistentPlayerStats>(stats).PrestigeCurrency, 0.001);
+            Assert.AreEqual(0.0, _em.GetComponentData<CurrentRunStats>(run).CurrentGold, 0.001);
+            Assert.AreEqual(10, _em.GetComponentData<CurrentRunStats>(run).CurrentDistance,
+                "Honest no-op must not clear run distance");
+        }
+
+        [Test]
+        public void PrestigeSystem_RunnerOnly_ConvertsGoldWithGate()
+        {
+            var stats = _em.CreateEntity();
+            _em.AddComponentData(stats, new PersistentPlayerStats
+            {
+                PrestigeCurrency = 0.0,
+                PermanentDamageMultiplier = 1f,
+                PermanentGoldMultiplier = 1f
+            });
+            var run = _em.CreateEntity();
+            _em.AddComponentData(run, new CurrentRunStats { CurrentGold = 100, CurrentDistance = 5 });
+
+            double expected = IdlePrestigeMath.ConvertRunCurrency(100);
+            Assert.GreaterOrEqual(expected, 1);
+
+            var prestigeSys = _world.CreateSystem<PrestigeSystem>();
+            var evt = _em.CreateEntity();
+            _em.AddComponentData(evt, new PrestigeEventComponent { TargetSlice = Entity.Null });
+            prestigeSys.Update(_world.Unmanaged);
+
+            Assert.AreEqual(expected, _em.GetComponentData<PersistentPlayerStats>(stats).PrestigeCurrency, 0.001);
+            Assert.AreEqual(0.0, _em.GetComponentData<CurrentRunStats>(run).CurrentGold, 0.001);
+            Assert.AreEqual(0, _em.GetComponentData<CurrentRunStats>(run).CurrentDistance);
         }
 
         [Test]

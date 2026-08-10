@@ -31,18 +31,19 @@ namespace HyperCasualRunner.ECS.Systems
                 float mult = click.ValueRO.Multiplier <= 0f ? 1f : click.ValueRO.Multiplier;
                 var slice = em.GetComponentData<IdleSliceState>(sliceEntity);
                 double gain = slice.ClickPower * mult * slice.GlobalMultiplier;
-                if (gain <= 0) gain = 1.0 * mult;
 
                 switch (slice.Archetype)
                 {
                     case IdleArchetype.EggInc:
+                        if (gain <= 0) gain = 1.0 * mult;
                         slice.PrimaryCurrency += gain;
                         slice.OwnedGenerators = System.Math.Max(slice.OwnedGenerators, 1);
                         slice.PassiveRate = System.Math.Max(slice.PassiveRate, 0.5);
                         break;
                     case IdleArchetype.ClickerHeroes:
                     case IdleArchetype.TapTitans2:
-                        ApplyTapDamage(ref slice, gain, em, sliceEntity);
+                        // Fractional taps allowed — TapDamage/ClickPower drive HP loss (no Max(1) floor).
+                        ApplyTapDamage(ref slice, gain, mult, em, sliceEntity);
                         break;
                     case IdleArchetype.IdleHeroes:
                         // Auto-combat owns progress — click must not mint flat gold
@@ -54,6 +55,7 @@ namespace HyperCasualRunner.ECS.Systems
                                                  mult * slice.GlobalMultiplier;
                         break;
                     case IdleArchetype.MelvorIdle:
+                        if (gain <= 0) gain = 1.0 * mult;
                         slice.PrimaryCurrency += gain;
                         // Skill XP owned by IdleSkillNode — click only grants currency
                         break;
@@ -65,6 +67,7 @@ namespace HyperCasualRunner.ECS.Systems
                             slice.HasOfflineClaim = true;
                         break;
                     default:
+                        if (gain <= 0) gain = 1.0 * mult;
                         slice.PrimaryCurrency += gain;
                         break;
                 }
@@ -81,7 +84,8 @@ namespace HyperCasualRunner.ECS.Systems
             ecb.Dispose();
         }
 
-        private static void ApplyTapDamage(ref IdleSliceState slice, double damage, EntityManager em, Entity sliceEntity)
+        private static void ApplyTapDamage(ref IdleSliceState slice, double clickPowerDamage, float mult,
+            EntityManager em, Entity sliceEntity)
         {
             // Prefer IdleCombatState as single HP authority when present
             if (em.HasComponent<IdleCombatState>(sliceEntity))
@@ -93,7 +97,10 @@ namespace HyperCasualRunner.ECS.Systems
                     combat.EnemyHp = combat.EnemyMaxHp;
                 }
 
-                combat.EnemyHp -= (float)System.Math.Max(1.0, damage);
+                // TapDamage drives combat hits; fall back to ClickPower-derived damage if unset.
+                double baseTap = combat.TapDamage > 0.0 ? combat.TapDamage : slice.ClickPower;
+                double applied = baseTap * mult * slice.GlobalMultiplier;
+                combat.EnemyHp -= (float)applied;
                 if (combat.EnemyHp <= 0f)
                 {
                     slice.PrimaryCurrency += combat.GoldPerKill * slice.GlobalMultiplier;
@@ -118,7 +125,9 @@ namespace HyperCasualRunner.ECS.Systems
                 slice.EnemyHp = slice.EnemyMaxHp;
             }
 
-            slice.EnemyHp -= (int)System.Math.Max(1, damage);
+            // Non-combat fallback: still no Max(1) floor; int HP truncates sub-1 to 0.
+            int hit = (int)clickPowerDamage;
+            slice.EnemyHp -= hit;
             if (slice.EnemyHp <= 0)
             {
                 double gold = (5 + slice.ProgressionLevel * 3) * slice.GlobalMultiplier;

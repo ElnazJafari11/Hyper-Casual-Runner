@@ -113,7 +113,7 @@ namespace HyperCasualRunner.Tests
         }
 
         [Test]
-        public void RealmGrinder_BuildThenAlignFaction_RaisesMultAndLevel()
+        public void RealmGrinder_AlignFaction_SetsFactionWithoutFreeMult()
         {
             var slice = CreateSlice(IdleArchetype.RealmGrinder, 50);
             _em.AddComponentData(slice, new BuyableGenerator
@@ -131,16 +131,20 @@ namespace HyperCasualRunner.Tests
             Assert.AreEqual(1, afterBuild.OwnedGenerators, "Build verb: own a generator");
             Assert.AreEqual(35.0, afterBuild.PrimaryCurrency, 0.001, "Build cost spent");
             Assert.Greater(afterBuild.PassiveRate, 0);
+            float multBefore = afterBuild.GlobalMultiplier;
+            int levelBefore = afterBuild.ProgressionLevel;
 
-            var allocSys = _world.CreateSystem<IdleAllocateEnergySystem>();
+            var alignSys = _world.CreateSystem<IdleFactionAlignSystem>();
             var evt = _em.CreateEntity();
-            _em.AddComponentData(evt, new IdleAllocateEnergyEvent { Amount = 1f });
-            allocSys.Update(_world.Unmanaged);
+            _em.AddComponentData(evt, new IdleFactionAlignEvent { TargetSlice = slice, FactionId = 1 });
+            alignSys.Update(_world.Unmanaged);
 
             var after = _em.GetComponentData<IdleSliceState>(slice);
             Assert.AreEqual(1, after.FactionId);
-            Assert.Greater(after.GlobalMultiplier, 1f);
-            Assert.GreaterOrEqual(after.ProgressionLevel, 1);
+            Assert.AreEqual(multBefore, after.GlobalMultiplier, 0.001f,
+                "Align must not free-stack GlobalMultiplier");
+            Assert.AreEqual(levelBefore, after.ProgressionLevel,
+                "Align must not free ProgressionLevel");
         }
 
         [Test]
@@ -196,16 +200,18 @@ namespace HyperCasualRunner.Tests
             var afterAlloc = _em.GetComponentData<IdleSliceState>(slice);
             Assert.AreEqual(10f, afterAlloc.EnergyAllocated, 0.01f);
 
-            // Free ProgressionLevel=1 on alloc is not the beat — TickEnergy must produce.
+            // Snapshot AFTER alloc — free ProgressionLevel=1 must not satisfy XP/level asserts.
             double currencyBeforeTick = afterAlloc.PrimaryCurrency;
             int xpBefore = afterAlloc.SkillXp;
+            int levelBefore = afterAlloc.ProgressionLevel;
             var simSys = _world.CreateSystem<IdleSliceSimulationSystem>();
             PumpSim(simSys, 5f);
 
             var afterTick = _em.GetComponentData<IdleSliceState>(slice);
             Assert.Greater(afterTick.PrimaryCurrency, currencyBeforeTick, "TickEnergy should produce currency");
-            Assert.Greater(afterTick.SkillXp + afterTick.ProgressionLevel, xpBefore,
-                "TickEnergy should advance skill XP / level");
+            Assert.IsTrue(
+                afterTick.SkillXp > xpBefore || afterTick.ProgressionLevel > levelBefore,
+                "TickEnergy must raise SkillXp or ProgressionLevel beyond free alloc level");
         }
 
         [Test]
@@ -235,6 +241,24 @@ namespace HyperCasualRunner.Tests
             Assert.AreEqual(0, after.ProgressionLevel);
             Assert.Greater(after.PrestigeCurrency, 0);
             Assert.AreEqual(0, after.PhaseIndex, "Rebirth must not fire phase");
+        }
+
+        [Test]
+        public void NguIdle_EnergyPool_PersistsRoundTrip()
+        {
+            GameProgressData.ClearIdleSlice((int)IdleArchetype.NguIdle);
+            GameProgressData.SaveIdleSlice(
+                (int)IdleArchetype.NguIdle, 10, 1, 1.1f, 2, 1, 0, 0,
+                managersHired: 0, phaseIndex: 0, factionId: 0,
+                energyAllocated: 12f, managerIsHired: false, energyPool: 77f);
+
+            Assert.IsTrue(GameProgressData.TryLoadIdleSlice(
+                (int)IdleArchetype.NguIdle,
+                out _, out _, out _, out _, out _, out _, out _,
+                out _, out _, out _, out var energyAlloc, out _, out var energyPool));
+            Assert.AreEqual(12f, energyAlloc, 0.001f);
+            Assert.AreEqual(77f, energyPool, 0.001f);
+            GameProgressData.ClearIdleSlice((int)IdleArchetype.NguIdle);
         }
 
         [Test]
@@ -342,6 +366,24 @@ namespace HyperCasualRunner.Tests
             Assert.GreaterOrEqual(combat.Zone, 2, "Kill advances combat Zone");
             Assert.Greater(after.PrimaryCurrency, 0, "Kill grants gold (parity with Clicker Heroes)");
             Assert.AreEqual(combat.EnemyMaxHp, combat.EnemyHp, 0.01f, "Enemy respawns after kill");
+        }
+
+        [Test]
+        public void TapTitans2_CombatDps_FractionalOverOneSecond()
+        {
+            // Matrix "Tap / Hero DPS" — DPS half mirrors ClickerHeroes_CombatDps_FractionalOverOneSecond.
+            var slice = CreateSlice(IdleArchetype.TapTitans2, 0);
+            _em.AddComponentData(slice, new IdleCombatState
+            {
+                TapDamage = 1, HeroDps = 2, Zone = 1, GoldPerKill = 5,
+                EnemyHp = 100, EnemyMaxHp = 100
+            });
+
+            var simSys = _world.CreateSystem<IdleSliceSimulationSystem>();
+            PumpSim(simSys, 1f, dt: 0.1f);
+
+            float lost = 100f - _em.GetComponentData<IdleCombatState>(slice).EnemyHp;
+            Assert.AreEqual(2.0, lost, 0.15, $"HeroDps=2 over 1s should remove ~2 HP, got {lost}");
         }
 
         [Test]
@@ -490,7 +532,7 @@ namespace HyperCasualRunner.Tests
         [Test]
         public void CapybaraGo_StepsThenAdvance_RaisesLevel()
         {
-            // No pre-seed ExploreUnlocked — earn steps then advance tile.
+            // Causal gate: advance no-ops until steps earn ExploreUnlocked.
             var slice = CreateSlice(IdleArchetype.CapybaraGo, 0);
             _em.AddComponentData(slice, new IdleNarrativeState
             {
@@ -498,10 +540,17 @@ namespace HyperCasualRunner.Tests
             });
             var sys = _world.CreateSystem<IdleNarrativeActionSystem>();
 
+            FireNarrative(sys, 1);
+            var blocked = _em.GetComponentData<IdleNarrativeState>(slice);
+            Assert.AreEqual(0, blocked.RoomOrStep, "Advance without steps must be a no-op");
+            Assert.AreEqual(0, blocked.ExploreUnlocked);
+            Assert.AreEqual(0, _em.GetComponentData<IdleSliceState>(slice).ProgressionLevel);
+
             FireNarrative(sys, 0);
             FireNarrative(sys, 0);
             var mid = _em.GetComponentData<IdleNarrativeState>(slice);
             Assert.AreEqual(2, mid.StokeCount, "Step verb accumulates narrative steps");
+            Assert.AreEqual(1, mid.ExploreUnlocked, "Earned steps unlock advance");
 
             FireNarrative(sys, 1);
 
@@ -682,20 +731,51 @@ namespace HyperCasualRunner.Tests
         }
 
         [Test]
+        public void IdleHeroes_GachaStageBump_DoesNotDropProgressionBelowZone()
+        {
+            // Zone deep; Stage low — stage-bump pull must not smash ProgressionLevel below Zone.
+            var slice = CreateSlice(IdleArchetype.IdleHeroes, 100);
+            _em.AddComponentData(slice, new IdleGachaState
+            {
+                PullCount = 2, PullCost = 10, BestRarity = 0, Stage = 0
+            });
+            _em.AddComponentData(slice, new IdleCombatState
+            {
+                TapDamage = 2, HeroDps = 3, Zone = 5, GoldPerKill = 5, EnemyHp = 20, EnemyMaxHp = 20
+            });
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.ProgressionLevel = 5;
+            _em.SetComponentData(slice, st);
+
+            var sys = _world.CreateSystem<IdleGachaPullSystem>();
+            var evt = _em.CreateEntity();
+            _em.AddComponentData(evt, new IdleGachaPullEvent());
+            sys.Update(_world.Unmanaged);
+
+            var after = _em.GetComponentData<IdleSliceState>(slice);
+            var gacha = _em.GetComponentData<IdleGachaState>(slice);
+            var combat = _em.GetComponentData<IdleCombatState>(slice);
+            Assert.AreEqual(1, gacha.Stage, "3rd pull bumps Stage");
+            Assert.AreEqual(5, combat.Zone, "Combat Zone unchanged by gacha");
+            Assert.GreaterOrEqual(after.ProgressionLevel, combat.Zone,
+                "ProgressionLevel must never drop below Zone after Stage write");
+        }
+
+        [Test]
         public void LegendOfMushroom_AutoLamp_PullsAfterStageUnlock()
         {
-            var slice = CreateSlice(IdleArchetype.LegendOfMushroom, 100);
+            // Stage>=1 + lamp loot: start with one pull's worth; auto-lamp must sustain further pulls without Farm click.
+            var slice = CreateSlice(IdleArchetype.LegendOfMushroom, 15);
             _em.AddComponentData(slice, new IdleGachaState
             {
                 PullCount = 3, PullCost = 10, BestRarity = 1, Stage = 1, AutoTimer = 0f
             });
 
             var sim = _world.CreateSystem<IdleSliceSimulationSystem>();
-            PumpSim(sim, 2.5f, dt: 0.5f);
+            PumpSim(sim, 5f, dt: 0.5f);
 
             var gacha = _em.GetComponentData<IdleGachaState>(slice);
-            Assert.Greater(gacha.PullCount, 3, "Auto-lamp should pull after Stage>=1 over ~2s");
-            Assert.Less(_em.GetComponentData<IdleSliceState>(slice).PrimaryCurrency, 100);
+            Assert.GreaterOrEqual(gacha.PullCount, 5, "Auto-lamp + lamp loot should sustain ≥2 pulls from Stage>=1 without farm clicks");
         }
 
         [Test]
@@ -704,17 +784,37 @@ namespace HyperCasualRunner.Tests
             var slice = CreateSlice(IdleArchetype.CapybaraGo, 0);
             _em.AddComponentData(slice, new IdleNarrativeState
             {
-                RoomOrStep = 0, StokeCount = 0, ExploreUnlocked = 1, Wood = 0, SoftCurrency = 0
+                RoomOrStep = 0, StokeCount = 0, ExploreUnlocked = 0, Wood = 0, SoftCurrency = 0
             });
             float before = _em.GetComponentData<IdleSliceState>(slice).GlobalMultiplier;
             var sys = _world.CreateSystem<IdleNarrativeActionSystem>();
 
+            FireNarrative(sys, 0); // earn ExploreUnlocked — no seed
             for (int i = 0; i < 5; i++)
                 FireNarrative(sys, 1);
 
             var after = _em.GetComponentData<IdleSliceState>(slice);
             Assert.AreEqual(5, _em.GetComponentData<IdleNarrativeState>(slice).RoomOrStep);
             Assert.Greater(after.GlobalMultiplier, before, "Milestone mult must fire on live IdleNarrativeState path");
+        }
+
+        [Test]
+        public void CapybaraGo_AutoTiles_AdvanceWithoutEvents()
+        {
+            var slice = CreateSlice(IdleArchetype.CapybaraGo, 0);
+            _em.AddComponentData(slice, new IdleNarrativeState
+            {
+                RoomOrStep = 0, StokeCount = 0, ExploreUnlocked = 1, Wood = 0, SoftCurrency = 0, AutoTimer = 0f
+            });
+            float before = _em.GetComponentData<IdleSliceState>(slice).GlobalMultiplier;
+
+            var sim = _world.CreateSystem<IdleSliceSimulationSystem>();
+            PumpSim(sim, 5.5f, dt: 0.5f);
+
+            var narr = _em.GetComponentData<IdleNarrativeState>(slice);
+            var after = _em.GetComponentData<IdleSliceState>(slice);
+            Assert.GreaterOrEqual(narr.RoomOrStep, 5, "Auto-tiles must raise RoomOrStep without narrative events");
+            Assert.Greater(after.GlobalMultiplier, before, "Auto steps must fire milestone mult every 5 tiles");
         }
 
         [Test]
@@ -863,6 +963,76 @@ namespace HyperCasualRunner.Tests
             double gained = IdleOfflineCatchUp.Apply(ref state, 10);
             Assert.AreEqual(100.0, gained, 0.001);
             Assert.AreEqual(110.0, state.PrimaryCurrency, 0.001);
+            Assert.AreEqual(0.0, state.PendingClaim, 0.001);
+            Assert.IsFalse(state.HasOfflineClaim);
+        }
+
+        [Test]
+        public void Melvor_OfflineCatchUp_DoesNotBumpAfkChestSeconds()
+        {
+            var state = new IdleSliceState
+            {
+                Archetype = IdleArchetype.MelvorIdle,
+                PrimaryCurrency = 0,
+                GlobalMultiplier = 1f,
+                PassiveRate = 1.0,
+                AfkChestSeconds = 0f,
+                PendingClaim = 0,
+                HasOfflineClaim = false
+            };
+            IdleOfflineCatchUp.Apply(ref state, 120);
+            Assert.Greater(state.PendingClaim, 0);
+            Assert.AreEqual(0f, state.AfkChestSeconds, 0.001f);
+        }
+
+        [Test]
+        public void PlayOrder_OfflineSimulationThenMelvorCatchUp_PreservesStamp()
+        {
+            // Acceptance: OS Init with no slices must not wipe T−1h; Melvor CatchUp still banks PendingClaim.
+            string stamped = System.DateTime.UtcNow.AddHours(-1)
+                .ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+            GameProgressData.LastIdleUpdateTime = stamped;
+
+            var offline = _world.CreateSystem<OfflineSimulationSystem>();
+            offline.Update(_world.Unmanaged);
+            Assert.AreEqual(stamped, GameProgressData.LastIdleUpdateTime,
+                "OfflineSimulation must not wipe LastIdleUpdateTime before bootstrap catch-up");
+
+            var state = new IdleSliceState
+            {
+                Archetype = IdleArchetype.MelvorIdle,
+                PrimaryCurrency = 0,
+                GlobalMultiplier = 1f,
+                PassiveRate = 1.0,
+                ProgressionLevel = 1,
+                SkillXp = 0,
+                PendingClaim = 0,
+                HasOfflineClaim = false,
+                AfkChestSeconds = 0f
+            };
+            double elapsed = (System.DateTime.UtcNow -
+                System.DateTime.Parse(stamped, null, System.Globalization.DateTimeStyles.RoundtripKind)).TotalSeconds;
+            double gained = IdleOfflineCatchUp.Apply(ref state, elapsed);
+            Assert.Greater(gained, 0);
+            Assert.Greater(state.PendingClaim, 0);
+            Assert.AreEqual(0f, state.AfkChestSeconds, 0.001f);
+        }
+
+        [Test]
+        public void IdleMiner_OfflineCatchUp_AddsPrimaryCurrency_NoPendingClaim()
+        {
+            var state = new IdleSliceState
+            {
+                Archetype = IdleArchetype.IdleMinerTycoon,
+                PrimaryCurrency = 5,
+                GlobalMultiplier = 1f,
+                PassiveRate = 3
+            };
+            double gained = IdleOfflineCatchUp.Apply(ref state, 20);
+            Assert.AreEqual(60.0, gained, 0.001);
+            Assert.AreEqual(65.0, state.PrimaryCurrency, 0.001);
+            Assert.AreEqual(0.0, state.PendingClaim, 0.001);
+            Assert.IsFalse(state.HasOfflineClaim);
         }
     }
 }

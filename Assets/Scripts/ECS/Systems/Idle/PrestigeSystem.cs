@@ -27,7 +27,7 @@ namespace HyperCasualRunner.ECS.Systems
             {
                 Entity sliceEntity = IdleEventTarget.Resolve(em, entity, evt.ValueRO.TargetSlice, sole);
 
-                // Runner-only prestige (no IdleSliceState in world): legacy wallet/run clear
+                // Runner-only prestige (no IdleSliceState in world): gated ConvertRunCurrency, no flat +1
                 if (sliceEntity == Entity.Null)
                 {
                     bool anyIdle = false;
@@ -39,26 +39,37 @@ namespace HyperCasualRunner.ECS.Systems
 
                     if (!anyIdle)
                     {
-                        foreach (var persistentStats in SystemAPI.Query<RefRW<PersistentPlayerStats>>())
-                            persistentStats.ValueRW.PrestigeCurrency += 1.0;
-
-                        foreach (var currentRunStats in SystemAPI.Query<RefRW<CurrentRunStats>>())
+                        double runGold = 0;
+                        foreach (var currentRunStats in SystemAPI.Query<RefRO<CurrentRunStats>>())
                         {
-                            currentRunStats.ValueRW.CurrentGold = 0.0;
-                            currentRunStats.ValueRW.CurrentDistance = 0;
+                            runGold = currentRunStats.ValueRO.CurrentGold;
+                            break;
                         }
 
-                        foreach (var walletBuffer in SystemAPI.Query<DynamicBuffer<ResourceWallet>>())
-                            walletBuffer.Clear();
-
-                        foreach (var producer in SystemAPI.Query<RefRW<ProducerComponent>>())
+                        double runnerConverted = IdlePrestigeMath.ConvertRunCurrency(runGold);
+                        if (runnerConverted >= 1)
                         {
-                            producer.ValueRW.Timer = 0f;
-                            producer.ValueRW.Multiplier = 1.0;
-                        }
+                            foreach (var persistentStats in SystemAPI.Query<RefRW<PersistentPlayerStats>>())
+                                persistentStats.ValueRW.PrestigeCurrency += runnerConverted;
 
-                        var sfx = ecb.CreateEntity();
-                        ecb.AddComponent(sfx, new PlaySoundEventComponent { SoundToPlay = SoundType.Victory });
+                            foreach (var currentRunStats in SystemAPI.Query<RefRW<CurrentRunStats>>())
+                            {
+                                currentRunStats.ValueRW.CurrentGold = 0.0;
+                                currentRunStats.ValueRW.CurrentDistance = 0;
+                            }
+
+                            foreach (var walletBuffer in SystemAPI.Query<DynamicBuffer<ResourceWallet>>())
+                                walletBuffer.Clear();
+
+                            foreach (var producer in SystemAPI.Query<RefRW<ProducerComponent>>())
+                            {
+                                producer.ValueRW.Timer = 0f;
+                                producer.ValueRW.Multiplier = 1.0;
+                            }
+
+                            var sfx = ecb.CreateEntity();
+                            ecb.AddComponent(sfx, new PlaySoundEventComponent { SoundToPlay = SoundType.Victory });
+                        }
                     }
 
                     SystemAPI.SetComponentEnabled<PrestigeEventComponent>(entity, false);
@@ -68,8 +79,8 @@ namespace HyperCasualRunner.ECS.Systems
                 }
 
                 var slice = em.GetComponentData<IdleSliceState>(sliceEntity);
-                double converted = IdlePrestigeMath.ConvertRunCurrency(slice.PrimaryCurrency);
-                if (converted < 1)
+                double sliceConverted = IdlePrestigeMath.ConvertRunCurrency(slice.PrimaryCurrency);
+                if (sliceConverted < 1)
                 {
                     // Honest no-op below threshold — leave combat/gens untouched
                     SystemAPI.SetComponentEnabled<PrestigeEventComponent>(entity, false);
@@ -78,7 +89,7 @@ namespace HyperCasualRunner.ECS.Systems
                     continue;
                 }
 
-                slice.PrestigeCurrency += converted;
+                slice.PrestigeCurrency += sliceConverted;
                 slice.PrimaryCurrency = 0;
                 slice.OwnedGenerators = 0;
                 slice.PassiveRate = 0;
@@ -144,6 +155,9 @@ namespace HyperCasualRunner.ECS.Systems
                     combat.TapDamage = slice.ClickPower;
                     combat.HeroDps = System.Math.Max(1.0, slice.ClickPower * 0.25);
                     em.SetComponentData(sliceEntity, combat);
+                    // Keep HUD Lv/Zone in sync with combat SoT after reset (was left at 0).
+                    slice.ProgressionLevel = combat.Zone;
+                    em.SetComponentData(sliceEntity, slice);
                 }
 
                 var soundEntity = ecb.CreateEntity();
