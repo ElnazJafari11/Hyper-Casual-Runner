@@ -5,7 +5,7 @@
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
 **Mode:** Verify-only — no prestige DNA changes; no optional polish  
-**Commit:** (filled after local commit)  
+**Commit:** `1d7afb0` (local only, no push)  
 **Push:** never (local commit only)  
 **Audit HEAD:** `6964855`  
 **Prior land:** `8480305` (Evil 1.25 + AllSmoke + compose); R6 receipt `bf5ae94`
