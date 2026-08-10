@@ -15,7 +15,7 @@ Close Round-05 P2 Neko absence fantasy: closed-app time accrues check-in cats (o
 ## ASSUMPTIONS
 
 1. Optional CatchUp arm preferred over doc-only — confidence: high — verified by: review “if prioritized” + user “fix if feasible”.
-2. Online rate is 1 cat / 5s, soft 20 — confidence: high — verified by: `IdleSliceSimulationSystem` Neko case.
+2. Online rate is 1 cat / 5s, cap 20 — confidence: high — verified by: `IdleSliceSimulationSystem` Neko case.
 3. Return value = cats added (not Primary) so D23 stamps only when cats actually accrue — confidence: high — verified by: `ApplyPersistedElapsed` grant &gt; 0 gate.
 4. IH/AFK chest CatchUp (rest of kernel D26) out of scope for cozy implement — confidence: high — verified by: review scope cozy/assign only.
 
@@ -28,15 +28,15 @@ Close Round-05 P2 Neko absence fantasy: closed-app time accrues check-in cats (o
 | Neko CatchUp cats arm | `elapsed/5s` → CheckInCats + HasOfflineClaim; cap 20; no Primary | **met** |
 | D23 sub-interval / full buffer | Grant 0 | **met** |
 | STAMP_POLICY Kernel B row | Document Neko bank destination | **met** |
-| Progress scorecard / Persistence | Neko AFK one-liner | **met** |
-| EditMode fixture | `NekoAtsume_OfflineCatchUp_AccruesCheckInCats` | **met** (code); run evidence below |
+| Progress scorecard / Persistence | Neko AFK one-liner | **met** (scooped) |
+| EditMode fixture | `NekoAtsume_OfflineCatchUp_AccruesCheckInCats` | **met** (scooped into production commit) |
 
 ### Files
 
 - `Assets/Scripts/ECS/Systems/Idle/IdleOfflineCatchUp.cs` — `ApplyNekoCatchUp` + Neko route before PassiveRate
-- `Assets/Scripts/Editor/Tests/IdleBatchBCSmokeTests.cs` — OfflineCatchUp fixture
+- `Assets/Scripts/Editor/Tests/IdleBatchBCSmokeTests.cs` — OfflineCatchUp fixture (landed via peer scoop `388eb02`)
 - `.agents/idle_swarm/round_02/STAMP_POLICY.md` — Neko Kernel B rows
-- `docs/idle-toolkit-progress.md` — scorecard 18 + Neko AFK note
+- `docs/idle-toolkit-progress.md` — scorecard 18 + Neko AFK note (scooped `6461b37`)
 - `.agents/idle_swarm/round_05/impl_02_cozy.md` — this receipt
 
 ### Deferred (skipped)
@@ -72,8 +72,9 @@ NekoAtsume_CheckInCats_SurvivePersistNowReload => Passed
 
 - **Completed:** D26 Neko wall-clock cats CatchUp + policy/progress + EditMode fixture
 - **Stubs created:** none
-- **Deviations:** Progress Persistence / scorecard Neko AFK lines scooped into `6461b37` (Batch A) before this commit; Batch BC 61/0 included concurrent peer fixtures present on disk during the run
+- **Deviations:** Progress Neko AFK lines scooped into `6461b37` (Batch A). Fixture raced into production `388eb02` with Melvor TrySpawn (same test file). Batch BC 61/0 included concurrent peer fixtures during the run.
 - **Flash Base:** none
 - **Escalations:** none
-- **Commit:** `eef133f07ba8e8aef892a68c8cfc5ca2eb028f20` (CatchUp + policy + receipt; local only, never push)
-- **Follow-up:** EditMode fixture `NekoAtsume_OfflineCatchUp_AccruesCheckInCats` landed in companion commit (test file raced with swarm peers on first stage)
+- **Commit:** `eef133f07ba8e8aef892a68c8cfc5ca2eb028f20` (CatchUp + STAMP_POLICY + receipt/review; local only, never push)
+- **Fixture scoop:** `388eb0205284b4591630028e46d40f944cce781b`
+- **Receipt note commit:** `999978075c2e7c2b93d62639fcbfaf8f95c2946d`
