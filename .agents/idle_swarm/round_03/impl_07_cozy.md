@@ -79,4 +79,5 @@ NekoAtsume_CheckInCats_SurvivePersistNowReload => Passed
 - **Deviations:** Persist/bootstrap/tests were scooped into shared commit `578a474` by concurrent production work; this commit is the R03 cozy receipt only
 - **Flash Base:** none
 - **Escalations:** none
-- **Commit:** (this local commit; never push)
+- **Commit:** `06fa99bbe8d720eddca435ed99cc3330aef7ecba` (local only, never push)
+- **Persist code commit:** `578a474a1a8ceb7b99c1c0236c0c39adeef043f5` (shared production scoop)
