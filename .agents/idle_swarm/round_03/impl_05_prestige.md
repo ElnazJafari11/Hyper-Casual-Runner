@@ -4,6 +4,7 @@
 **Review:** `.agents/idle_swarm/round_03/review_04_prestige.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
+**Commit:** `763a323` (local only, no push)  
 **Mode:** Feasible P2 only — Align flip cost, AD stub honesty, doc drift  
 **Push:** never (local commit only)
 
