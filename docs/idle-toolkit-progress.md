@@ -4,7 +4,7 @@ Branch: `antigravity/toolkit-persist`
 Matrix: `docs/idle_mechanics_matrix.md` (19 titles + candidate #20 Synergism deferred)  
 Compose: `docs/idle-toolkit-compose.md`
 
-## Evidence (latest — round_06 impl_03)
+## Evidence (latest — round_06 impl_06)
 
 | Check | Result |
 |-------|--------|
