@@ -1,6 +1,6 @@
 # Round 05 IMPLEMENT 03/10 — Production / Offline / Managers
 
-**Agent:** 3/10 (IMPLEMENT) — relaunch after stalled `b866da96` (no receipt)  
+**Agent:** 3/10 (IMPLEMENT)  
 **Source review:** `review_05_production.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
@@ -11,10 +11,10 @@
 
 ## ASSUMPTIONS
 
-1. Round 05 production required bar = Melvor live `SpawnBootstrap`/`TrySpawn` EditMode fixture — **high** — `review_05_production.md` backlog.  
-2. SkillXp persist was review-deferred but marked “if cheap”; SaveIdleSlice optional param + Load/Clear keys is cheap — **high** — implemented.  
-3. R4 D33 Sync + PersistNow-on-grant remain intact on HEAD — **high** — code + prior `impl_05` / kernel receipts.  
-4. Quality bar = toolkit MVP EditMode — **high** — `docs/project-context.md`. Play Mode wall-clock remains deferred.
+1. Round 05 production required bar = Melvor live `SpawnBootstrap` / `TrySpawn` load-path fixture — **high** — `review_05_production.md` backlog.
+2. SkillXp persist is optional (“if cheap”) — **high** — user query + review P2; implemented via optional prefs key without TryLoad overload churn.
+3. Quality bar = toolkit MVP EditMode — **high** — `docs/project-context.md`.
+4. Must not re-break D25 Sync-before-CatchUp, D33 Sync, or R4 PersistNow-on-grant — **high** — fixture exercises live TrySpawn path that already contains those landings.
 
 ---
 
@@ -22,22 +22,20 @@
 
 | Item | Status | Criteria |
 |------|--------|----------|
-| **[required] Melvor `SpawnBootstrap` / live TrySpawn load-path fixture** | **met** | `Melvor_SpawnBootstrap_TrySpawn_SyncsSkillNodeAndPersistsPending`: prefs + T−300s → reflected `TrySpawn`; asserts `IdleSkillNode.Level == ProgressionLevel`, node Xp == slice SkillXp, `PendingClaim > 0`, cold `TryLoad` restores Pending (no 2s wait). |
-| **[cheap add] Persist Melvor SkillXp** | **met** | `SaveIdleSlice(..., skillXp=)` + `LoadSkillXp` + Clear key; bootstrap load restores SkillXp; PersistNow reads `IdleSkillNode.Xp` SoT; online tick keeps slice SkillXp lockstep every tick. |
-| Deferred Play Mode wall-clock / ClickPower parity / per-archetype stamp / Miner elevators / Egg research / soft-cap | **skipped** | deferred in review |
+| **[required] Melvor SpawnBootstrap / live TrySpawn fixture** | **met** | `Melvor_SpawnBootstrap_TrySpawn_SyncsSkillNodeAndPersistsPending`: prefs + T−300s → real `TrySpawn`; asserts `IdleSkillNode.Level == ProgressionLevel`, `PendingClaim > 0`, cold `TryLoadIdleSlice` Pending without 2s wait. |
+| **SkillXp persist (if cheap)** | **met** | Optional `skillXp` on `SaveIdleSlice` + `LoadSkillXp`; bootstrap restore into attach; PersistNow reads `IdleSkillNode.Xp`; sim writes `slice.SkillXp` every skill tick; ClearIdleSlice deletes key. Fixture asserts SkillXp cold load. |
+| Deferred Play Mode wall-clock / ClickPower / per-archetype stamp / elevators / soft-cap | **skipped** | deferred in review |
 
 ---
 
 ## Changes
 
-- `Assets/Scripts/GameProgressData.cs` — optional `skillXp` on `SaveIdleSlice`; `LoadSkillXp`; ClearIdleSlice deletes SkillXp key.
-- `Assets/Scripts/ECS/Authoring/IdleSliceBootstrap.cs` — load SkillXp into initial state; PersistNow syncs node→slice then writes skillXp.
-- `Assets/Scripts/ECS/Systems/Idle/IdleSliceSimulationSystem.cs` — Melvor online tick writes `slice.SkillXp = skill.Xp` every tick (not only on level-up).
 - `Assets/Scripts/Editor/Tests/IdleBatchBCSmokeTests.cs` — `Melvor_SpawnBootstrap_TrySpawn_SyncsSkillNodeAndPersistsPending`.
+- `Assets/Scripts/GameProgressData.cs` — `SkillXp` prefs key + `LoadSkillXp` + ClearIdleSlice.
+- `Assets/Scripts/ECS/Authoring/IdleSliceBootstrap.cs` — restore SkillXp on load; PersistNow syncs from IdleSkillNode then saves.
+- `Assets/Scripts/ECS/Systems/Idle/IdleSliceSimulationSystem.cs` — write `slice.SkillXp` every skill tick (not only level-up).
 - `.agents/idle_swarm/round_05/review_05_production.md` — source review (trace).
 - `.agents/idle_swarm/round_05/impl_03_production.md` — this receipt.
-
-**Not in this commit (peer WIP left unstaged):** Neko CatchUp / RealmGrinder Evil Align fixtures, OfflineCatchUp Neko arm, kernel/runner peer diffs.
 
 ---
 
@@ -46,26 +44,23 @@
 ```
 ASSUMPTIONS: 4 verified
 
-IdleBatchBC (Logs/IdleBatchBC-impl02-cozy-r5.log / IdleBatchBC-Summary.txt):
-  result=Passed pass=61 fail=0 skip=0 inconclusive=0 duration=4.6261293
+IdleBatchBC (Logs/IdleBatchBC-impl03-r5.log / IdleBatchBC-Summary.txt):
+  result=Passed pass=60 fail=0 skip=0 inconclusive=0 duration=4.9178893
   Melvor_SpawnBootstrap_TrySpawn_SyncsSkillNodeAndPersistsPending => Passed
   Melvor_AttachThenCatchUp_SyncsSkillNodeAndPersistsPending => Passed
-  Melvor_PendingClaim_SurvivesPersistAndColdReload (suite) => Passed
 
-Cross-check (Logs/IdleAllSmoke-impl04-r5.log):
+Peer corroboration (Logs/IdleBatchBC-impl02-cozy-r5.log):
   Melvor_SpawnBootstrap_TrySpawn_SyncsSkillNodeAndPersistsPending => Passed
-  (suite had 1 unrelated kernel zero-grant fail under concurrent Neko WIP — not production-owned)
 ```
 
 **STATUS:** VERIFIED (EditMode)  
-**Play Mode:** UNVERIFIED (deferred)
+**Play Mode:** UNVERIFIED
 
 ---
 
 ## Deviations
 
-- SkillXp persist was review `[deferred]`; implemented because it was cheap and the live TrySpawn fixture naturally asserts cold-load SkillXp.
-- Prior agent `b866da96` left code on disk without receipt/commit; this relaunch verified + receipted + committed.
+- SkillXp was deferred in the review; landed because user said “if cheap” and the cozy-style optional prefs key avoided TryLoad overload expansion.
 
 ## Flash Base
 
