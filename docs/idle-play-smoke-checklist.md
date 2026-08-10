@@ -36,6 +36,8 @@ Note: `05_ADarkRoom_*` is Batch B/C, not Batch A.
 
 **R6-A4 (round_06 impl_07):** Prefabs **01 / 03 / 04** still **BLOCKED** — MCP discovered instance remains `thepcgtoolkit@96e3a310` only; no interactive HCR editor registered for Play-smoke. EditMode reconfirmed `23/23` (`Logs/IdleBatchA-impl07-r6.log`). Receipt: `.agents/idle_swarm/round_06/impl_07_batchA.md`.
 
+**R7-A4 (round_07 impl_05):** Prefabs **01 / 03 / 04** still **BLOCKED** — `doctor` on HCR: discovered instance `thepcgtoolkit@96e3a310` only; registered_sessions empty; no interactive Hyper-Casual-Runner editor on the MCP bridge. EditMode dedicated re-run green (`Logs/IdleBatchA-impl05-r7.log` + Summary `23/23`). Receipt: `.agents/idle_swarm/round_07/impl_05_batchA.md`.
+
 ## Batch B/C (optional)
 
 | Prefab | Expected HUD verbs | Done? |
@@ -50,7 +52,7 @@ Note: `05_ADarkRoom_*` is Batch B/C, not Batch A.
 | `13_IdleHeroes_GachaCombat_Slice` | Gacha Pull → Claim AFK (auto-combat passive) | [ ] |
 | `14_AFKArena_Chest_Slice` | Campaign Progress → Open AFK Chest | [ ] |
 | `15_LegendOfMushroom_Lamp_Slice` | Rub Lamp → auto-lamp at Stage≥1 | [ ] |
-| `16_CapybaraGo_Steps_Slice` | Take Step unlocks auto-tiles → Next Step → Lucky Find | [ ] |
+| `16_CapybaraGo_Steps_Slice` | Take Step unlocks auto-tiles → run forks → Lucky Find pets | [ ] |
 | `17_CatsAndSoup_Assign_Slice` | Assign Cat → Unassign | [ ] |
 | `18_NekoAtsume_CheckIn_Slice` | Place Food → Place Toys → Check In | [ ] |
 | `19_FalloutShelter_Dwellers_Slice` | Assign Dweller → Unassign → Claim Production | [ ] |
