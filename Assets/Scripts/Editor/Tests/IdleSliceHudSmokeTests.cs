@@ -11,13 +11,14 @@ using HyperCasualRunner;
 using HyperCasualRunner.UI;
 using HyperCasualRunner.ECS.Authoring;
 using HyperCasualRunner.ECS.Components;
+using HyperCasualRunner.ECS.Systems;
 
 namespace HyperCasualRunner.Tests
 {
     /// <summary>
-    /// EditMode HUD surface smoke (UI2-02 / UI3-04 / UI4-04): named Actions/Cosmetics tabs + skin buttons
-    /// without Enter Play Mode. UI4-06 cosmetics wiring + R5 LoM Farm hide; UI5-01 Play Mode
-    /// cosmetics remains blocked without an HCR interactive editor on MCP.
+    /// EditMode HUD surface smoke (UI2-02 / UI3-04 / UI4-04 / UI5-04): named Actions/Cosmetics tabs + skin buttons
+    /// without Enter Play Mode. UI4-06 wiring + UI5-06 shop-outcome bridge + R5 LoM Farm hide while
+    /// UI5-01 Play Mode cosmetics remains blocked without an HCR interactive editor on MCP.
     /// </summary>
     [TestFixture]
     public class IdleSliceHudSmokeTests
@@ -163,6 +164,107 @@ namespace HyperCasualRunner.Tests
             finally
             {
                 UnityEngine.Object.DestroyImmediate(go);
+            }
+        }
+
+        /// <summary>
+        /// UI5-06: while UI5-01 Play Mode cosmetics is blocked — fund prestige, Cosmetics buy click,
+        /// tick CosmeticsShopSystem, assert prestige debit + GameProgressData.CurrentSkinIndex.
+        /// </summary>
+        [Test]
+        public void IdleSliceUIController_CosmeticsBuy_ShopSpendsPrestigeAndSetsCurrentSkin()
+        {
+            PlayerPrefs.DeleteKey("HCR_SkinIndex");
+            PlayerPrefs.DeleteKey("HCR_UnlockedSkins");
+            PlayerPrefs.Save();
+
+            var em = _world.EntityManager;
+            var slice = em.CreateEntity();
+            em.AddComponentData(slice, new IdleSliceState
+            {
+                Archetype = IdleArchetype.CookieClicker,
+                PrestigeCurrency = 20,
+                GlobalMultiplier = 1f,
+                ClickPower = 1,
+                EnergyPool = 50
+            });
+            em.AddComponentData(slice, new PersistentPlayerStats
+            {
+                PrestigeCurrency = 20,
+                PermanentDamageMultiplier = 1f,
+                PermanentGoldMultiplier = 1f
+            });
+
+            var shop = _world.CreateSystem<CosmeticsShopSystem>();
+
+            var go = new GameObject("IdleSliceHudCosmeticsShopOutcome");
+            try
+            {
+                var doc = go.AddComponent<UIDocument>();
+                AssignPanelSettings(doc);
+
+                var bootstrap = go.AddComponent<IdleSliceBootstrap>();
+                bootstrap.DisplayName = "Cosmetics Shop Outcome";
+                bootstrap.HowToPlay = "UI5-06 EditMode shop bridge";
+                bootstrap.Archetype = IdleArchetype.CookieClicker;
+                bootstrap.LoadPersistedProgress = false;
+
+                var controller = go.AddComponent<IdleSliceUIController>();
+
+                bool needsRuntimePanel = doc.panelSettings == null;
+                if (needsRuntimePanel)
+                    LogAssert.Expect(LogType.Error, new Regex("UI Toolkit\\.meta"));
+
+                controller.EnsureHudBuilt();
+
+                LogAssert.ignoreFailingMessages = true;
+                var root = controller.RootVisualElement;
+                LogAssert.ignoreFailingMessages = false;
+                Assert.IsNotNull(root, "UIDocument rootVisualElement should exist after PanelSettings.");
+
+                SimulateClick(root.Q<Button>("CosmeticsTabButton"));
+                Assert.AreEqual(DisplayStyle.Flex,
+                    root.Q<VisualElement>("CosmeticsContainer").style.display.value,
+                    "Cosmetics tab should show before buy");
+
+                Assert.AreEqual(0, GameProgressData.CurrentSkinIndex, "Skin index starts at 0");
+                Assert.IsFalse(GameProgressData.IsSkinUnlocked(1), "Skin 1 locked before buy");
+
+                SimulateClick(root.Q<Button>("BuySkin1Button"));
+
+                using (var q = em.CreateEntityQuery(typeof(CosmeticPurchaseEventComponent)))
+                {
+                    Assert.AreEqual(1, q.CalculateEntityCount(), "Buy should emit CosmeticPurchaseEventComponent");
+                    var arr = q.ToComponentDataArray<CosmeticPurchaseEventComponent>(Unity.Collections.Allocator.Temp);
+                    try
+                    {
+                        Assert.AreEqual(1, arr[0].TargetSkinIndex);
+                        Assert.AreEqual(5.0, arr[0].PrestigeCost);
+                        Assert.AreEqual(slice, arr[0].TargetSlice,
+                            "Sole IdleSliceState should resolve as TargetSlice");
+                    }
+                    finally
+                    {
+                        arr.Dispose();
+                    }
+                }
+
+                shop.Update(_world.Unmanaged);
+
+                Assert.AreEqual(15.0, em.GetComponentData<IdleSliceState>(slice).PrestigeCurrency, 0.001,
+                    "Shop should debit skin-1 cost (5) from funded prestige (20)");
+                Assert.AreEqual(15.0, em.GetComponentData<PersistentPlayerStats>(slice).PrestigeCurrency, 0.001,
+                    "PersistentPlayerStats prestige should stay synced");
+                Assert.IsTrue(GameProgressData.IsSkinUnlocked(1), "Skin 1 unlocked after shop tick");
+                Assert.AreEqual(1, GameProgressData.CurrentSkinIndex,
+                    "CurrentSkinIndex should match purchased skin after shop tick");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+                PlayerPrefs.DeleteKey("HCR_SkinIndex");
+                PlayerPrefs.DeleteKey("HCR_UnlockedSkins");
+                PlayerPrefs.Save();
             }
         }
 
