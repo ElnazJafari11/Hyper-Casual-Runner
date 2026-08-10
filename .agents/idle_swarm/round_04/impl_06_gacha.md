@@ -75,18 +75,19 @@ CHANGES:
  - 15_LegendOfMushroom_Lamp_Slice.prefab (HowToPlay)
 VERIFICATION:
  - Build: Unity 6000.5.5f1 batchmode EditMode (compiled assemblies)
- - Run: Logs/IdleAllSmoke-Summary.txt → result=Passed pass=91 fail=0
- - Behavior (Logs/IdleBatchBC-impl05-r4c.log):
+ - Behavior (Logs/IdleBatchBC-impl05-r4c.log) — authoritative for IH HeroDps fixtures:
      IdleHeroes_HeroDps_RestoresFromPassiveRateOnAttach => Passed
      IdleHeroes_HeroDps_SurvivePersistNowReload => Passed
      Batch BC result=Passed pass=58 fail=0
- - AllSmoke corroboration: Logs/IdleCombat-impl02-r4d.log → pass=91 fail=0
-STATUS: VERIFIED
+ - Earlier full BC+subset AllSmoke: Logs/IdleCombat-impl02-r4.log (pass=93) includes the HeroDps PersistNow line
+STATUS: VERIFIED (Batch BC evidence)
 RISKS:
  - Play Mode still UNVERIFIED (MCP on other project)
  - Hero-dupe / gear / roguelite DNA still FAIL (deferred)
  - Farm Stage Gold button still in LoM UI (HowTo/checklist no longer peer it)
 ```
+
+> **R5 correction (receipt honesty):** Do **not** treat tip `Logs/IdleAllSmoke-Summary.txt` / `IdleCombat-impl02-r4d.log` (`pass=91`) as corroboration for `IdleHeroes_HeroDps_*` PersistNow/attach lines. Grep of r4d: **zero matches** for those names. Tip 91 ran a BC subset that omitted the three IH combat-persist fixtures. Prefer name-level Batch BC log evidence (above) or a post–R5 tip that includes them.
 
 ---
 

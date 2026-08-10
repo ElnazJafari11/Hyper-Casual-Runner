@@ -256,14 +256,16 @@ namespace HyperCasualRunner.Tests
         [Test]
         public void ApplyPersistedElapsed_ZeroGrant_DoesNotStampLastIdleUpdateTime()
         {
-            // D23: PassiveRate=0 non-Melvor → Apply returns 0 → AFK stamp must survive.
+            // D23: PassiveRate=0 PassiveRate-gated archetype → Apply returns 0 → AFK stamp must survive.
+            // Use CookieClicker (not Neko/Cats/Fallout/Melvor): D26 Neko accrues CheckInCats on elapsed
+            // even with PassiveRate=0, which is a positive grant and correctly stamps.
             string stamp = System.DateTime.UtcNow.AddSeconds(-60)
                 .ToString("O", System.Globalization.CultureInfo.InvariantCulture);
             GameProgressData.LastIdleUpdateTime = stamp;
 
             var state = new IdleSliceState
             {
-                Archetype = IdleArchetype.NekoAtsume,
+                Archetype = IdleArchetype.CookieClicker,
                 PrimaryCurrency = 20,
                 GlobalMultiplier = 1f,
                 PassiveRate = 0,
