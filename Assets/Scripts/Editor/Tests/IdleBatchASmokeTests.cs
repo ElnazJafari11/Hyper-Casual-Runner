@@ -370,17 +370,20 @@ namespace HyperCasualRunner.Tests
         [Test]
         public void A1_Cookie_SimCps_AppliesGlobalMultiplierOnce()
         {
-            var slice = CreateSlice(IdleArchetype.CookieClicker, 0);
+            // Buy → sim path (not injected PassiveRate): Mult=2, BaseCps=1, buy 1 → 1s → +2 not ~4
+            var slice = CreateSlice(IdleArchetype.CookieClicker, 15);
             var st = _em.GetComponentData<IdleSliceState>(slice);
             st.GlobalMultiplier = 2f;
-            st.PassiveRate = 1; // raw CPS
-            st.OwnedGenerators = 1;
             _em.SetComponentData(slice, st);
-            var gen = _em.GetComponentData<BuyableGenerator>(slice);
-            gen.OwnedCount = 1;
-            gen.BaseCps = 1;
-            gen.IsAutomated = true;
-            _em.SetComponentData(slice, gen);
+
+            var buySys = _world.CreateSystem<IdleBuyGeneratorSystem>();
+            FireBuy(buySys, slice);
+
+            var afterBuy = _em.GetComponentData<IdleSliceState>(slice);
+            Assert.AreEqual(1, afterBuy.OwnedGenerators);
+            Assert.AreEqual(1, _em.GetComponentData<BuyableGenerator>(slice).OwnedCount);
+            Assert.AreEqual(1.0, afterBuy.PassiveRate, 0.001, "Buy must set raw PassiveRate = BaseCps * Owned");
+            Assert.AreEqual(0.0, afterBuy.PrimaryCurrency, 0.001, "First buy spends full 15");
 
             var simSys = _world.CreateSystem<IdleSliceSimulationSystem>();
             PumpSim(simSys, 1f, 0.25f);
@@ -489,23 +492,52 @@ namespace HyperCasualRunner.Tests
         [Test]
         public void A5_Reload_OwnedCountSynced_NextBuyUsesGrowthCost()
         {
-            // Simulate post-load desync (state.OwnedGenerators restored, gen.OwnedCount still 0)
-            // then apply the same sync contract as IdleSliceBootstrap.SyncGeneratorOwnedCountFromState.
-            var slice = CreateSlice(IdleArchetype.CookieClicker, 100);
-            var st = _em.GetComponentData<IdleSliceState>(slice);
-            st.OwnedGenerators = 3;
-            st.PassiveRate = 3;
-            _em.SetComponentData(slice, st);
+            // Real reload: SaveIdleSlice → clear world → TryLoad → bootstrap SyncGeneratorOwnedCountFromState
+            const int archId = (int)IdleArchetype.CookieClicker;
+            GameProgressData.ClearIdleSlice(archId);
+            // Stale Mult² Passive in save (9) must be rebuilt to raw 3 on load when automated.
+            GameProgressData.SaveIdleSlice(
+                archId,
+                primaryCurrency: 100,
+                prestigeCurrency: 0,
+                globalMultiplier: 1f,
+                progressionLevel: 0,
+                clickPower: 1,
+                passiveRate: 9,
+                ownedGenerators: 3);
 
+            using (var q = _em.CreateEntityQuery(ComponentType.ReadOnly<IdleSliceState>()))
+                _em.DestroyEntity(q);
+
+            Assert.IsTrue(GameProgressData.TryLoadIdleSlice(
+                archId,
+                out var primary,
+                out _,
+                out var mult,
+                out _,
+                out var click,
+                out var savedPassive,
+                out var gens),
+                "Reload must read PlayerPrefs written by SaveIdleSlice");
+            Assert.AreEqual(3, gens);
+            Assert.AreEqual(9.0, savedPassive, 0.001, "precondition: stale Mult² passive still on disk");
+
+            var slice = CreateSlice(IdleArchetype.CookieClicker, primary);
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.GlobalMultiplier = mult > 0f ? mult : 1f;
+            st.ClickPower = click > 0 ? click : st.ClickPower;
+            st.PassiveRate = savedPassive; // intentional stale until sync
+            st.OwnedGenerators = gens;
             var gen = _em.GetComponentData<BuyableGenerator>(slice);
             Assert.AreEqual(0, gen.OwnedCount, "precondition: component not yet synced");
-            gen.OwnedCount = st.OwnedGenerators;
-            gen.IsAutomated = true;
-            st.PassiveRate = IdlePrestigeMath.ComputePassiveRate(gen.BaseCps, gen.OwnedCount);
+
+            IdlePrestigeMath.SyncGeneratorOwnedCountFromState(ref gen, ref st, gens, automated: true);
             _em.SetComponentData(slice, gen);
             _em.SetComponentData(slice, st);
 
             Assert.AreEqual(3, _em.GetComponentData<BuyableGenerator>(slice).OwnedCount);
+            Assert.AreEqual(3.0, _em.GetComponentData<IdleSliceState>(slice).PassiveRate, 0.001,
+                "Load sync must rebuild raw PassiveRate from Owned×BaseCps");
 
             double expectedCost = 15 * System.Math.Pow(1.15, 3);
             var buySys = _world.CreateSystem<IdleBuyGeneratorSystem>();

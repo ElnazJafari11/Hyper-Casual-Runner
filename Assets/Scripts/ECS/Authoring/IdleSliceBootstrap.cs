@@ -264,16 +264,21 @@ namespace HyperCasualRunner.ECS.Authoring
                     // Keep RequiresManager as historical gate even when previously hired;
                     // IsAutomated carries the live unlock (prestige clears it via IdlePrestigeMath).
                     bool automated = !needsManager || _loadedManagerHired;
-                    em.AddComponentData(slice, new BuyableGenerator
+                    var gen = new BuyableGenerator
                     {
                         GeneratorId = 1,
-                        OwnedCount = _loadedGens,
+                        OwnedCount = 0,
                         BaseCost = GeneratorBaseCost,
                         CostGrowth = GeneratorCostGrowth,
                         BaseCps = GeneratorBaseCps,
                         RequiresManager = needsManager,
                         IsAutomated = automated
-                    });
+                    };
+                    var st = initial;
+                    IdlePrestigeMath.SyncGeneratorOwnedCountFromState(
+                        ref gen, ref st, _loadedGens, automated);
+                    em.AddComponentData(slice, gen);
+                    em.SetComponentData(slice, st);
                     if (Archetype == IdleArchetype.AdventureCapitalist ||
                         Archetype == IdleArchetype.IdleMinerTycoon)
                     {

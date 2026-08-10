@@ -32,6 +32,22 @@ namespace HyperCasualRunner.ECS.Systems
             return baseCps * ownedCount;
         }
 
+        /// <summary>
+        /// Bootstrap/reload contract: sync BuyableGenerator.OwnedCount from persisted gens
+        /// and rebuild raw PassiveRate when automated (guards stale Mult² saves).
+        /// </summary>
+        public static void SyncGeneratorOwnedCountFromState(
+            ref BuyableGenerator gen,
+            ref IdleSliceState state,
+            int loadedGens,
+            bool automated)
+        {
+            int owned = loadedGens < 0 ? 0 : loadedGens;
+            gen.OwnedCount = owned;
+            state.OwnedGenerators = owned;
+            state.PassiveRate = automated ? ComputePassiveRate(gen.BaseCps, owned) : 0;
+        }
+
         public static void ResetBuyableGenerator(ref BuyableGenerator gen, IdleArchetype archetype)
         {
             gen.OwnedCount = 0;
