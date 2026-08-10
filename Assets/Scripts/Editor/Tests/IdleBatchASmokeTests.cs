@@ -26,6 +26,8 @@ namespace HyperCasualRunner.Tests
             _em = _world.EntityManager;
             GameProgressData.ClearIdleSlice((int)IdleArchetype.CookieClicker);
             GameProgressData.ClearIdleSlice((int)IdleArchetype.AntimatterDimensions);
+            GameProgressData.ClearIdleSlice((int)IdleArchetype.AdventureCapitalist);
+            GameProgressData.ClearIdleSlice((int)IdleArchetype.UniversalPaperclips);
         }
 
         [TearDown]
@@ -33,6 +35,8 @@ namespace HyperCasualRunner.Tests
         {
             GameProgressData.ClearIdleSlice((int)IdleArchetype.CookieClicker);
             GameProgressData.ClearIdleSlice((int)IdleArchetype.AntimatterDimensions);
+            GameProgressData.ClearIdleSlice((int)IdleArchetype.AdventureCapitalist);
+            GameProgressData.ClearIdleSlice((int)IdleArchetype.UniversalPaperclips);
             if (_world != null && _world.IsCreated) _world.Dispose();
         }
 
@@ -398,6 +402,40 @@ namespace HyperCasualRunner.Tests
         }
 
         [Test]
+        public void GameProgressData_IdleSlice_RoundTrip_ManagersPhaseMgrHired_AdvCapAndPaperclips()
+        {
+            // R4-A3 / T4: long Save/Load must round-trip Managers, Phase, MgrHired (not only Primary/Gens).
+            GameProgressData.SaveIdleSlice(
+                (int)IdleArchetype.AdventureCapitalist,
+                50, 1, 1.5f, 2, 0, 3, 4,
+                managersHired: 1, phaseIndex: 0, factionId: 0, energyAllocated: 0f, managerIsHired: true);
+            GameProgressData.SaveIdleSlice(
+                (int)IdleArchetype.UniversalPaperclips,
+                80, 0, 1f, 1, 1, 2, 5,
+                managersHired: 0, phaseIndex: 3, factionId: 0, energyAllocated: 0f, managerIsHired: false);
+
+            Assert.IsTrue(GameProgressData.TryLoadIdleSlice(
+                (int)IdleArchetype.AdventureCapitalist,
+                out var p1, out _, out _, out _, out _, out _, out var g1,
+                out var mgrs1, out var phase1, out _, out _, out var hired1));
+            Assert.AreEqual(50, p1, 0.001);
+            Assert.AreEqual(4, g1);
+            Assert.AreEqual(1, mgrs1, "AdvCap ManagersHired must persist");
+            Assert.AreEqual(0, phase1);
+            Assert.IsTrue(hired1, "AdvCap MgrHired must persist");
+
+            Assert.IsTrue(GameProgressData.TryLoadIdleSlice(
+                (int)IdleArchetype.UniversalPaperclips,
+                out var p2, out _, out _, out _, out _, out _, out var g2,
+                out var mgrs2, out var phase2, out _, out _, out var hired2));
+            Assert.AreEqual(80, p2, 0.001);
+            Assert.AreEqual(5, g2);
+            Assert.AreEqual(0, mgrs2);
+            Assert.AreEqual(3, phase2, "Paperclips PhaseIndex must persist");
+            Assert.IsFalse(hired2);
+        }
+
+        [Test]
         public void A1_Cookie_SimCps_AppliesGlobalMultiplierOnce()
         {
             // Buy → sim path (not injected PassiveRate): Mult=2, BaseCps=1, buy 1 → 1s → +2 not ~4
@@ -734,9 +772,22 @@ namespace HyperCasualRunner.Tests
         }
 
         [Test]
+        public void Antimatter_PhaseBand_MapsNamedLayers()
+        {
+            Assert.AreEqual("Dimension", IdlePrestigeMath.GetAntimatterPhaseBand(0));
+            Assert.AreEqual("Infinity", IdlePrestigeMath.GetAntimatterPhaseBand(1));
+            Assert.AreEqual("Eternity", IdlePrestigeMath.GetAntimatterPhaseBand(2));
+            Assert.AreEqual("Reality", IdlePrestigeMath.GetAntimatterPhaseBand(3));
+            Assert.AreEqual("Reality", IdlePrestigeMath.GetAntimatterPhaseBand(99));
+        }
+
+        [Test]
         public void Antimatter_PhaseShift_IncrementsPhaseIndex()
         {
             var slice = CreateSlice(IdleArchetype.AntimatterDimensions, 100);
+            Assert.AreEqual("Dimension", IdlePrestigeMath.GetAntimatterPhaseBand(
+                _em.GetComponentData<IdleSliceState>(slice).PhaseIndex));
+
             var phaseSys = _world.CreateSystem<IdlePhaseShiftSystem>();
             var prestigeSys = _world.CreateSystem<PrestigeSystem>();
             FirePhase(phaseSys, slice);
@@ -745,6 +796,8 @@ namespace HyperCasualRunner.Tests
 
             var after = _em.GetComponentData<IdleSliceState>(slice);
             Assert.AreEqual(1, after.PhaseIndex);
+            Assert.AreEqual("Infinity", IdlePrestigeMath.GetAntimatterPhaseBand(after.PhaseIndex),
+                "First PhaseShift must map PhaseIndex 1 → Infinity band");
             Assert.Greater(after.PrestigeCurrency, 0);
             Assert.AreEqual(0, after.PrimaryCurrency);
         }
