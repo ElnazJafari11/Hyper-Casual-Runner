@@ -55,7 +55,7 @@ Authoring / UI / persist: `IdleSliceBootstrap`, `IdleSliceUIController`, `IdleSa
 | 13 | Idle Heroes | `IdleHeroes` | `IdleCombatState`, `IdleGachaState` | Gacha Pull, Claim AFK | `IdleBatchBCSmokeTests.IdleHeroes_GachaPull_RaisesHeroDps` |
 | 14 | AFK Arena | `AfkArena` | (AFK chest on state) | Campaign Progress, Open AFK Chest | `IdleBatchBCSmokeTests.AfkArena_SimFillsChestThenClaim_GrantsCurrency` |
 | 15 | Legend of Mushroom | `LegendOfMushroom` | `IdleGachaState` | Rub Lamp (Farm Stage Gold until Stage≥1) | `IdleBatchBCSmokeTests.LegendOfMushroom_RubLampThreeTimes_SpendsAndAdvancesStage` |
-| 16 | Capybara Go! | `CapybaraGo` | `IdleNarrativeState` | Take Step, Next Step, Lucky Find | `IdleBatchBCSmokeTests.CapybaraGo_StepsThenAdvance_RaisesLevel` |
+| 16 | Capybara Go! | `CapybaraGo` | `IdleNarrativeState` | Take Step, Next Step, Fight Path, Safe Path, Lucky Find | `IdleBatchBCSmokeTests.CapybaraGo_StepsThenAdvance_RaisesLevel` |
 | 17 | Cats & Soup | `CatsAndSoup` | `IdleAssignmentStation` | Assign Cat, Unassign (station cook → Primary) | `IdleBatchBCSmokeTests.CatsAndSoup_AssignCatThenSim_ProducesOutput` |
 | 18 | Neko Atsume | `NekoAtsume` | (check-in on state) | Place Food, Place Toys, Check In (clears cats) | `IdleBatchBCSmokeTests.NekoAtsume_PlaceFood_SpendsAndAttractsCats` (+ PlaceToys / CheckIn_Clears*) |
 | 19 | Fallout Shelter | `FalloutShelter` | `IdleAssignmentStation` | Assign Dweller, Unassign, Claim Production (PendingClaim drain) | `IdleBatchBCSmokeTests.FalloutShelter_AssignDwellerThenSim_FillsStationAndAccrues` |

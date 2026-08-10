@@ -1,0 +1,319 @@
+# Round 08 Review 08 — UI Toolkit (Idle) Re-Audit
+
+**Agent:** examine/analyze/review 8/10  
+**Scope:** Post-`impl_10` (R7) idle UI — live HUD, hub equip-only + label refresh, deferred sandbox policy, LevelSelect, EditMode surface + cosmetics wiring + shop-outcome bridge  
+**Prior:** `round_07/review_08_ui.md` → `round_07/impl_10_ui.md` (commit `a262e7e`)  
+**Peer delta on live HUD (not UI impl):** `09b9b72` (Capybara run/choice/pet DNA verbs + narrative stats lines; prefab HowToPlay)  
+**Architecture rule:** UI Toolkit only (no legacy uGUI / Canvas for game UI)  
+**Mode:** Review only — no implementation, no push  
+**Date:** 2026-08-10
+
+---
+
+## ASSUMPTIONS (reviewer)
+
+1. Quality bar = prototype / toolkit MVP cohesion — high — `docs/project-context.md`.
+2. R7 UI impl scope was documentation + smoke header only (no live HUD/prefab/hub/sandbox source in `a262e7e`) — high — `impl_10_ui.md` + `git show a262e7e --stat`.
+3. Sole live idle HUD remains `IdleSliceUIController` Option B — high — 19/19 Idle prefabs this pass; 0 `IdleGameHudBinder`.
+4. UI8-01 Play Mode cosmetics still requires HCR interactive MCP — high — this-pass `doctor` (HCR batchmode only; interactive = `thepcgtoolkit@96e3a310`; `registered_sessions=[]`).
+5. Peer Capybara HUD churn (`09b9b72`) is gacha-lane owned verb/DNA display, not a dual-stack / Toolkit regression — high — diff is Capybara action buttons + `_stats` narrative lines under existing `IdleNarrativeState` block; prefab still `IdleSliceUIController`.
+
+---
+
+## Verdict
+
+**PASS** for idle UI cohesion at the prototype / toolkit quality bar.
+
+Round 07 implement held static/EditMode criteria (UI7-02..05) and documented UI7-01 BLOCKED after one doctor — no live controller / prefab / hub / sandbox churn in the UI commit. Sole live authority remains `IdleSliceUIController` on all 19 idle prefabs; deferred sandbox stays unused; hub remains equip-only with in-session label refresh; EditMode fixture (surface + UI4-06 + UI5-06 + combat/LoM peers) last green at 7/7 (`Logs/IdleHud-impl10-r6-TestResults.xml`). Fresh R7 HUD batchmode aborted on project lock; no newer HUD XML after peer `09b9b72`.
+
+Retained open item (not cohesion-blocking): **UI7-01 / UI8-01 Play Mode cosmetics still BLOCKED / UNVERIFIED** — Hyper-Casual-Runner has no interactive editor on the MCP bridge this pass (`doctor` → `registered_sessions` empty; discovered interactive = `thepcgtoolkit@96e3a310`; HCR present only as batchmode pid; live transport socket pinned to thepcgtoolkit).
+
+Peer notice (not a UI cohesion failure): post-`a262e7e`, gacha commit `09b9b72` remapped Capybara action buttons (Fight/Safe/Lucky Find → narrative forks) and appended Run/Choice/Pet DNA to live HUD stats. Cosmetics / sole-HUD / Toolkit policy unchanged; UI8-04 should cheap-reconfirm because live controller source churned after last green HUD XML.
+
+---
+
+## Delta vs Round 07
+
+| R07 finding / UI7 criterion | Post-impl_10 (R7) + HEAD status |
+| --- | --- |
+| UI7-01 Play Mode cosmetics smoke | **Still BLOCKED / UNVERIFIED** — no HCR interactive editor / capture (this-pass doctor) |
+| UI7-02 Toolkit-only + sole-HUD | **HOLD PASS** — 19/19 live controller; 0 binder on Idle prefabs; 0 `FindObjectOfType*UIDocument`; 0 `using UnityEngine.UI;` under `Assets/Scripts/UI` |
+| UI7-03 Hub equip-only + refresh | **HOLD PASS** — STUB + equip-only click; `RefreshAllSkinButtons`; no hub `UnlockSkin(` call site |
+| UI7-04 EditMode smoke stays green | **HOLD PASS (prior green + static)** — fixture **7** tests Passed (`Logs/IdleHud-impl10-r6-TestResults.xml`). R7 fresh attempt aborted (`IdleHud-impl10-r7.log` exit 1). Peer `09b9b72` churned live HUD after that XML — reconfirm cheap for implementer |
+| UI7-05 Sandbox deferred / currency | **N/A PASS** — binder instance count 0; UI3-05 revive gate still on binder / system / UXML |
+| Major: Play Mode cosmetics | **Still open** — carry as UI8-01 |
+| R7 impl value | Documentation-only UI commit (UI7-01 blocked wording + UI7-04 fixture header) — correct non-gold-plate |
+| Peer Capybara HUD DNA / verbs | **Notice** — Fight/Safe/Lucky Find narrative buttons + Run/Choice/Pet on `_stats`; owned by gacha lane |
+
+---
+
+## Inventory (inspected)
+
+| Asset / Type | Path | Role (post-R7) |
+| --- | --- | --- |
+| Live controller | `Assets/Scripts/UI/IdleSliceUIController.cs` | Sole idle-slice HUD; `EnsureHudBuilt` + `RootVisualElement`; cosmetics → `CosmeticPurchaseEventComponent` + `TargetSlice`; combat SoT + LoM Farm hide; peer IH/LoM identity + Capybara Run/Choice/Pet |
+| HUD smoke | `Assets/Scripts/Editor/Tests/IdleSliceHudSmokeTests.cs` | Named tabs/skin buttons + UI4-06 wiring + UI5-06 shop bridge + combat HUD + LoM Farm; docs UI7-01 blocked / UI7-04 |
+| Binder | `Assets/Scripts/UI/IdleGameHudBinder.cs` | Explicit sandbox registry (`Active`); revive requires IdleSliceState currency |
+| Sandbox ECS binder | `Assets/Scripts/UI/IdleUIManagerSystem.cs` | Deferred; unbind + Presentation; runner-gold STUB |
+| UXML / USS | `Assets/UI/IdleGameHUD.uxml` + `.uss` | Deferred sandbox + UI3-05 banner |
+| Level select | `Assets/Scripts/UI/LevelSelectScreenController.cs` | Runner-only 21; idle policy + STUB |
+| Hub | `Assets/Scripts/UI/ToolkitHubManager.cs` | Equip-only Skin Shop; refreshers + skins 0–2 |
+| Cosmetics sim | `Assets/Scripts/ECS/Systems/Idle/CosmeticsShopSystem.cs` | Prestige spend via events (UI consumer) |
+| Prefabs | `Assets/ToolkitExamples/Idle/*_Slice.prefab` (**19**/19) | `IdleSliceUIController`; `sourceAsset: 0` |
+
+---
+
+## Round 01–07 criteria re-score
+
+### R01 UI-01..07 (regression)
+
+| ID | Criterion | Result | Evidence |
+| --- | --- | --- | --- |
+| UI-01 | Single idle HUD authority | **PASS** | Option B docs; 19/19 prefabs live controller; sandbox deferred + unused |
+| UI-02 | Cosmetics reachable in play | **PASS (static + EditMode wiring + shop) / UNVERIFIED (play)** | Cosmetics tab + `FireCosmetic` → event; UI4-06 + UI5-06; no Play capture |
+| UI-03 | No FindObjectOfType UI bind | **PASS** | 0 matches under `Assets/Scripts` |
+| UI-04 | Toolkit-only idle path | **PASS** | UIElements only on idle UI scripts |
+| UI-05 | Styles extracted or stubbed | **PASS** | Sandbox USS linked; live HUD **5×** `// TODO: [STUB]` |
+| UI-06 | LevelSelect idle policy explicit | **PASS** | Class summary + STUB idle browser |
+| UI-07 | Label queries cached | **PASS** | Sandbox `BindOnce`; live `_stats` / `_skinButtons` |
+
+### R02 UI2-01..06
+
+| ID | Criterion | Result | Evidence |
+| --- | --- | --- | --- |
+| UI2-01 | Play Mode cosmetics smoke | **UNVERIFIED** | Merges into UI8-01; MCP doctor: no HCR registered |
+| UI2-02 | EditMode HUD smoke | **PASS** | Surface test still green (fixture total=7) |
+| UI2-03 | Hub vs prestige policy | **PASS** | Hub equip-only; gold unlock removed |
+| UI2-04 | Sandbox currency or stay deferred | **N/A (PASS)** | 0 `IdleGameHudBinder` on Idle prefabs |
+| UI2-05 | Button unbind | **PASS (static)** | `UnbindButtons` on clear / rebind / `OnStopRunning` |
+| UI2-06 | Toolkit-only regression | **PASS** | Same as UI-03/UI-04 |
+
+### R03 UI3-01..06
+
+| ID | Criterion | Result | Evidence |
+| --- | --- | --- | --- |
+| UI3-01 | Play Mode cosmetics smoke | **UNVERIFIED** | Merges into UI8-01 |
+| UI3-02 | Toolkit-only + sole-HUD | **PASS** | Prefab counts + greps (this pass) |
+| UI3-03 | Hub equip-only holds | **PASS** | Click path: unlocked → set index; locked → no `UnlockSkin` |
+| UI3-04 | EditMode smoke stays green | **PASS** | Held under UI7-04 / UI8-04 prior green |
+| UI3-05 | Sandbox stay deferred or fix currency | **N/A (PASS)** | Binder 0; revive gate documented |
+| UI3-06 | Hub label refresh | **PASS (static)** | `_skinButtonRefreshers` + `RefreshAllSkinButtons` before show hub |
+
+### R04 UI4-01..06
+
+| ID | Criterion | Result | Evidence |
+| --- | --- | --- | --- |
+| UI4-01 | Play Mode cosmetics smoke | **BLOCKED / UNVERIFIED** | Merges into UI8-01 |
+| UI4-02 | Toolkit-only + sole-HUD | **PASS** | 19/19 controller; 0 binder; 0 FindObjectOfType; 0 uGUI in UI |
+| UI4-03 | Hub equip-only + refresh | **PASS** | STUB retained; equip-only; `RefreshAllSkinButtons` on click |
+| UI4-04 | EditMode smoke stays green | **PASS** | Fixture green under UI7-04 / UI8-04 |
+| UI4-05 | Sandbox stay deferred or fix currency | **N/A (PASS)** | Binder instance count 0 |
+| UI4-06 | Cosmetics wiring EditMode smoke | **PASS** | BuySkin1 → 1× event (TargetSkinIndex=1, PrestigeCost=5.0) |
+
+### R05 UI5-01..06
+
+| ID | Criterion | Result | Evidence |
+| --- | --- | --- | --- |
+| UI5-01 | Play Mode cosmetics smoke | **BLOCKED / UNVERIFIED** | Merges into UI8-01 |
+| UI5-02 | Toolkit-only + sole-HUD | **PASS** | Same greps / prefab counts |
+| UI5-03 | Hub equip-only + refresh | **PASS** | STUB; equip-only; `RefreshAllSkinButtons` |
+| UI5-04 | EditMode smoke stays green | **PASS** | Held under prior green fixture |
+| UI5-05 | Sandbox stay deferred or fix currency | **N/A (PASS)** | Binder instance count 0 |
+| UI5-06 | Shop-outcome EditMode bridge | **PASS** | Prestige debit + unlock + `CurrentSkinIndex` + `TargetSlice` under fixture |
+
+### R06 UI6-01..05
+
+| ID | Criterion | Result | Evidence |
+| --- | --- | --- | --- |
+| UI6-01 | Play Mode cosmetics smoke | **BLOCKED / UNVERIFIED** | Merges into UI8-01 |
+| UI6-02 | Toolkit-only + sole-HUD | **PASS** | 19/19; 0 binder; Toolkit-only greps |
+| UI6-03 | Hub equip-only + refresh | **PASS** | STUB; no hub `UnlockSkin(`; refresh |
+| UI6-04 | EditMode smoke stays green | **PASS** | Prior green total=7 |
+| UI6-05 | Sandbox stay deferred or fix currency | **N/A (PASS)** | Binder instance count 0 |
+
+### R07 UI7-01..05
+
+| ID | Criterion | Result | Evidence |
+| --- | --- | --- | --- |
+| UI7-01 | Play Mode cosmetics smoke | **BLOCKED / UNVERIFIED** | This-pass MCP `doctor`: no HCR interactive; pin `thepcgtoolkit@96e3a310`; `registered_sessions=[]`; HCR pid batchmode only |
+| UI7-02 | Toolkit-only + sole-HUD | **PASS** | 19/19 controller; 0 Idle binder; 0 FindObjectOfType; 0 uGUI in UI |
+| UI7-03 | Hub equip-only + refresh | **PASS** | STUB; `UnlockSkin` not called from hub; `RefreshAllSkinButtons` |
+| UI7-04 | EditMode smoke stays green | **PASS (prior green + static)** | `IdleSliceHudSmokeTests` Passed total=7 (`impl10-r6`); R7 attempt aborted; smoke class docs UI7-01 / UI7-04 |
+| UI7-05 | Sandbox stay deferred or fix currency | **N/A (PASS)** | Binder instance count 0 |
+
+---
+
+## Architecture compliance (UI Toolkit only)
+
+| Check | Result |
+| --- | --- |
+| Idle slice HUD uses `UIDocument` + UIElements | **PASS** |
+| Cosmetics on live path use UIElements | **PASS** |
+| Sandbox HUD UXML + USS | **PASS** (deferred) |
+| LevelSelect UIElements + USS | **PASS** |
+| No uGUI on idle UI path | **PASS** |
+| Presentation-oriented sandbox binder | **PASS** (`PresentationSystemGroup` + explicit binder) |
+| Hub Skin Shop not a second unlock economy | **PASS** |
+| Hub equip labels refresh in-session | **PASS** |
+| EditMode cosmetics click → purchase event | **PASS** (UI4-06) |
+| EditMode cosmetics click → shop spend / skin index | **PASS** (UI5-06 / held under UI7-04) |
+| R7 UI commit avoided gold-plate EditMode bridges | **PASS** (docs only while UI7-01 blocked) |
+
+---
+
+## Findings (Round 08)
+
+### Critical
+
+*None.* Dual-stack, FindObjectOfType, hub dual-economy, stale hub equip labels, thin named-only smoke, and event-only cosmetics gap remain closed.
+
+### Major
+
+1. **Play Mode cosmetics path still not evidenced (carry UI7-01 → UI8-01)**  
+   - EditMode surface + UI4-06 + UI5-06 prove named UI, click → event, and click → shop debit / `CurrentSkinIndex`. They do **not** prove Cosmetics tab visibility in Play, live prestige spend UX, or mesh/`SkinApplicatorSystem` apply after buy.  
+   - This pass: MCP `doctor` on `D:\Git\Hyper-Casual-Runner` → editors: `thepcgtoolkit` interactive, `TheCheckout` batchmode, HCR **batchmode** (pid 50380); **registered_sessions empty**; discovered interactive = `thepcgtoolkit@96e3a310`; HCR **not** interactive on bridge; live transport socket pinned to thepcgtoolkit; machine contention (3 editors, CPU ~88%).  
+   - **Impact:** Cannot claim end-to-end cosmetics UX VERIFIED. Does not block static cohesion PASS.
+
+### Minor / Notice
+
+2. **Insufficient-funds UX** — locked BUY remains clickable; silent no-op when prestige &lt; cost (live + deferred). Unchanged; prototype-acceptable.
+
+3. **Deferred sandbox still runner-shaped** — `IdleUIManagerSystem` writes `GoldLabel` from `CurrentRunStats.CurrentGold`. Documented STUB; **must** switch to `IdleSliceState` if sandbox revived (UI3-05 / UI7-05 / UI8-05 gate holds).
+
+4. **UI5-06 is EditMode, not Play** — closes the event-only gap relative to shop ledger; gap relative to UI8-01 (Play visibility / capture) remains intentional.
+
+5. **Smoke tolerates `UI Toolkit.meta` Error** — runtime `PanelSettings` CreateInstance may Error in batchmode; test uses `LogAssert.Expect` / `ignoreFailingMessages`. Residual environment smell: `Assets/UI Toolkit/` present on disk.
+
+6. **Live HUD remains code + inline styles** — 5 greppable STUBs; intentional prototype.
+
+7. **One-shot cosmetic event entities** — shop disables enableable component, does not destroy (accumulation). Sim concern, not Toolkit rule.
+
+8. **Duplicate LevelSelect UXML** — `LevelSelect.uxml` ≈ `LevelSelectScreen.uxml` (harmless).
+
+9. **`IdleGameHudBinder.Active` last-OnEnable-wins** — edge case; zero instances today.
+
+10. **`RefreshSkinButtons` every `Update`** — cheap for 4 buttons; dirty-check optional.
+
+11. **Hub `ReturnToHub` destroys all ECS entities** — aggressive world wipe when leaving a loaded level; adjacent to UI, not an idle-HUD cohesion failure. Note if Play Mode cosmetics smoke is run via hub load path.
+
+12. **HUD smoke fixture grew via peers** — combat SoT (CH/TT2/IH) + LoM Farm hide share `IdleSliceHudSmokeTests` (7 cases). Cohesion-positive; UI8-04 must keep the full fixture green, not only cosmetics tests.
+
+13. **UI4-06 still omits `TargetSlice` assert** — UI5-06 covers it on the shop-outcome path; wiring-only test remains thinner. Low risk; optional tighten later.
+
+14. **No new R8 cohesion regressions from UI impl** — post-`a262e7e` UI surface is blocked documentation + smoke header; live controller / prefabs / hub / sandbox **source unchanged by UI impl**.
+
+15. **Peer Capybara HUD DNA / verbs (`09b9b72`)** — Capybara Actions now Fight Path / Safe Path / Lucky Find via `FireNarrative(3/4/5)` (was Lucky Find `FireClick`); stats show `RunId` / pending choice / `PetId`. Does not open dual HUD / binder / uGUI paths. Last EditMode HUD XML predates this commit; implementer should cheap-reconfirm UI8-04 (fixture does not assert Capybara button names — risk is compile/runtime only, still worth a green XML refresh).
+
+16. **Peer IH/LoM identity HUD lines (`8319c9b`, still on HEAD)** — retained from R7 notice; unchanged this pass relative to cosmetics / Toolkit policy.
+
+---
+
+## Component deep-dives (post-R7)
+
+### IdleSliceUIController (live)
+
+**Strengths**
+- Sole-authority docs; Actions / Cosmetics tabs; prestige single-event; cosmetics emit `TargetSlice`.
+- `EnsureHudBuilt` / `RootVisualElement` enable EditMode surface + wiring + shop asserts.
+- Prefers bootstrap slice entity for stats + resolve; singleton fallback when count == 1.
+- Stub markers greppable (PanelSettings + 4 style sites).
+- Peer: combat SoT lines + LoM Farm hide + IH/LoM identity + Capybara Run/Choice/Pet.
+
+**Weaknesses**
+- Code tree + empty `sourceAsset` on all 19 prefabs (by design).
+- Kitchen-sink stats; action buttons always enabled; no insufficient-funds feedback on BUY.
+- Play Mode path still uninstrumented.
+- Capybara Actions row grew to 5 buttons (gacha-owned); no archetype-specific HUD smoke for those names.
+
+### ToolkitHubManager (adjacent)
+
+**Strengths**
+- Dual economy closed: STUB policy, hint label, equip-only clicks, no gold `UnlockSkin`.
+- UI3-06 hold: `_skinButtonRefreshers` + `RefreshAllSkinButtons` updates EQUIPPED / EQUIP / Idle Cosmetics labels.
+- Skins 0–2 asymmetry documented (index 3 Idle Cosmetics–only).
+
+**Weaknesses**
+- Still inline code UI (fine for hub chrome).
+- Skin 3 omitted from hub list (documented intentional).
+
+### IdleGameHUD + IdleGameHudBinder + IdleUIManagerSystem (deferred)
+
+**Strengths**
+- Explicit opt-in; latch only if Gold/Prestige names present; USS separation; unbind complete; cosmetics set `TargetSlice`.
+- UI3-05 revive gate written on binder summary, system STUB, and UXML banner.
+
+**Weaknesses**
+- Orphan until intentionally revived; runner gold model if revived without currency fix.
+
+### LevelSelect ↔ idle
+
+Policy unchanged and explicit: runner 21 only; idle via Idle prefabs / ToolkitHub. R01 Major #3 stays closed.
+
+### CosmeticsShopSystem (UI consumer)
+
+`IdleEventTarget` + `TargetSlice` path aligns with UI emitters. Shop tests cover TargetSlice spend; UI5-06 drives shop from HUD click path (EditMode).
+
+### IdleSliceHudSmokeTests (post-R7)
+
+**Strengths**
+- Seven-test fixture: structural names + Cosmetics tab display + BuySkin1 → event + shop spend/`CurrentSkinIndex`/`TargetSlice` + combat HUD (3 arches) + LoM Farm hide.
+- Documents UI7-01 blocked + UI7-04 in class summary (post-`a262e7e`).
+- Isolated ECS test world SetUp/TearDown for wiring / shop tests.
+
+**Weaknesses**
+- Reflection `SimulateClick` (EditMode Clickable quirk) — brittle if Unity renames `clicked` backing field.
+- No PlayMode companion.
+- Latest green XML is R6 `impl10-r6` (pre-dates R7 docs commit and peer `09b9b72`); R7 fresh batchmode aborted; peer Capybara HUD text/buttons not asserted (fine for cosmetics cohesion).
+
+---
+
+## Acceptance criteria (for Round 08 implementers)
+
+| ID | Criterion | Pass if |
+| --- | --- | --- |
+| UI8-01 | Play Mode cosmetics smoke | Enter Play on ≥1 idle slice prefab → Cosmetics tab visible; buy skin with funded prestige → `GameProgressData.CurrentSkinIndex` matches; log/screenshot or MCP capture attached |
+| UI8-02 | Toolkit-only + sole-HUD regression | Idle UI remains UIElements-only; 0 `FindObjectOfType<UIDocument>`; 19/19 idle prefabs still `IdleSliceUIController` without `IdleGameHudBinder` |
+| UI8-03 | Hub equip-only + refresh holds | Hub Skin Shop still cannot gold-unlock shared skins; STUB comment remains; locked rows do not call `UnlockSkin`; equip click still refreshes button labels via `RefreshAllSkinButtons` (or equivalent) |
+| UI8-04 | EditMode smoke stays green | `IdleSliceHudSmokeTests` Pass with **all** fixture tests (surface + UI4-06 wiring + UI5-06 shop bridge + peer combat/LoM if still present; batchmode acceptable). **Reconfirm** after peer `09b9b72` HUD churn if no post-`09b9b72` XML exists |
+| UI8-05 | Sandbox stay deferred or fix currency | Either binder instance count stays 0, **or** any revived binder reads `IdleSliceState` for primary/prestige labels (not `CurrentRunStats` gold alone) |
+
+Retain R01 UI-01..07, R02 UI2-02..06, R03 UI3-02..06, R04 UI4-02..06, R05 UI5-02..06, R06 UI6-02..05, and R07 UI7-02..05 as regression checks (must stay PASS / N/A). UI7-01 merges into UI8-01. UI5-06 remains regression under UI8-04.
+
+No new optional EditMode substitute this round — UI5-06 already closed the shop-outcome static gap; R6/R7 correctly refused further EditMode bridges. Next implement value is almost entirely UI8-01 (Play evidence) unless a cohesion regression appears; UI8-04 XML refresh is the only cheap static follow-up after peer HUD churn.
+
+---
+
+## Recommended implement order (guidance only)
+
+1. UI8-01 Play Mode evidence (open HCR interactive editor on MCP, or batchmode PlayMode/prefab smoke with log assert).  
+2. UI8-02 / UI8-03 / UI8-04 / UI8-05 quick regression greps + existing seven-test smoke (cheap; **refresh UI8-04 XML** after `09b9b72` if still missing).  
+3. Do **not** invent new optional EditMode cosmetics bridges while UI8-01 remains the only open major — avoid gold-plating past the bar.
+
+---
+
+## Out of scope / deferred
+
+- Full USS migration of live `IdleSliceUIController` (already STUB-marked).  
+- Per-archetype UXML variants / second-axis polish.  
+- Visual mesh skin application depth (`SkinApplicatorSystem`).  
+- Archive / sample Canvas assets.  
+- Idle browser inside LevelSelect (already STUB).  
+- Insufficient-funds dim/disable UX (prototype-acceptable).  
+- Hub world-wipe behavior on `ReturnToHub` (adjacent, not idle HUD stack).  
+- Asserting `TargetSlice` in UI4-06 wiring-only test (optional; already covered by UI5-06).  
+- Combat HUD / LoM Farm / gacha identity / Capybara DNA verb policy (owned by combat/gacha lanes; hold as shared smoke / peer display only).  
+- Capybara-specific EditMode button-name smoke (optional; not required for cosmetics cohesion).
+
+---
+
+## Evidence summary
+
+- Commit `a262e7e`: UI7-01 Play cosmetics BLOCKED documented after one doctor; UI7-04 fixture header; no live HUD/prefab/hub/sandbox source churn.  
+- Peer `09b9b72`: Capybara Actions remapped to narrative forks + Run/Choice/Pet on live HUD `_stats`; Capybara prefab HowToPlay (gacha-owned; Toolkit cohesion unchanged).  
+- 19/19 idle prefabs: `IdleSliceUIController`, `sourceAsset: 0`; **0** `IdleGameHudBinder` on Idle prefabs.  
+- `IdleSliceHudSmokeTests`: **Passed** total=7 passed=7 failed=0 (`Logs/IdleHud-impl10-r6-TestResults.xml`, start-time 2026-08-10 02:23:23Z). R7 attempt: `Logs/IdleHud-impl10-r7.log` exit 1 (aborted; no results XML).  
+- Hub: `// TODO: [STUB]` dual-economy policy; equip-only; `RefreshAllSkinButtons`; no hub `UnlockSkin(` call.  
+- Grep: 0 `FindObjectOfType*UIDocument` calls; 0 `using UnityEngine.UI;` in `Assets/Scripts/UI`.  
+- MCP `doctor` (this pass): HCR not connected as interactive (batchmode pid only); discovered/registered interactive editor is `thepcgtoolkit@96e3a310`; `registered_sessions=[]` — Play Mode cosmetics **BLOCKED / UNVERIFIED**.
+
+**STATUS:** Review complete — static re-audit **VERIFIED**; Play Mode cosmetics **UNVERIFIED**. No implementation. No push.

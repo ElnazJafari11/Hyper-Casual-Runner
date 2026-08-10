@@ -16,9 +16,9 @@ using HyperCasualRunner.ECS.Systems;
 namespace HyperCasualRunner.Tests
 {
     /// <summary>
-    /// EditMode HUD surface smoke (UI2-02 / UI3-04 / UI4-04 / UI5-04 / UI6-04 / UI7-04): named Actions/Cosmetics tabs + skin buttons
+    /// EditMode HUD surface smoke (UI2-02 / UI3-04 / UI4-04 / UI5-04 / UI6-04 / UI7-04 / UI8-04): named Actions/Cosmetics tabs + skin buttons
     /// without Enter Play Mode. UI4-06 wiring + UI5-06 shop-outcome bridge + R5 LoM Farm hide while
-    /// UI7-01 Play Mode cosmetics remains blocked without an HCR interactive editor on MCP.
+    /// UI8-01 Play Mode cosmetics remains blocked without an HCR interactive editor on MCP.
     /// </summary>
     [TestFixture]
     public class IdleSliceHudSmokeTests
@@ -168,7 +168,7 @@ namespace HyperCasualRunner.Tests
         }
 
         /// <summary>
-        /// UI5-06: while UI7-01 Play Mode cosmetics is blocked — fund prestige, Cosmetics buy click,
+        /// UI5-06: while UI8-01 Play Mode cosmetics is blocked — fund prestige, Cosmetics buy click,
         /// tick CosmeticsShopSystem, assert prestige debit + GameProgressData.CurrentSkinIndex.
         /// </summary>
         [Test]
