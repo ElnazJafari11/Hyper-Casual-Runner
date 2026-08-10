@@ -60,14 +60,26 @@ namespace HyperCasualRunner.UI
             shopContainer.style.alignItems = Align.Center;
             splitContainer.Add(shopContainer);
 
+            // TODO: [STUB] Hub Skin Shop is gold-runner hub chrome only — NOT a second unlock economy.
+            // Shared GameProgressData skin unlock / CurrentSkinIndex is owned by idle Cosmetics
+            // (CosmeticPurchaseEventComponent + prestige). Hub may equip already-unlocked skins only;
+            // locked skins point players to Idle Cosmetics (no gold UnlockSkin).
             var shopTitle = new Label("Skin Shop");
             shopTitle.style.fontSize = 36;
             shopTitle.style.color = Color.white;
             shopContainer.Add(shopTitle);
 
-            AddShopItem(shopContainer, 0, "Default Blue", 0, title);
-            AddShopItem(shopContainer, 1, "Crimson Red", 200, title);
-            AddShopItem(shopContainer, 2, "Solid Gold", 1000, title);
+            var shopHint = new Label("Unlock skins via Idle Cosmetics (prestige). Hub equips unlocked only.");
+            shopHint.style.fontSize = 14;
+            shopHint.style.color = new Color(0.75f, 0.75f, 0.8f);
+            shopHint.style.whiteSpace = WhiteSpace.Normal;
+            shopHint.style.marginBottom = 8;
+            shopHint.style.unityTextAlign = TextAnchor.MiddleCenter;
+            shopContainer.Add(shopHint);
+
+            AddShopItem(shopContainer, 0, "Default Blue", shopTitle);
+            AddShopItem(shopContainer, 1, "Crimson Red", shopTitle);
+            AddShopItem(shopContainer, 2, "Solid Gold", shopTitle);
 
             root.Add(_hubPanel);
 
@@ -111,7 +123,7 @@ namespace HyperCasualRunner.UI
             }
         }
 
-        private void AddShopItem(VisualElement container, int index, string name, int cost, Label titleRef)
+        private void AddShopItem(VisualElement container, int index, string name, Label titleRef)
         {
             var btn = new Button();
             btn.style.fontSize = 24;
@@ -127,32 +139,19 @@ namespace HyperCasualRunner.UI
 
                 if (isEquipped) btn.text = $"{name} (EQUIPPED)";
                 else if (isUnlocked) btn.text = $"{name} (EQUIP)";
-                else btn.text = $"{name} (${cost})";
-                
+                else btn.text = $"{name} (Idle Cosmetics)";
+
                 btn.style.backgroundColor = isEquipped ? new StyleColor(Color.green) : new StyleColor(Color.gray);
             };
 
             btn.clicked += () =>
             {
-                if (!GameProgressData.IsSkinUnlocked(index))
-                {
-                    if (GameProgressData.TotalGold >= cost)
-                    {
-                        GameProgressData.TotalGold -= cost;
-                        GameProgressData.UnlockSkin(index);
-                        GameProgressData.CurrentSkinIndex = index;
-                    }
-                }
-                else
-                {
+                // Equip-only: never gold-unlock shared skins (avoids hub vs prestige dual economy).
+                if (GameProgressData.IsSkinUnlocked(index))
                     GameProgressData.CurrentSkinIndex = index;
-                }
-                
-                // Refresh title gold
+
                 titleRef.text = $"Hyper-Casual Toolkit 1.0  |  Gold: {GameProgressData.TotalGold}";
-                
-                // Force all shop buttons to update their visuals (MVP hack: since we don't have a list of all buttons, we just trust the clicked one updates and others will update next boot, or we can just redraw. Actually, let's just trigger a full redraw of the hub)
-                ReturnToHub(); 
+                ReturnToHub();
             };
 
             updateBtnUI();

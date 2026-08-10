@@ -27,24 +27,34 @@ namespace HyperCasualRunner.UI
         private Button _buySkin3Button;
         private bool _buttonBound;
 
+        // Named handlers so rebind / stop can unsubscribe (UI2-05).
+        private System.Action _onPrestigeClicked;
+        private System.Action _onBuyUpgradeClicked;
+        private System.Action _onUpgradesTabClicked;
+        private System.Action _onCosmeticsTabClicked;
+        private System.Action _onSkin0Clicked;
+        private System.Action _onSkin1Clicked;
+        private System.Action _onSkin2Clicked;
+        private System.Action _onSkin3Clicked;
+
+        protected override void OnStopRunning()
+        {
+            UnbindButtons();
+        }
+
         protected override void OnUpdate()
         {
             var binder = IdleGameHudBinder.Active;
             if (binder == null || binder.Document == null)
             {
-                _uiDocument = null;
-                _buttonBound = false;
-                _goldLabel = null;
-                _prestigeLabel = null;
+                UnbindButtons();
                 return;
             }
 
             if (_uiDocument != binder.Document)
             {
+                UnbindButtons();
                 _uiDocument = binder.Document;
-                _buttonBound = false;
-                _goldLabel = null;
-                _prestigeLabel = null;
             }
 
             var root = _uiDocument.rootVisualElement;
@@ -57,6 +67,7 @@ namespace HyperCasualRunner.UI
                 // Only latch if this is actually IdleGameHUD (has PrestigeButton or GoldLabel).
                 if (_goldLabel == null && _prestigeButton == null)
                 {
+                    UnbindButtons();
                     _uiDocument = null;
                     return;
                 }
@@ -81,16 +92,24 @@ namespace HyperCasualRunner.UI
 
         private void BindOnce(VisualElement root)
         {
+            UnbindButtons();
+
             _goldLabel = root.Q<Label>("GoldLabel");
             _prestigeLabel = root.Q<Label>("PrestigeLabel");
 
             _prestigeButton = root.Q<Button>("PrestigeButton");
             if (_prestigeButton != null)
-                _prestigeButton.clicked += OnPrestigeButtonClicked;
+            {
+                _onPrestigeClicked = OnPrestigeButtonClicked;
+                _prestigeButton.clicked += _onPrestigeClicked;
+            }
 
             _buyUpgradeButton = root.Q<Button>("BuyUpgradeButton");
             if (_buyUpgradeButton != null)
-                _buyUpgradeButton.clicked += OnBuyUpgradeButtonClicked;
+            {
+                _onBuyUpgradeClicked = OnBuyUpgradeButtonClicked;
+                _buyUpgradeButton.clicked += _onBuyUpgradeClicked;
+            }
 
             _upgradesTabButton = root.Q<Button>("UpgradesTabButton");
             _cosmeticsTabButton = root.Q<Button>("CosmeticsTabButton");
@@ -100,34 +119,95 @@ namespace HyperCasualRunner.UI
             if (_upgradesTabButton != null && _cosmeticsTabButton != null &&
                 _upgradesContainer != null && _cosmeticsContainer != null)
             {
-                _upgradesTabButton.clicked += () =>
-                {
-                    _upgradesContainer.style.display = DisplayStyle.Flex;
-                    _cosmeticsContainer.style.display = DisplayStyle.None;
-                };
-
-                _cosmeticsTabButton.clicked += () =>
-                {
-                    _cosmeticsContainer.style.display = DisplayStyle.Flex;
-                    _upgradesContainer.style.display = DisplayStyle.None;
-                };
+                _onUpgradesTabClicked = OnUpgradesTabClicked;
+                _onCosmeticsTabClicked = OnCosmeticsTabClicked;
+                _upgradesTabButton.clicked += _onUpgradesTabClicked;
+                _cosmeticsTabButton.clicked += _onCosmeticsTabClicked;
             }
 
             _equipSkin0Button = root.Q<Button>("EquipSkin0Button");
             if (_equipSkin0Button != null)
-                _equipSkin0Button.clicked += () => OnSkinButtonClicked(0, 0.0);
+            {
+                _onSkin0Clicked = () => OnSkinButtonClicked(0, 0.0);
+                _equipSkin0Button.clicked += _onSkin0Clicked;
+            }
 
             _buySkin1Button = root.Q<Button>("BuySkin1Button");
             if (_buySkin1Button != null)
-                _buySkin1Button.clicked += () => OnSkinButtonClicked(1, 5.0);
+            {
+                _onSkin1Clicked = () => OnSkinButtonClicked(1, 5.0);
+                _buySkin1Button.clicked += _onSkin1Clicked;
+            }
 
             _buySkin2Button = root.Q<Button>("BuySkin2Button");
             if (_buySkin2Button != null)
-                _buySkin2Button.clicked += () => OnSkinButtonClicked(2, 15.0);
+            {
+                _onSkin2Clicked = () => OnSkinButtonClicked(2, 15.0);
+                _buySkin2Button.clicked += _onSkin2Clicked;
+            }
 
             _buySkin3Button = root.Q<Button>("BuySkin3Button");
             if (_buySkin3Button != null)
-                _buySkin3Button.clicked += () => OnSkinButtonClicked(3, 30.0);
+            {
+                _onSkin3Clicked = () => OnSkinButtonClicked(3, 30.0);
+                _buySkin3Button.clicked += _onSkin3Clicked;
+            }
+        }
+
+        private void UnbindButtons()
+        {
+            if (_prestigeButton != null && _onPrestigeClicked != null)
+                _prestigeButton.clicked -= _onPrestigeClicked;
+            if (_buyUpgradeButton != null && _onBuyUpgradeClicked != null)
+                _buyUpgradeButton.clicked -= _onBuyUpgradeClicked;
+            if (_upgradesTabButton != null && _onUpgradesTabClicked != null)
+                _upgradesTabButton.clicked -= _onUpgradesTabClicked;
+            if (_cosmeticsTabButton != null && _onCosmeticsTabClicked != null)
+                _cosmeticsTabButton.clicked -= _onCosmeticsTabClicked;
+            if (_equipSkin0Button != null && _onSkin0Clicked != null)
+                _equipSkin0Button.clicked -= _onSkin0Clicked;
+            if (_buySkin1Button != null && _onSkin1Clicked != null)
+                _buySkin1Button.clicked -= _onSkin1Clicked;
+            if (_buySkin2Button != null && _onSkin2Clicked != null)
+                _buySkin2Button.clicked -= _onSkin2Clicked;
+            if (_buySkin3Button != null && _onSkin3Clicked != null)
+                _buySkin3Button.clicked -= _onSkin3Clicked;
+
+            _onPrestigeClicked = null;
+            _onBuyUpgradeClicked = null;
+            _onUpgradesTabClicked = null;
+            _onCosmeticsTabClicked = null;
+            _onSkin0Clicked = null;
+            _onSkin1Clicked = null;
+            _onSkin2Clicked = null;
+            _onSkin3Clicked = null;
+
+            _prestigeButton = null;
+            _buyUpgradeButton = null;
+            _upgradesTabButton = null;
+            _cosmeticsTabButton = null;
+            _upgradesContainer = null;
+            _cosmeticsContainer = null;
+            _equipSkin0Button = null;
+            _buySkin1Button = null;
+            _buySkin2Button = null;
+            _buySkin3Button = null;
+            _goldLabel = null;
+            _prestigeLabel = null;
+            _uiDocument = null;
+            _buttonBound = false;
+        }
+
+        private void OnUpgradesTabClicked()
+        {
+            if (_upgradesContainer != null) _upgradesContainer.style.display = DisplayStyle.Flex;
+            if (_cosmeticsContainer != null) _cosmeticsContainer.style.display = DisplayStyle.None;
+        }
+
+        private void OnCosmeticsTabClicked()
+        {
+            if (_cosmeticsContainer != null) _cosmeticsContainer.style.display = DisplayStyle.Flex;
+            if (_upgradesContainer != null) _upgradesContainer.style.display = DisplayStyle.None;
         }
 
         private void UpdateSkinButtonsUI()
@@ -165,7 +245,10 @@ namespace HyperCasualRunner.UI
         private void OnPrestigeButtonClicked()
         {
             var entity = EntityManager.CreateEntity();
-            EntityManager.AddComponentData(entity, new PrestigeEventComponent());
+            EntityManager.AddComponentData(entity, new PrestigeEventComponent
+            {
+                TargetSlice = ResolveSoleIdleSlice()
+            });
         }
 
         private void OnBuyUpgradeButtonClicked()
@@ -179,9 +262,18 @@ namespace HyperCasualRunner.UI
             var entity = EntityManager.CreateEntity();
             EntityManager.AddComponentData(entity, new CosmeticPurchaseEventComponent
             {
+                TargetSlice = ResolveSoleIdleSlice(),
                 TargetSkinIndex = targetSkinIndex,
                 PrestigeCost = cost
             });
+        }
+
+        private Entity ResolveSoleIdleSlice()
+        {
+            using var q = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<IdleSliceState>());
+            if (q.CalculateEntityCount() == 1)
+                return q.GetSingletonEntity();
+            return Entity.Null;
         }
     }
 }

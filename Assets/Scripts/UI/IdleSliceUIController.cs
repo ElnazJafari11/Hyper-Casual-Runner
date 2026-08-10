@@ -36,6 +36,9 @@ namespace HyperCasualRunner.UI
 
         private PanelSettings _runtimePanel;
 
+        /// <summary>Root visual tree after HUD build (null until EnsureHudBuilt / first Update).</summary>
+        public VisualElement RootVisualElement => _doc != null ? _doc.rootVisualElement : null;
+
         private void Awake()
         {
             _doc = GetComponent<UIDocument>();
@@ -45,6 +48,7 @@ namespace HyperCasualRunner.UI
 
         private void EnsurePanelSettings()
         {
+            if (_doc == null) _doc = GetComponent<UIDocument>();
             if (_doc == null || _doc.panelSettings != null) return;
             // TODO: [STUB] runtime PanelSettings so slices play without a project PanelSettings asset
             _runtimePanel = ScriptableObject.CreateInstance<PanelSettings>();
@@ -57,7 +61,10 @@ namespace HyperCasualRunner.UI
         {
             if (_runtimePanel != null)
             {
-                Destroy(_runtimePanel);
+                if (Application.isPlaying)
+                    Destroy(_runtimePanel);
+                else
+                    DestroyImmediate(_runtimePanel);
                 _runtimePanel = null;
             }
         }
@@ -69,9 +76,22 @@ namespace HyperCasualRunner.UI
             RefreshSkinButtons();
         }
 
+        /// <summary>
+        /// Builds the Actions/Cosmetics HUD once without requiring Play Mode Update.
+        /// Used by EditMode smoke tests (UI2-02).
+        /// </summary>
+        public void EnsureHudBuilt()
+        {
+            if (_doc == null) _doc = GetComponent<UIDocument>();
+            if (_bootstrap == null) _bootstrap = GetComponent<IdleSliceBootstrap>();
+            EnsurePanelSettings();
+            EnsureUi();
+        }
+
         private void EnsureUi()
         {
             if (_built) return;
+            EnsurePanelSettings();
             var root = _doc != null ? _doc.rootVisualElement : null;
             if (root == null) return;
 
@@ -283,8 +303,8 @@ namespace HyperCasualRunner.UI
                     break;
                 case IdleArchetype.RealmGrinder:
                     Btn(row, "Build", () => FireBuy(1));
-                    Btn(row, "Align Good", () => FireAlloc(1f));
-                    Btn(row, "Align Evil", () => FireAlloc(2f));
+                    Btn(row, "Align Good", () => FireAlign(1));
+                    Btn(row, "Align Evil", () => FireAlign(2));
                     Btn(row, "Rebirth", FirePrestige);
                     break;
                 case IdleArchetype.NguIdle:
@@ -392,6 +412,17 @@ namespace HyperCasualRunner.UI
                 $"Click: {s.ClickPower:N1} | Workers: {s.AssignedWorkers}/{s.MaxWorkers} | " +
                 $"HP: {s.EnemyHp}/{s.EnemyMaxHp} | Cats: {s.CheckInCats} | " +
                 $"Chest: {s.AfkChestSeconds:N0}s | Pending: {s.PendingClaim:N1}";
+
+            if (s.Archetype == IdleArchetype.NguIdle)
+            {
+                _stats.text += $"\nEnergy: {s.EnergyAllocated:N0}/{s.EnergyPool:N0}";
+            }
+
+            if (s.Archetype == IdleArchetype.RealmGrinder && s.FactionId != 0)
+            {
+                string faction = s.FactionId == 1 ? "Good" : s.FactionId == 2 ? "Evil" : "?";
+                _stats.text += $" | Faction: {faction}";
+            }
         }
 
         private static bool TryGetEm(out EntityManager em)
@@ -490,6 +521,17 @@ namespace HyperCasualRunner.UI
             });
         }
 
+        private void FireAlign(int factionId)
+        {
+            if (!TryGetEm(out var em)) return;
+            var e = em.CreateEntity();
+            em.AddComponentData(e, new IdleFactionAlignEvent
+            {
+                TargetSlice = ResolveTargetSlice(em),
+                FactionId = factionId
+            });
+        }
+
         private void FireGacha()
         {
             if (!TryGetEm(out var em)) return;
@@ -525,6 +567,7 @@ namespace HyperCasualRunner.UI
             var e = em.CreateEntity();
             em.AddComponentData(e, new CosmeticPurchaseEventComponent
             {
+                TargetSlice = ResolveTargetSlice(em),
                 TargetSkinIndex = skinIndex,
                 PrestigeCost = cost
             });
