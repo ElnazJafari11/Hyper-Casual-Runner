@@ -1,21 +1,21 @@
-# Round 07 IMPLEMENT 08/10 — Production / Offline / Managers (verify-only)
+# Round 07 IMPLEMENT 08/10 ? Production / Offline / Managers (verify-only)
 
 **Agent:** 8/10 (IMPLEMENT)  
 **Source review:** `review_05_production.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
 **Prior stall:** `162da1d7` (stalled; no `impl_08_production.md` landed)  
-**Commit:** `b807d61d384085a6002133a179b779824236760b` (local only � never push)  
+**Commit:** `b807d61d384085a6002133a179b779824236760b` (local only — never push)
 **Push:** never
 
 ---
 
 ## ASSUMPTIONS
 
-1. Round 07 production **[required] = none** — R6 optional bar met; R5 Melvor TrySpawn + SkillXp bar still closed — **high** — `review_05_production.md` backlog.  
-2. Optional ClickPower CatchUp only if cheap; else verify-only — **high** — user query.  
-3. ClickPower offline parity stays deferred: Melvor UI `Train Skill` still `FireClick(1f)`; online skill level-up still `ClickPower += 1`; `ApplyMelvorSkillTicks` / `SyncSkillNodeFromSlice` do not touch ClickPower — **high** — UI + CatchUp + sim read-back.  
-4. Quality bar = toolkit MVP EditMode — **high** — `docs/project-context.md`.
+1. Round 07 production **[required] = none** ? R6 optional bar met; R5 Melvor TrySpawn + SkillXp bar still closed ? **high** ? `review_05_production.md` backlog.  
+2. Optional ClickPower CatchUp only if cheap; else verify-only ? **high** ? user query.  
+3. ClickPower offline parity stays deferred: Melvor UI `Train Skill` still `FireClick(1f)`; online skill level-up still `ClickPower += 1`; `ApplyMelvorSkillTicks` / `SyncSkillNodeFromSlice` do not touch ClickPower ? **high** ? UI + CatchUp + sim read-back.  
+4. Quality bar = toolkit MVP EditMode ? **high** ? `docs/project-context.md`.
 
 ---
 
@@ -24,7 +24,7 @@
 | Item | Status | Criteria |
 |------|--------|----------|
 | **[required] none** | **n/a** | No required Production item this round. |
-| **[optional] CatchUp ClickPower parity** | **skipped** | Not cheap / not warranted — Train Skill ignores ClickPower; MVP-acceptable per review P2 / deferred backlog. |
+| **[optional] CatchUp ClickPower parity** | **skipped** | Not cheap / not warranted ? Train Skill ignores ClickPower; MVP-acceptable per review P2 / deferred backlog. |
 | Production EditMode reconfirm (Melvor/Egg/Miner/Neko CatchUp + manager re-lock + stamp order) | **met** | IdleBatchBC `68/68` Passed; key production fixtures Passed (see VERIFICATION). |
 | Deferred Play Mode / per-archetype stamp / IH-AFK chest / Egg-Miner live-bootstrap / elevators / soft-cap | **skipped** | deferred in review |
 
@@ -32,8 +32,8 @@
 
 ## Changes
 
-- `.agents/idle_swarm/round_07/impl_08_production.md` — this receipt.  
-- **No gameplay / runtime / test code changes** — verify-only; ClickPower CatchUp skipped.
+- `.agents/idle_swarm/round_07/impl_08_production.md` ? this receipt.  
+- **No gameplay / runtime / test code changes** ? verify-only; ClickPower CatchUp skipped.
 
 ---
 
