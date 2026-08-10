@@ -107,4 +107,4 @@ Fresh r8 HUD batchmode: not run (HCR project lock / peer AllSmoke)
 - **Deviations:** fresh HUD batchmode skipped on peer AllSmoke lock (documented)
 - **Flash Base:** none
 - **Escalations:** none
-- **Commit:** (local only, never push) — see git log after commit
+- **Commit:** `52be9abc5b713ed5c544529d02ad7f1af0576612` (receipt; local only, never push). Smoke UI8 wording + review co-landed earlier in `812da1d`.
