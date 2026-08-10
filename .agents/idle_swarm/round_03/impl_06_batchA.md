@@ -4,7 +4,7 @@
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
 **Sources:** `round_03/review_02_batchA.md` (+ `round_03/review_09_tests.md` ranked leftover #1)  
-**Commit:** _(this receipt commit)_
+**Commit:** `0936ffa` (local only, no push)
 
 ---
 
