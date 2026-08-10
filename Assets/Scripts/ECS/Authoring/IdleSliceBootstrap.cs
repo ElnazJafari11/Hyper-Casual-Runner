@@ -41,6 +41,9 @@ namespace HyperCasualRunner.ECS.Authoring
         private int _loadedGachaStage;
         private int _loadedGachaPullCount;
         private int _loadedGachaBestRarity;
+        private int _loadedGachaHeroId;
+        private int _loadedGachaDupeCount;
+        private int _loadedGachaGearSlot;
         private int _loadedNarrRoomOrStep;
         private int _loadedNarrExploreUnlocked;
         private int _loadedNarrStokeCount;
@@ -191,6 +194,9 @@ namespace HyperCasualRunner.ECS.Authoring
             _loadedGachaStage = 0;
             _loadedGachaPullCount = 0;
             _loadedGachaBestRarity = 0;
+            _loadedGachaHeroId = 0;
+            _loadedGachaDupeCount = 0;
+            _loadedGachaGearSlot = 0;
             _loadedNarrRoomOrStep = 0;
             _loadedNarrExploreUnlocked = 0;
             _loadedNarrStokeCount = 0;
@@ -255,6 +261,10 @@ namespace HyperCasualRunner.ECS.Authoring
                 _loadedGachaStage = gachaStage;
                 _loadedGachaPullCount = gachaPulls;
                 _loadedGachaBestRarity = gachaRarity;
+                var gachaId = GameProgressData.LoadGachaIdentity((int)Archetype);
+                _loadedGachaHeroId = gachaId.HeroId;
+                _loadedGachaDupeCount = gachaId.DupeCount;
+                _loadedGachaGearSlot = gachaId.GearSlot;
                 _loadedNarrRoomOrStep = narrStep;
                 _loadedNarrExploreUnlocked = narrExplore;
                 _loadedNarrSoftCurrency = narrSoft;
@@ -297,6 +307,12 @@ namespace HyperCasualRunner.ECS.Authoring
                 gachaStage = g.Stage;
                 gachaPulls = g.PullCount;
                 gachaRarity = g.BestRarity;
+                GameProgressData.SaveGachaIdentity((int)s.Archetype, new IdleGachaIdentityPersist
+                {
+                    HeroId = g.HeroId,
+                    DupeCount = g.DupeCount,
+                    GearSlot = g.GearSlot
+                });
             }
             if (em.HasComponent<IdleNarrativeState>(_sliceEntity))
             {
@@ -442,7 +458,10 @@ namespace HyperCasualRunner.ECS.Authoring
                         PullCount = _loadedGachaPullCount,
                         PullCost = PullCost,
                         BestRarity = _loadedGachaBestRarity,
-                        Stage = _loadedGachaStage
+                        Stage = _loadedGachaStage,
+                        HeroId = _loadedGachaHeroId,
+                        DupeCount = _loadedGachaDupeCount,
+                        GearSlot = _loadedGachaGearSlot
                     });
                     break;
 
@@ -493,7 +512,10 @@ namespace HyperCasualRunner.ECS.Authoring
                         PullCount = _loadedGachaPullCount,
                         PullCost = PullCost,
                         BestRarity = _loadedGachaBestRarity,
-                        Stage = _loadedGachaStage
+                        Stage = _loadedGachaStage,
+                        HeroId = _loadedGachaHeroId,
+                        DupeCount = _loadedGachaDupeCount,
+                        GearSlot = _loadedGachaGearSlot
                     });
                     break;
             }

@@ -48,7 +48,7 @@ namespace HyperCasualRunner.ECS.Systems
                 }
 
                 SystemAPI.SetComponentEnabled<IdleAssignWorkerEvent>(entity, false);
-                ecb.DestroyEntity(entity);
+                IdleEventTarget.DestroyIfEphemeral(em, ecb, entity, sliceEntity);
             }
 
             ecb.Playback(em);
@@ -127,7 +127,7 @@ namespace HyperCasualRunner.ECS.Systems
                     IdleEventTarget.SyncPairedRunGold(em, sliceEntity, slice.PrimaryCurrency);
                 }
 
-                ecb.DestroyEntity(entity);
+                IdleEventTarget.DestroyIfEphemeral(em, ecb, entity, sliceEntity);
             }
 
             ecb.Playback(em);
@@ -163,7 +163,33 @@ namespace HyperCasualRunner.ECS.Systems
             if (lomLampLoot)
                 slice.PrimaryCurrency += cost + 1;
 
+            // R6 identity DNA: shared TryApplyPull; archetype fields diverge post-roll.
+            ApplyIdentityDna(ref gacha, slice.Archetype, rarity);
+
             return true;
+        }
+
+        /// <summary>
+        /// Minimal second-axis split: IH hero-id/dupe vs LoM gear-slot. Shared rarity math stays.
+        /// </summary>
+        public static void ApplyIdentityDna(ref IdleGachaState gacha, IdleArchetype archetype, int rarity)
+        {
+            if (archetype == IdleArchetype.IdleHeroes)
+            {
+                // Tiny 4-hero roster; wraps after pull 4 → DupeCount tracks re-rolls.
+                int rolled = 1 + ((gacha.PullCount - 1) % 4);
+                gacha.HeroId = rolled;
+                if (gacha.PullCount > 4)
+                    gacha.DupeCount = gacha.PullCount - 4;
+                gacha.GearSlot = 0;
+            }
+            else if (archetype == IdleArchetype.LegendOfMushroom)
+            {
+                // Gear-shaped loot: 1=weapon, 2=armor, 3=accessory (from rarity).
+                gacha.GearSlot = 1 + ((System.Math.Max(1, rarity) - 1) % 3);
+                gacha.HeroId = 0;
+                gacha.DupeCount = 0;
+            }
         }
     }
 
@@ -205,7 +231,7 @@ namespace HyperCasualRunner.ECS.Systems
                 }
 
                 SystemAPI.SetComponentEnabled<IdleNarrativeActionEvent>(entity, false);
-                ecb.DestroyEntity(entity);
+                IdleEventTarget.DestroyIfEphemeral(em, ecb, entity, sliceEntity);
             }
 
             ecb.Playback(em);
@@ -333,7 +359,7 @@ namespace HyperCasualRunner.ECS.Systems
                 }
 
                 SystemAPI.SetComponentEnabled<IdleAllocateEnergyEvent>(entity, false);
-                ecb.DestroyEntity(entity);
+                IdleEventTarget.DestroyIfEphemeral(em, ecb, entity, sliceEntity);
             }
 
             ecb.Playback(em);
@@ -393,7 +419,7 @@ namespace HyperCasualRunner.ECS.Systems
                 }
 
                 SystemAPI.SetComponentEnabled<IdleFactionAlignEvent>(entity, false);
-                ecb.DestroyEntity(entity);
+                IdleEventTarget.DestroyIfEphemeral(em, ecb, entity, sliceEntity);
             }
 
             ecb.Playback(em);
@@ -436,7 +462,7 @@ namespace HyperCasualRunner.ECS.Systems
                     {
                         // Honest no-op: no demo free grant
                         SystemAPI.SetComponentEnabled<IdleClaimOfflineEvent>(entity, false);
-                        ecb.DestroyEntity(entity);
+                        IdleEventTarget.DestroyIfEphemeral(em, ecb, entity, sliceEntity);
                         continue;
                     }
 
@@ -467,7 +493,7 @@ namespace HyperCasualRunner.ECS.Systems
                 }
 
                 SystemAPI.SetComponentEnabled<IdleClaimOfflineEvent>(entity, false);
-                ecb.DestroyEntity(entity);
+                IdleEventTarget.DestroyIfEphemeral(em, ecb, entity, sliceEntity);
             }
 
             ecb.Playback(em);
@@ -545,7 +571,7 @@ namespace HyperCasualRunner.ECS.Systems
                 }
 
                 SystemAPI.SetComponentEnabled<IdlePhaseShiftEvent>(entity, false);
-                ecb.DestroyEntity(entity);
+                IdleEventTarget.DestroyIfEphemeral(em, ecb, entity, sliceEntity);
             }
 
             ecb.Playback(em);

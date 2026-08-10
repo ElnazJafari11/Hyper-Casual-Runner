@@ -29,6 +29,14 @@ namespace HyperCasualRunner
         public double GoldPerKill;
     }
 
+    /// <summary>R6 gacha identity DNA (IH hero/dupe, LoM gear slot). Missing keys → 0.</summary>
+    public struct IdleGachaIdentityPersist
+    {
+        public int HeroId;
+        public int DupeCount;
+        public int GearSlot;
+    }
+
     public static class GameProgressData
     {
         private const string GoldKey = "HCR_TotalGold";
@@ -249,6 +257,22 @@ namespace HyperCasualRunner
         /// <summary>Load Melvor SkillXp. Missing key → 0 (safe for pre-R5 saves).</summary>
         public static int LoadSkillXp(int archetype) =>
             PlayerPrefs.GetInt(IdleKey(archetype, "SkillXp"), 0);
+
+        public static void SaveGachaIdentity(int archetype, in IdleGachaIdentityPersist id)
+        {
+            PlayerPrefs.SetInt(IdleKey(archetype, "GachaHeroId"), id.HeroId);
+            PlayerPrefs.SetInt(IdleKey(archetype, "GachaDupes"), id.DupeCount);
+            PlayerPrefs.SetInt(IdleKey(archetype, "GachaGearSlot"), id.GearSlot);
+            Save();
+        }
+
+        public static IdleGachaIdentityPersist LoadGachaIdentity(int archetype) =>
+            new IdleGachaIdentityPersist
+            {
+                HeroId = PlayerPrefs.GetInt(IdleKey(archetype, "GachaHeroId"), 0),
+                DupeCount = PlayerPrefs.GetInt(IdleKey(archetype, "GachaDupes"), 0),
+                GearSlot = PlayerPrefs.GetInt(IdleKey(archetype, "GachaGearSlot"), 0)
+            };
 
         /// <summary>Load cozy-only extras. Missing keys → zeros (safe for pre-D18 saves).</summary>
         public static IdleSliceCozyPersist LoadIdleCozyPersist(int archetype)
@@ -543,6 +567,9 @@ namespace HyperCasualRunner
             PlayerPrefs.DeleteKey(IdleKey(archetype, "GachaStage"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "GachaPulls"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "GachaRarity"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "GachaHeroId"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "GachaDupes"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "GachaGearSlot"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrStep"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrExplore"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrSoft"));

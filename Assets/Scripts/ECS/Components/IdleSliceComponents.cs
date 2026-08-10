@@ -129,6 +129,12 @@ namespace HyperCasualRunner.ECS.Components
         public int Stage;
         /// <summary>LoM auto-lamp interval accumulator (earned after Stage &gt;= 1).</summary>
         public float AutoTimer;
+        /// <summary>Idle Heroes identity DNA: last rolled hero id (1..4). LoM leaves 0.</summary>
+        public int HeroId;
+        /// <summary>Idle Heroes identity DNA: roster-wrap dupe count. LoM leaves 0.</summary>
+        public int DupeCount;
+        /// <summary>LoM identity DNA: gear slot from lamp loot (1=weapon, 2=armor, 3=acc). IH leaves 0.</summary>
+        public int GearSlot;
     }
 
     // --- Events (enableable one-shots) ---

@@ -978,6 +978,87 @@ namespace HyperCasualRunner.Tests
         }
 
         [Test]
+        public void IdleHeroes_GachaPull_SetsHeroIdAndDupes()
+        {
+            var slice = CreateSlice(IdleArchetype.IdleHeroes, 200);
+            _em.AddComponentData(slice, new IdleGachaState
+            {
+                PullCount = 0, PullCost = 10, BestRarity = 0, Stage = 0
+            });
+            _em.AddComponentData(slice, new IdleCombatState
+            {
+                TapDamage = 2, HeroDps = 3, Zone = 1, GoldPerKill = 5, EnemyHp = 20, EnemyMaxHp = 20
+            });
+
+            var sys = _world.CreateSystem<IdleGachaPullSystem>();
+            for (int i = 0; i < 5; i++)
+            {
+                var evt = _em.CreateEntity();
+                _em.AddComponentData(evt, new IdleGachaPullEvent());
+                sys.Update(_world.Unmanaged);
+            }
+
+            var gacha = _em.GetComponentData<IdleGachaState>(slice);
+            Assert.AreEqual(5, gacha.PullCount);
+            Assert.AreEqual(1, gacha.HeroId, "5th pull wraps 4-hero roster to HeroId=1");
+            Assert.AreEqual(1, gacha.DupeCount, "PullCount>4 must stamp DupeCount");
+            Assert.AreEqual(0, gacha.GearSlot, "IH must not set LoM GearSlot");
+        }
+
+        [Test]
+        public void LegendOfMushroom_GachaPull_SetsGearSlot()
+        {
+            var slice = CreateSlice(IdleArchetype.LegendOfMushroom, 100);
+            _em.AddComponentData(slice, new IdleGachaState
+            {
+                PullCount = 0, PullCost = 10, BestRarity = 0, Stage = 0
+            });
+
+            var sys = _world.CreateSystem<IdleGachaPullSystem>();
+            var evt = _em.CreateEntity();
+            _em.AddComponentData(evt, new IdleGachaPullEvent());
+            sys.Update(_world.Unmanaged);
+
+            var gacha = _em.GetComponentData<IdleGachaState>(slice);
+            Assert.AreEqual(1, gacha.PullCount);
+            Assert.GreaterOrEqual(gacha.GearSlot, 1, "LoM lamp loot must set gear slot ≥1");
+            Assert.LessOrEqual(gacha.GearSlot, 3, "LoM gear slots are 1..3");
+            Assert.AreEqual(0, gacha.HeroId, "LoM must not set IH HeroId");
+            Assert.AreEqual(0, gacha.DupeCount, "LoM must not set IH DupeCount");
+        }
+
+        [Test]
+        public void GachaIdentity_SurvivePersistPrefsRoundTrip()
+        {
+            int ih = (int)IdleArchetype.IdleHeroes;
+            int lom = (int)IdleArchetype.LegendOfMushroom;
+            GameProgressData.ClearIdleSlice(ih);
+            GameProgressData.ClearIdleSlice(lom);
+
+            GameProgressData.SaveGachaIdentity(ih, new IdleGachaIdentityPersist
+            {
+                HeroId = 3, DupeCount = 2, GearSlot = 0
+            });
+            GameProgressData.SaveGachaIdentity(lom, new IdleGachaIdentityPersist
+            {
+                HeroId = 0, DupeCount = 0, GearSlot = 2
+            });
+
+            var ihId = GameProgressData.LoadGachaIdentity(ih);
+            var lomId = GameProgressData.LoadGachaIdentity(lom);
+            Assert.AreEqual(3, ihId.HeroId);
+            Assert.AreEqual(2, ihId.DupeCount);
+            Assert.AreEqual(0, ihId.GearSlot);
+            Assert.AreEqual(2, lomId.GearSlot);
+            Assert.AreEqual(0, lomId.HeroId);
+
+            GameProgressData.ClearIdleSlice(ih);
+            GameProgressData.ClearIdleSlice(lom);
+            Assert.AreEqual(0, GameProgressData.LoadGachaIdentity(ih).HeroId);
+            Assert.AreEqual(0, GameProgressData.LoadGachaIdentity(lom).GearSlot);
+        }
+
+        [Test]
         public void IdleHeroes_GachaStageBump_DoesNotDropProgressionBelowZone()
         {
             // Zone deep; Stage low — stage-bump pull must not smash ProgressionLevel below Zone.

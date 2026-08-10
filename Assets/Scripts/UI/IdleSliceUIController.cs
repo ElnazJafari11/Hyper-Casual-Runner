@@ -434,6 +434,10 @@ namespace HyperCasualRunner.UI
             {
                 var g = em.GetComponentData<IdleGachaState>(sliceEntity);
                 _stats.text += $"\nPulls: {g.PullCount} | BestRarity: {g.BestRarity} | Stage: {g.Stage}";
+                if (s.Archetype == IdleArchetype.IdleHeroes)
+                    _stats.text += $" | Hero: {g.HeroId} | Dupes: {g.DupeCount}";
+                else if (s.Archetype == IdleArchetype.LegendOfMushroom)
+                    _stats.text += $" | GearSlot: {g.GearSlot}";
                 if (_lomFarmButton != null && s.Archetype == IdleArchetype.LegendOfMushroom)
                     _lomFarmButton.style.display = g.Stage >= 1 ? DisplayStyle.None : DisplayStyle.Flex;
             }
