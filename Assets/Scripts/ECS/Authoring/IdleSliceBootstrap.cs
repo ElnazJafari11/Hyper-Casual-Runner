@@ -165,7 +165,8 @@ namespace HyperCasualRunner.ECS.Authoring
                     out var phase,
                     out var faction,
                     out var energy,
-                    out var mgrHired))
+                    out var mgrHired,
+                    out var energyPool))
             {
                 state.PrimaryCurrency = primary;
                 state.PrestigeCurrency = prestige;
@@ -178,6 +179,7 @@ namespace HyperCasualRunner.ECS.Authoring
                 state.PhaseIndex = phase;
                 state.FactionId = faction;
                 state.EnergyAllocated = energy;
+                state.EnergyPool = energyPool > 0f ? energyPool : state.EnergyPool;
                 _loadedGens = gens;
                 _loadedManagersHired = managers;
                 _loadedPhase = phase;
@@ -185,7 +187,7 @@ namespace HyperCasualRunner.ECS.Authoring
                 _loadedEnergy = energy;
                 _loadedManagerHired = mgrHired;
 
-                // Kernel B wall-clock catch-up (Kernel A OfflineSimulationSystem is ProducerComponent-only).
+                // Sole Kernel B wall-clock catch-up (OS is Producer-only; see round_02/STAMP_POLICY.md).
                 ApplyPersistedOfflineCatchUp(ref state);
             }
 
@@ -243,7 +245,8 @@ namespace HyperCasualRunner.ECS.Authoring
                 s.PhaseIndex,
                 s.FactionId,
                 s.EnergyAllocated,
-                mgrHired);
+                mgrHired,
+                s.EnergyPool);
         }
 
         private void AttachArchetypeExtras(EntityManager em, Entity slice, IdleSliceState initial)
@@ -369,7 +372,7 @@ namespace HyperCasualRunner.ECS.Authoring
                     {
                         RoomOrStep = 0,
                         StokeCount = 0,
-                        ExploreUnlocked = Archetype == IdleArchetype.CapybaraGo ? 1 : 0,
+                        ExploreUnlocked = 0,
                         Wood = 0,
                         SoftCurrency = 0
                     });

@@ -9,7 +9,7 @@ Compose: `docs/idle-toolkit-compose.md`
 | Check | Result |
 |-------|--------|
 | Prefabs `Assets/ToolkitExamples/Idle/*` | 19/19 present |
-| EditMode AllSmoke (`IdleBatchA` + `IdleBatchBC`) | see `Logs/IdleAllSmoke-Summary.txt` after impl_09 reconfirm |
+| EditMode AllSmoke (`IdleBatchA` + `IdleBatchBC`) | **PASS 56/56** — `Logs/IdleAllSmoke-Summary.txt` (`result=Passed pass=56 fail=0`); target fixtures also in `Logs/IdleCombat-impl03-r2.log` |
 | Fixture presence (1 named smoke per matrix title) | **19/19** |
 | Play Mode (MCP Hyper-Casual-Runner) | UNVERIFIED — MCP still on `thepcgtoolkit` |
 
@@ -18,7 +18,7 @@ Compose: `docs/idle-toolkit-compose.md`
 | Claim | Value |
 |-------|--------|
 | Fixture presence | **19/19** |
-| EditMode NUnit green (AllSmoke) | see latest summary (includes extras beyond matrix 19) |
+| EditMode NUnit green (AllSmoke) | **56/56** (includes extras beyond matrix 19) |
 | Matrix core-verb + causal beat | **~17/19 OK** — Antimatter + AFK Arena remain PARTIAL (see scorecard) |
 | Play-mode verified | **0/19** |
 

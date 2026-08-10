@@ -322,6 +322,7 @@ namespace HyperCasualRunner.UI
                     Btn(row, "Farm Stage Gold", () => FireClick(3f));
                     break;
                 case IdleArchetype.CapybaraGo:
+                    Btn(row, "Take Step", () => FireNarrative(0));
                     Btn(row, "Next Step", () => FireNarrative(1));
                     Btn(row, "Lucky Find", () => FireClick(2f));
                     break;
