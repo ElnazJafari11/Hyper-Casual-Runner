@@ -75,4 +75,5 @@ NekoAtsume_CheckInCats_SurvivePersistNowReload => Passed
 - **Deviations:** Progress Persistence / scorecard Neko AFK lines scooped into `6461b37` (Batch A) before this commit; Batch BC 61/0 included concurrent peer fixtures present on disk during the run
 - **Flash Base:** none
 - **Escalations:** none
-- **Commit:** *(filled after local commit)*
+- **Commit:** `eef133f07ba8e8aef892a68c8cfc5ca2eb028f20` (CatchUp + policy + receipt; local only, never push)
+- **Follow-up:** EditMode fixture `NekoAtsume_OfflineCatchUp_AccruesCheckInCats` landed in companion commit (test file raced with swarm peers on first stage)
