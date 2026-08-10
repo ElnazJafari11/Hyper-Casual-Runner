@@ -5,7 +5,9 @@
 **Coordination:** `STAMP_POLICY.md` + Kernel impl `8d2407c` (`impl_01_kernel.md`)  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
+**Commit:** `157acd5ecd4a54fa8bb5c05da917e958d76c40a3` (local only — never push)  
 **Push:** never
+**Peer Kernel offline landing:** `8d2407c` (`impl_01_kernel.md`)
 
 ---
 
