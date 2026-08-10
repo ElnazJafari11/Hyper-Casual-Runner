@@ -4,7 +4,7 @@
 **Source review:** `round_06/review_08_ui.md`  
 **Architecture:** UI Toolkit only  
 **Play:** UI6-01 — **one `doctor` max**, then document BLOCKED (no Play thrash)  
-**Commit:** _(filled after local commit)_  
+**Commit:** `5ad330b34d25355aa06bae4d12b2f83f7d749a12` (local only, no push)  
 **Push:** never (local commit only)
 
 ---
