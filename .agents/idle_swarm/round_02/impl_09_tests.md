@@ -3,7 +3,7 @@
 **Agent:** implement 9/10  
 **Review:** `.agents/idle_swarm/round_02/review_09_tests.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
-**Commit:** `dee5793` local only (no push)
+**Commit:** `dee5793` (+ tip `e5fdce2` receipt hash note) local only (no push)
 
 ---
 
