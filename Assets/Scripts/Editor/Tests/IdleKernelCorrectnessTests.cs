@@ -9,6 +9,7 @@ namespace HyperCasualRunner.Tests
 {
     /// <summary>
     /// Kernel P0/P1 correctness gates from review_01_kernel (multi-slice, mult, offline, claim).
+    /// Round 02: D14 stamp race, D15 Kernel B = IdleOfflineCatchUp, D16 claim conservation.
     /// </summary>
     [TestFixture]
     public class IdleKernelCorrectnessTests
@@ -24,6 +25,8 @@ namespace HyperCasualRunner.Tests
             _em = _world.EntityManager;
             GameProgressData.ClearIdleSlice((int)IdleArchetype.CookieClicker);
             GameProgressData.ClearIdleSlice((int)IdleArchetype.EggInc);
+            GameProgressData.ClearIdleSlice((int)IdleArchetype.MelvorIdle);
+            GameProgressData.LastIdleUpdateTime = "";
         }
 
         [TearDown]
@@ -31,6 +34,8 @@ namespace HyperCasualRunner.Tests
         {
             GameProgressData.ClearIdleSlice((int)IdleArchetype.CookieClicker);
             GameProgressData.ClearIdleSlice((int)IdleArchetype.EggInc);
+            GameProgressData.ClearIdleSlice((int)IdleArchetype.MelvorIdle);
+            GameProgressData.LastIdleUpdateTime = "";
             if (_world != null && _world.IsCreated) _world.Dispose();
         }
 
@@ -136,26 +141,102 @@ namespace HyperCasualRunner.Tests
         }
 
         [Test]
-        public void OfflineCatchup_IdleSlice_WithoutProducer_SetsPendingClaim()
+        public void OfflineCatchup_IdleSlice_WithoutProducer_UsesKernelBCatchUp()
         {
-            var slice = CreateSlice(IdleArchetype.CookieClicker, 0);
-            var st = _em.GetComponentData<IdleSliceState>(slice);
-            st.PassiveRate = 2;
-            st.GlobalMultiplier = 1f;
-            _em.SetComponentData(slice, st);
+            // Kernel B authority is IdleOfflineCatchUp (not OfflineSimulationSystem).
+            var state = new IdleSliceState
+            {
+                Archetype = IdleArchetype.MelvorIdle,
+                PrimaryCurrency = 0,
+                GlobalMultiplier = 1f,
+                PassiveRate = 2,
+                PendingClaim = 0,
+                AfkChestSeconds = 0,
+                HasOfflineClaim = false
+            };
 
-            // Stamp last update 60s ago
-            GameProgressData.LastIdleUpdateTime =
-                System.DateTime.UtcNow.AddSeconds(-60).ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+            double gained = IdleOfflineCatchUp.Apply(ref state, 60);
+            Assert.AreEqual(120.0, gained, 0.001);
+            Assert.AreEqual(120.0, state.PendingClaim, 0.001);
+            Assert.AreEqual(0.0, state.PrimaryCurrency, 0.001);
+            Assert.AreEqual(0f, state.AfkChestSeconds, 0.01f, "Melvor catch-up must not bump AfkChestSeconds");
+            Assert.IsTrue(state.HasOfflineClaim);
+        }
+
+        [Test]
+        public void OfflineSimulation_EmptyWorld_DoesNotStampLastIdleUpdateTime()
+        {
+            string stamp = System.DateTime.UtcNow.AddSeconds(-60)
+                .ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+            GameProgressData.LastIdleUpdateTime = stamp;
 
             var offline = _world.CreateSystem<OfflineSimulationSystem>();
             offline.Update(_world.Unmanaged);
 
+            Assert.AreEqual(stamp, GameProgressData.LastIdleUpdateTime,
+                "D14: OS must not wipe AFK window when no producers were processed");
+        }
+
+        [Test]
+        public void OfflineSimulation_ThenBootstrapCatchUp_StillAccruesPendingClaim()
+        {
+            // Play-order mirror: Init OS (empty) then Kernel B catch-up after slice exists.
+            string stamp = System.DateTime.UtcNow.AddSeconds(-60)
+                .ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+            GameProgressData.LastIdleUpdateTime = stamp;
+
+            var offline = _world.CreateSystem<OfflineSimulationSystem>();
+            offline.Update(_world.Unmanaged);
+            Assert.AreEqual(stamp, GameProgressData.LastIdleUpdateTime);
+
+            var state = new IdleSliceState
+            {
+                Archetype = IdleArchetype.MelvorIdle,
+                PrimaryCurrency = 0,
+                GlobalMultiplier = 1f,
+                PassiveRate = 1,
+                PendingClaim = 0,
+                HasOfflineClaim = false
+            };
+
+            if (!System.DateTime.TryParse(
+                    GameProgressData.LastIdleUpdateTime,
+                    null,
+                    System.Globalization.DateTimeStyles.RoundtripKind,
+                    out System.DateTime lastTime))
+                Assert.Fail("LastIdleUpdateTime must remain parseable after empty OS pass");
+
+            double elapsed = (System.DateTime.UtcNow - lastTime).TotalSeconds;
+            Assert.Greater(elapsed, 50, "AFK window must survive empty OfflineSimulation");
+            double gained = IdleOfflineCatchUp.Apply(ref state, elapsed);
+            Assert.Greater(gained, 50);
+            Assert.Greater(state.PendingClaim, 50);
+            Assert.IsTrue(state.HasOfflineClaim);
+        }
+
+        [Test]
+        public void Claim_PendingClaim_DoesNotAlsoPayAfkChest()
+        {
+            var slice = CreateSlice(IdleArchetype.MelvorIdle, 0);
+            var st = _em.GetComponentData<IdleSliceState>(slice);
+            st.PendingClaim = 40;
+            st.AfkChestSeconds = 12f;
+            st.HasOfflineClaim = true;
+            st.ProgressionLevel = 2;
+            st.GlobalMultiplier = 1f;
+            _em.SetComponentData(slice, st);
+
+            var claimSys = _world.CreateSystem<IdleClaimOfflineSystem>();
+            var evt = _em.CreateEntity();
+            _em.AddComponentData(evt, new IdleClaimOfflineEvent { TargetSlice = slice });
+            claimSys.Update(_world.Unmanaged);
+
             var after = _em.GetComponentData<IdleSliceState>(slice);
-            Assert.IsTrue(after.HasOfflineClaim);
-            Assert.Greater(after.PendingClaim, 0, "Offline catchup must credit PendingClaim without ProducerComponent");
-            // ~2 CPS * 60s = 120 (cap path still applies)
-            Assert.AreEqual(120.0, after.PendingClaim, 5.0);
+            Assert.AreEqual(40.0, after.PrimaryCurrency, 0.001,
+                "D16: claim with PendingClaim must pay pending only (not + chest formula)");
+            Assert.AreEqual(0.0, after.PendingClaim, 0.001);
+            Assert.AreEqual(12f, after.AfkChestSeconds, 0.01f,
+                "Chest left for a later claim when pending was preferred");
         }
 
         [Test]

@@ -4,9 +4,10 @@ using HyperCasualRunner.ECS.Components;
 namespace HyperCasualRunner.ECS.Systems
 {
     /// <summary>
-    /// Kernel B wall-clock catch-up for toolkit <see cref="IdleSliceState"/> slices.
-    /// Cap mirrors Melvor-style soft offline (8h). Kernel A (<see cref="OfflineSimulationSystem"/>)
-    /// remains ProducerComponent-only and is not used by Melvor/Egg/Miner prefabs.
+    /// Sole Kernel B wall-clock catch-up for toolkit <see cref="IdleSliceState"/> slices
+    /// (invoked from <see cref="IdleSliceBootstrap"/> on load). Cap mirrors Melvor soft offline (8h).
+    /// Kernel A (<see cref="OfflineSimulationSystem"/>) is ProducerComponent-wallet only and must not
+    /// mutate slices or wipe <c>LastIdleUpdateTime</c> on empty Init ticks — see round_02/STAMP_POLICY.md.
     /// </summary>
     public static class IdleOfflineCatchUp
     {
@@ -14,8 +15,8 @@ namespace HyperCasualRunner.ECS.Systems
 
         /// <summary>
         /// Apply elapsed wall-clock time into slice state.
-        /// Melvor banks currency into <see cref="IdleSliceState.PendingClaim"/> (claim UI).
-        /// Passive CPS archetypes add directly to <see cref="IdleSliceState.PrimaryCurrency"/>.
+        /// Melvor banks into <see cref="IdleSliceState.PendingClaim"/> (+ skill XP); never bumps AfkChestSeconds.
+        /// Egg/Miner and other PassiveRate&gt;0 archetypes add directly to PrimaryCurrency (no Claim UI required).
         /// Returns currency granted or banked (0 if nothing applied).
         /// </summary>
         public static double Apply(ref IdleSliceState state, double elapsedSeconds)

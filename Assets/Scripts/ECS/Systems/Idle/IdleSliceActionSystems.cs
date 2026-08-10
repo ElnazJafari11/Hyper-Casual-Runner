@@ -83,18 +83,22 @@ namespace HyperCasualRunner.ECS.Systems
                         var gacha = em.GetComponentData<IdleGachaState>(sliceEntity);
                         if (TryApplyPull(ref gacha, ref slice, out int rarity))
                         {
-                            // Idle Heroes: gacha must raise auto-combat DPS, not only ClickPower/mult
-                            if (slice.Archetype == IdleArchetype.IdleHeroes)
+                            if (em.HasComponent<IdleCombatState>(sliceEntity))
                             {
-                                double dpsGain = rarity * 0.5;
-                                slice.PassiveRate += dpsGain;
-                                if (em.HasComponent<IdleCombatState>(sliceEntity))
+                                var combat = em.GetComponentData<IdleCombatState>(sliceEntity);
+
+                                // Idle Heroes: gacha must raise auto-combat DPS, not only ClickPower/mult
+                                if (slice.Archetype == IdleArchetype.IdleHeroes)
                                 {
-                                    var combat = em.GetComponentData<IdleCombatState>(sliceEntity);
+                                    double dpsGain = rarity * 0.5;
+                                    slice.PassiveRate += dpsGain;
                                     combat.HeroDps += dpsGain;
                                     combat.TapDamage = slice.ClickPower;
-                                    em.SetComponentData(sliceEntity, combat);
                                 }
+
+                                // One progression axis: Stage must never smash combat Zone on ProgressionLevel.
+                                slice.ProgressionLevel = System.Math.Max(slice.ProgressionLevel, combat.Zone);
+                                em.SetComponentData(sliceEntity, combat);
                             }
 
                             em.SetComponentData(sliceEntity, gacha);
@@ -137,6 +141,9 @@ namespace HyperCasualRunner.ECS.Systems
             double cost = gacha.PullCost <= 0 ? 10.0 : gacha.PullCost;
             if (slice.PrimaryCurrency < cost) return false;
 
+            // LoM stage-unlocked lamp loot: refund cost+1 so Farm click is optional after Stage>=1.
+            bool lomLampLoot = slice.Archetype == IdleArchetype.LegendOfMushroom && gacha.Stage >= 1;
+
             slice.PrimaryCurrency -= cost;
             gacha.PullCount += 1;
 
@@ -149,8 +156,12 @@ namespace HyperCasualRunner.ECS.Systems
             if (gacha.PullCount % 3 == 0)
             {
                 gacha.Stage += 1;
-                slice.ProgressionLevel = gacha.Stage;
+                // Max — never overwrite a deeper combat Zone already mirrored into ProgressionLevel.
+                slice.ProgressionLevel = System.Math.Max(slice.ProgressionLevel, gacha.Stage);
             }
+
+            if (lomLampLoot)
+                slice.PrimaryCurrency += cost + 1;
 
             return true;
         }
@@ -196,6 +207,9 @@ namespace HyperCasualRunner.ECS.Systems
                 SystemAPI.SetComponentEnabled<IdleNarrativeActionEvent>(entity, false);
                 ecb.DestroyEntity(entity);
             }
+
+            ecb.Playback(em);
+            ecb.Dispose();
         }
 
         private static void ApplyNarrative(ref IdleNarrativeState narr, ref IdleSliceState slice, int action)
@@ -206,18 +220,16 @@ namespace HyperCasualRunner.ECS.Systems
                     narr.StokeCount += 1;
                     narr.Wood += 1;
                     slice.PrimaryCurrency += 1 * slice.GlobalMultiplier;
-                    if (narr.StokeCount >= 5 && narr.ExploreUnlocked == 0)
-                        narr.ExploreUnlocked = 1;
+                    if (narr.ExploreUnlocked == 0)
+                    {
+                        // Capybara: one earned step unlocks advance. ADR: 5 stokes.
+                        int need = slice.Archetype == IdleArchetype.CapybaraGo ? 1 : 5;
+                        if (narr.StokeCount >= need)
+                            narr.ExploreUnlocked = 1;
+                    }
                     break;
                 case 1: // explore / advance tile
-                    if (narr.ExploreUnlocked == 0 && slice.Archetype == IdleArchetype.ADarkRoom) return;
-                    narr.RoomOrStep += 1;
-                    slice.ProgressionLevel = narr.RoomOrStep;
-                    slice.PrimaryCurrency += 5 * slice.GlobalMultiplier;
-                    narr.SoftCurrency += 2;
-                    // Capybara live bootstrap path uses IdleNarrativeState — milestone must land here
-                    if (slice.Archetype == IdleArchetype.CapybaraGo && narr.RoomOrStep % 5 == 0)
-                        slice.GlobalMultiplier += 0.1f;
+                    TryAdvanceStep(ref narr, ref slice);
                     break;
                 case 2: // craft / build
                     if (narr.Wood < 3) return;
@@ -226,6 +238,24 @@ namespace HyperCasualRunner.ECS.Systems
                     slice.GlobalMultiplier += 0.1f;
                     break;
             }
+        }
+
+        /// <summary>Shared tile/step advance for manual narrative + Capybara auto-tiles.</summary>
+        public static bool TryAdvanceStep(ref IdleNarrativeState narr, ref IdleSliceState slice)
+        {
+            if (narr.ExploreUnlocked == 0 &&
+                (slice.Archetype == IdleArchetype.ADarkRoom ||
+                 slice.Archetype == IdleArchetype.CapybaraGo))
+                return false;
+
+            narr.RoomOrStep += 1;
+            slice.ProgressionLevel = narr.RoomOrStep;
+            slice.PrimaryCurrency += 5 * slice.GlobalMultiplier;
+            narr.SoftCurrency += 2;
+            // Capybara live bootstrap path uses IdleNarrativeState — milestone must land here
+            if (slice.Archetype == IdleArchetype.CapybaraGo && narr.RoomOrStep % 5 == 0)
+                slice.GlobalMultiplier += 0.1f;
+            return true;
         }
 
         private static void ApplySliceOnlyNarrative(ref IdleSliceState slice, int action)
@@ -293,24 +323,59 @@ namespace HyperCasualRunner.ECS.Systems
                 if (sliceEntity != Entity.Null && em.HasComponent<IdleSliceState>(sliceEntity))
                 {
                     var slice = em.GetComponentData<IdleSliceState>(sliceEntity);
-                    if (slice.Archetype == IdleArchetype.RealmGrinder)
-                    {
-                        slice.FactionId = amount <= 1.5f ? 1 : 2;
-                        slice.GlobalMultiplier += 0.15f;
-                        slice.ProgressionLevel += 1;
-                    }
-                    else
-                    {
-                        float alloc = System.Math.Clamp(amount, 0f, slice.EnergyPool);
-                        slice.EnergyAllocated = alloc;
-                        if (alloc > 0 && slice.ProgressionLevel < 1)
-                            slice.ProgressionLevel = 1;
-                    }
+                    // RG Align uses IdleFactionAlignEvent — energy alloc is NGU (and similar) only.
+                    float alloc = System.Math.Clamp(amount, 0f, slice.EnergyPool);
+                    slice.EnergyAllocated = alloc;
+                    if (alloc > 0 && slice.ProgressionLevel < 1)
+                        slice.ProgressionLevel = 1;
 
                     em.SetComponentData(sliceEntity, slice);
                 }
 
                 SystemAPI.SetComponentEnabled<IdleAllocateEnergyEvent>(entity, false);
+                ecb.DestroyEntity(entity);
+            }
+
+            ecb.Playback(em);
+            ecb.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Realm Grinder Align: set FactionId only. No free Mult/Level — income path uses factionBonus in sim.
+    /// </summary>
+    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    public partial struct IdleFactionAlignSystem : ISystem
+    {
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<IdleFactionAlignEvent>();
+        }
+
+        public void OnUpdate(ref SystemState state)
+        {
+            var em = state.EntityManager;
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            Entity sole = IdleEventTarget.FindSoleSlice(em);
+
+            foreach (var (evt, entity) in SystemAPI.Query<RefRO<IdleFactionAlignEvent>>().WithEntityAccess())
+            {
+                Entity sliceEntity = IdleEventTarget.Resolve(em, entity, evt.ValueRO.TargetSlice, sole);
+                int faction = evt.ValueRO.FactionId;
+
+                if (sliceEntity != Entity.Null &&
+                    em.HasComponent<IdleSliceState>(sliceEntity) &&
+                    (faction == 1 || faction == 2))
+                {
+                    var slice = em.GetComponentData<IdleSliceState>(sliceEntity);
+                    if (slice.Archetype == IdleArchetype.RealmGrinder)
+                    {
+                        slice.FactionId = faction;
+                        em.SetComponentData(sliceEntity, slice);
+                    }
+                }
+
+                SystemAPI.SetComponentEnabled<IdleFactionAlignEvent>(entity, false);
                 ecb.DestroyEntity(entity);
             }
 
@@ -352,21 +417,27 @@ namespace HyperCasualRunner.ECS.Systems
                         continue;
                     }
 
+                    // D16: mutually exclusive — PendingClaim OR chest/cats, never both in one claim.
                     if (pending > 0)
                     {
                         slice.PrimaryCurrency += pending;
                         slice.PendingClaim = 0;
                     }
+                    else
+                    {
+                        double reward = slice.AfkChestSeconds * (1.0 + slice.ProgressionLevel) *
+                                        slice.GlobalMultiplier;
+                        reward += slice.CheckInCats * 5.0;
+                        if (reward > 0)
+                            slice.PrimaryCurrency += reward;
 
-                    double reward = slice.AfkChestSeconds * (1.0 + slice.ProgressionLevel) *
-                                    slice.GlobalMultiplier;
-                    reward += slice.CheckInCats * 5.0;
-                    if (reward > 0)
-                        slice.PrimaryCurrency += reward;
+                        slice.AfkChestSeconds = 0f;
+                        slice.CheckInCats = 0;
+                    }
 
-                    slice.AfkChestSeconds = 0f;
-                    slice.CheckInCats = 0;
-                    slice.HasOfflineClaim = false;
+                    slice.HasOfflineClaim = slice.PendingClaim > 0 ||
+                                           slice.AfkChestSeconds >= 1f ||
+                                           slice.CheckInCats > 0;
                     em.SetComponentData(sliceEntity, slice);
                     IdleEventTarget.SyncPairedRunGold(em, sliceEntity, slice.PrimaryCurrency);
                 }

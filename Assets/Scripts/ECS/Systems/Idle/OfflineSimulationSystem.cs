@@ -6,8 +6,11 @@ using HyperCasualRunner.ECS.Components;
 namespace HyperCasualRunner.ECS.Systems
 {
     /// <summary>
-    /// One-shot offline catchup on enter: ProducerComponent wallets and/or IdleSliceState CPS.
-    /// Caps at 8h. Slice path credits PendingClaim + HasOfflineClaim (honest claim button).
+    /// Kernel A one-shot offline catchup for <see cref="ProducerComponent"/> wallets only.
+    /// Toolkit IdleSliceState catch-up is owned by <see cref="IdleOfflineCatchUp"/> via bootstrap.
+    /// Caps at 8h. Does not stamp <see cref="GameProgressData.LastIdleUpdateTime"/> when a
+    /// pending AFK window exists but nothing was processed (slices spawn after Init).
+    /// Shared contract: round_02/STAMP_POLICY.md.
     /// SystemAPI calls stay in OnUpdate (Entities source-gen forbids them in helpers).
     /// </summary>
     [UpdateInGroup(typeof(InitializationSystemGroup))]
@@ -17,7 +20,7 @@ namespace HyperCasualRunner.ECS.Systems
 
         public void OnCreate(ref SystemState state)
         {
-            // Run once even when only IdleSliceState exists (no ProducerComponent required)
+            // One-shot Init pass; may no-op when only IdleSliceState worlds exist.
         }
 
         public void OnUpdate(ref SystemState state)
@@ -27,6 +30,8 @@ namespace HyperCasualRunner.ECS.Systems
             string lastTimeStr = GameProgressData.LastIdleUpdateTime;
             DateTime now = DateTime.UtcNow;
 
+            bool appliedCatchUp = false;
+
             if (!string.IsNullOrEmpty(lastTimeStr) &&
                 DateTime.TryParse(lastTimeStr, null, DateTimeStyles.RoundtripKind, out DateTime lastTime))
             {
@@ -34,19 +39,6 @@ namespace HyperCasualRunner.ECS.Systems
 
                 if (totalSeconds > 0)
                 {
-                    foreach (var slice in SystemAPI.Query<RefRW<IdleSliceState>>())
-                    {
-                        double rate = slice.ValueRO.PassiveRate;
-                        if (rate <= 0) continue;
-
-                        double earned = rate * slice.ValueRO.GlobalMultiplier * totalSeconds;
-                        if (earned <= 0) continue;
-
-                        slice.ValueRW.PendingClaim += earned;
-                        slice.ValueRW.HasOfflineClaim = true;
-                        slice.ValueRW.AfkChestSeconds += (float)Math.Min(totalSeconds, 3600.0);
-                    }
-
                     var walletLookup = SystemAPI.GetBufferLookup<ResourceWallet>(false);
 
                     Entity playerWalletEntity = Entity.Null;
@@ -96,12 +88,16 @@ namespace HyperCasualRunner.ECS.Systems
                         {
                             DynamicBuffer<ResourceWallet> wallet = walletLookup[targetEntity];
                             AddOrUpdateResource(wallet, producer.ValueRO.ResourceId, amountProduced);
+                            appliedCatchUp = true;
                         }
                     }
                 }
             }
 
-            GameProgressData.LastIdleUpdateTime = now.ToString("O");
+            // D14 / STAMP_POLICY: stamp only when ≥1 producer catch-up applied.
+            // Empty Init (no producers / slices not yet spawned) must leave T0 for bootstrap.
+            if (appliedCatchUp)
+                GameProgressData.LastIdleUpdateTime = now.ToString("O");
         }
 
         private static void AddOrUpdateResource(DynamicBuffer<ResourceWallet> wallet, int resourceId, double amount)
