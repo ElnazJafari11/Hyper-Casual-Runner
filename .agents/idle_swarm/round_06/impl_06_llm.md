@@ -4,8 +4,7 @@
 **From:** `round_06/review_10_llm.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
-**Commit:** *(filled after local commit)*  
-**Never push.**
+**Commit:** `06f2617` (local only; never push)
 
 ---
 
