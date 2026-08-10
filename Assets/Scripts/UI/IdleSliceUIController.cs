@@ -348,7 +348,9 @@ namespace HyperCasualRunner.UI
                 case IdleArchetype.CapybaraGo:
                     Btn(row, "Take Step", () => FireNarrative(0));
                     Btn(row, "Next Step", () => FireNarrative(1));
-                    Btn(row, "Lucky Find", () => FireClick(2f));
+                    Btn(row, "Fight Path", () => FireNarrative(3));
+                    Btn(row, "Safe Path", () => FireNarrative(4));
+                    Btn(row, "Lucky Find", () => FireNarrative(5));
                     break;
                 case IdleArchetype.CatsAndSoup:
                     Btn(row, "Assign Cat", () => FireAssign(1));
@@ -453,7 +455,10 @@ namespace HyperCasualRunner.UI
             {
                 var n = em.GetComponentData<IdleNarrativeState>(sliceEntity);
                 string explore = n.ExploreUnlocked != 0 ? "unlocked" : "locked";
-                _stats.text += $"\nRoomOrStep: {n.RoomOrStep} | Soft: {n.SoftCurrency:N0} | Explore: {explore}";
+                string fork = n.PendingChoice != 0 ? "pending" : "clear";
+                _stats.text +=
+                    $"\nRoomOrStep: {n.RoomOrStep} | Soft: {n.SoftCurrency:N0} | Explore: {explore}" +
+                    $"\nRun: {n.RunId} | Choice: {fork}/{n.LastChoice} | Pet: {n.PetId}";
             }
 
             if (s.Archetype == IdleArchetype.NguIdle)

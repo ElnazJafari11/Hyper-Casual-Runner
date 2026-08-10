@@ -119,6 +119,14 @@ namespace HyperCasualRunner.ECS.Components
         public double SoftCurrency;
         /// <summary>Capybara auto-tile interval accumulator (when ExploreUnlocked &gt; 0).</summary>
         public float AutoTimer;
+        /// <summary>Capybara roguelite DNA: run counter (starts 1; bumps every 10 steps). ADR leaves 0.</summary>
+        public int RunId;
+        /// <summary>Capybara: 1 when a binary path choice is pending (every 5 steps). ADR leaves 0.</summary>
+        public int PendingChoice;
+        /// <summary>Capybara: last path pick (1=Fight, 2=Safe). ADR leaves 0.</summary>
+        public int LastChoice;
+        /// <summary>Capybara pet-gacha DNA: last Lucky Find pet id (1..3). ADR leaves 0.</summary>
+        public int PetId;
     }
 
     public struct IdleGachaState : IComponentData
@@ -174,7 +182,9 @@ namespace HyperCasualRunner.ECS.Components
     public struct IdleNarrativeActionEvent : IComponentData, IEnableableComponent
     {
         public Entity TargetSlice;
-        public int ActionId; // 0=stoke/step/rub, 1=explore/advance, 2=craft
+        // 0=stoke/step, 1=explore/advance, 2=craft,
+        // 3=Capybara Fight path, 4=Capybara Safe path, 5=Capybara Lucky Find (pet)
+        public int ActionId;
     }
 
     public struct IdleAllocateEnergyEvent : IComponentData, IEnableableComponent

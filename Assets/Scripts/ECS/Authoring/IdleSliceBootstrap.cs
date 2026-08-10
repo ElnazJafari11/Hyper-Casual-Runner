@@ -502,7 +502,9 @@ namespace HyperCasualRunner.ECS.Authoring
                         StokeCount = _loadedNarrStokeCount,
                         ExploreUnlocked = _loadedNarrExploreUnlocked,
                         Wood = _loadedNarrWood,
-                        SoftCurrency = _loadedNarrSoftCurrency
+                        SoftCurrency = _loadedNarrSoftCurrency,
+                        // Capybara DNA cold-start: RunId=1; ADR leaves RunId=0 via same struct defaults.
+                        RunId = Archetype == IdleArchetype.CapybaraGo ? 1 : 0
                     });
                     break;
 

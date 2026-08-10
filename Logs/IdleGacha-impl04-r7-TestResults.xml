@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="8" result="Passed" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-08-10 02:47:43Z" end-time="2026-08-10 02:47:45Z" duration="1.4279486">
+  <test-suite type="TestSuite" id="1000" name="Stickman Rush" fullname="Stickman Rush" runstate="Runnable" testcasecount="163" result="Passed" start-time="2026-08-10 02:47:43Z" end-time="2026-08-10 02:47:45Z" duration="1.427949" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1178" name="Assembly-CSharp-Editor.dll" fullname="D:/Git/Hyper-Casual-Runner/Library/ScriptAssemblies/Assembly-CSharp-Editor.dll" runstate="Runnable" testcasecount="163" result="Passed" start-time="2026-08-10 02:47:43Z" end-time="2026-08-10 02:47:45Z" duration="1.405712" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="18744" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1179" name="HyperCasualRunner" fullname="HyperCasualRunner" runstate="Runnable" testcasecount="163" result="Passed" start-time="2026-08-10 02:47:43Z" end-time="2026-08-10 02:47:45Z" duration="1.398596" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1180" name="Tests" fullname="HyperCasualRunner.Tests" runstate="Runnable" testcasecount="163" result="Passed" start-time="2026-08-10 02:47:43Z" end-time="2026-08-10 02:47:45Z" duration="1.393268" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1055" name="IdleBatchBCSmokeTests" fullname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests" classname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests" runstate="Runnable" testcasecount="68" result="Passed" start-time="2026-08-10 02:47:43Z" end-time="2026-08-10 02:47:45Z" duration="1.375124" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1095" name="CapybaraGo_FiveSteps_RaisesGlobalMultiplier" fullname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests.CapybaraGo_FiveSteps_RaisesGlobalMultiplier" methodname="CapybaraGo_FiveSteps_RaisesGlobalMultiplier" classname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests" runstate="Runnable" seed="74407250" result="Passed" start-time="2026-08-10 02:47:43Z" end-time="2026-08-10 02:47:44Z" duration="0.807693" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1100" name="CapybaraGo_FiveSteps_SetsPendingChoiceAndRunId" fullname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests.CapybaraGo_FiveSteps_SetsPendingChoiceAndRunId" methodname="CapybaraGo_FiveSteps_SetsPendingChoiceAndRunId" classname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests" runstate="Runnable" seed="1035957160" result="Passed" start-time="2026-08-10 02:47:44Z" end-time="2026-08-10 02:47:44Z" duration="0.065388" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1103" name="CapybaraGo_LuckyFind_SetsPetId" fullname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests.CapybaraGo_LuckyFind_SetsPetId" methodname="CapybaraGo_LuckyFind_SetsPetId" classname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests" runstate="Runnable" seed="1448005637" result="Passed" start-time="2026-08-10 02:47:44Z" end-time="2026-08-10 02:47:44Z" duration="0.060322" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1101" name="CapybaraGo_PathChoice_MutatesLastChoice" fullname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests.CapybaraGo_PathChoice_MutatesLastChoice" methodname="CapybaraGo_PathChoice_MutatesLastChoice" classname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests" runstate="Runnable" seed="2042808100" result="Passed" start-time="2026-08-10 02:47:44Z" end-time="2026-08-10 02:47:44Z" duration="0.085092" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1102" name="CapybaraGo_TenSteps_IncrementsRunId" fullname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests.CapybaraGo_TenSteps_IncrementsRunId" methodname="CapybaraGo_TenSteps_IncrementsRunId" classname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests" runstate="Runnable" seed="1069386150" result="Passed" start-time="2026-08-10 02:47:44Z" end-time="2026-08-10 02:47:45Z" duration="0.060951" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1089" name="GachaIdentity_SurvivePersistPrefsRoundTrip" fullname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests.GachaIdentity_SurvivePersistPrefsRoundTrip" methodname="GachaIdentity_SurvivePersistPrefsRoundTrip" classname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests" runstate="Runnable" seed="1981183827" result="Passed" start-time="2026-08-10 02:47:45Z" end-time="2026-08-10 02:47:45Z" duration="0.073462" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1087" name="IdleHeroes_GachaPull_SetsHeroIdAndDupes" fullname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests.IdleHeroes_GachaPull_SetsHeroIdAndDupes" methodname="IdleHeroes_GachaPull_SetsHeroIdAndDupes" classname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests" runstate="Runnable" seed="2101381825" result="Passed" start-time="2026-08-10 02:47:45Z" end-time="2026-08-10 02:47:45Z" duration="0.082466" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1088" name="LegendOfMushroom_GachaPull_SetsGearSlot" fullname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests.LegendOfMushroom_GachaPull_SetsGearSlot" methodname="LegendOfMushroom_GachaPull_SetsGearSlot" classname="HyperCasualRunner.Tests.IdleBatchBCSmokeTests" runstate="Runnable" seed="2016813233" result="Passed" start-time="2026-08-10 02:47:45Z" end-time="2026-08-10 02:47:45Z" duration="0.062260" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[<b><color=#2EA3FF>MCP-FOR-UNITY</color></b>: [TestRunnerNoThrottle] Restored Interaction Mode after test run.
+Saving results to: C:/Users/AZAD/AppData/LocalLow/DefaultCompany/Stickman Rush\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

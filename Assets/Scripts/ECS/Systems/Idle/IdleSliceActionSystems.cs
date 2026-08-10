@@ -263,6 +263,15 @@ namespace HyperCasualRunner.ECS.Systems
                     slice.PassiveRate += 0.5;
                     slice.GlobalMultiplier += 0.1f;
                     break;
+                case 3: // Capybara Fight path
+                    TryResolveCapybaraChoice(ref narr, ref slice, choice: 1);
+                    break;
+                case 4: // Capybara Safe path
+                    TryResolveCapybaraChoice(ref narr, ref slice, choice: 2);
+                    break;
+                case 5: // Capybara Lucky Find → pet identity (not flat click gold)
+                    TryApplyCapybaraLuckyFind(ref narr, ref slice);
+                    break;
             }
         }
 
@@ -279,8 +288,53 @@ namespace HyperCasualRunner.ECS.Systems
             slice.PrimaryCurrency += 5 * slice.GlobalMultiplier;
             narr.SoftCurrency += 2;
             // Capybara live bootstrap path uses IdleNarrativeState — milestone must land here
-            if (slice.Archetype == IdleArchetype.CapybaraGo && narr.RoomOrStep % 5 == 0)
-                slice.GlobalMultiplier += 0.1f;
+            if (slice.Archetype == IdleArchetype.CapybaraGo)
+            {
+                if (narr.RunId <= 0)
+                    narr.RunId = 1;
+                if (narr.RoomOrStep % 5 == 0)
+                {
+                    slice.GlobalMultiplier += 0.1f;
+                    narr.PendingChoice = 1; // binary fork every 5 steps
+                }
+                if (narr.RoomOrStep % 10 == 0)
+                    narr.RunId += 1; // cheap run beat
+            }
+            return true;
+        }
+
+        /// <summary>MVP roguelite fork: pending choice → LastChoice + small reward.</summary>
+        public static bool TryResolveCapybaraChoice(ref IdleNarrativeState narr, ref IdleSliceState slice, int choice)
+        {
+            if (slice.Archetype != IdleArchetype.CapybaraGo || narr.PendingChoice == 0)
+                return false;
+            if (choice != 1 && choice != 2)
+                return false;
+
+            narr.LastChoice = choice;
+            narr.PendingChoice = 0;
+            if (choice == 1)
+            {
+                narr.SoftCurrency += 3;
+                slice.GlobalMultiplier += 0.05f;
+            }
+            else
+            {
+                narr.SoftCurrency += 1;
+                slice.PrimaryCurrency += 10 * slice.GlobalMultiplier;
+            }
+            return true;
+        }
+
+        /// <summary>MVP pet gacha: cycles PetId 1..3 and soft reward (not FireClick).</summary>
+        public static bool TryApplyCapybaraLuckyFind(ref IdleNarrativeState narr, ref IdleSliceState slice)
+        {
+            if (slice.Archetype != IdleArchetype.CapybaraGo)
+                return false;
+
+            narr.PetId = 1 + (narr.PetId % 3);
+            narr.SoftCurrency += 5;
+            slice.PassiveRate += 0.25;
             return true;
         }
 

@@ -1297,6 +1297,81 @@ namespace HyperCasualRunner.Tests
         }
 
         [Test]
+        public void CapybaraGo_FiveSteps_SetsPendingChoiceAndRunId()
+        {
+            var slice = CreateSlice(IdleArchetype.CapybaraGo, 0);
+            _em.AddComponentData(slice, new IdleNarrativeState
+            {
+                RoomOrStep = 0, StokeCount = 0, ExploreUnlocked = 1, Wood = 0, SoftCurrency = 0, RunId = 1
+            });
+            var sys = _world.CreateSystem<IdleNarrativeActionSystem>();
+            for (int i = 0; i < 5; i++)
+                FireNarrative(sys, 1);
+
+            var narr = _em.GetComponentData<IdleNarrativeState>(slice);
+            Assert.AreEqual(5, narr.RoomOrStep);
+            Assert.AreEqual(1, narr.PendingChoice, "Every 5 steps must open a binary fork");
+            Assert.AreEqual(1, narr.RunId, "RunId stays 1 until step 10");
+        }
+
+        [Test]
+        public void CapybaraGo_PathChoice_MutatesLastChoice()
+        {
+            var slice = CreateSlice(IdleArchetype.CapybaraGo, 0);
+            _em.AddComponentData(slice, new IdleNarrativeState
+            {
+                RoomOrStep = 5, StokeCount = 1, ExploreUnlocked = 1, Wood = 0, SoftCurrency = 0,
+                RunId = 1, PendingChoice = 1, LastChoice = 0
+            });
+            var sys = _world.CreateSystem<IdleNarrativeActionSystem>();
+            FireNarrative(sys, 3); // Fight path
+
+            var narr = _em.GetComponentData<IdleNarrativeState>(slice);
+            Assert.AreEqual(1, narr.LastChoice, "Fight path must stamp LastChoice=1");
+            Assert.AreEqual(0, narr.PendingChoice, "Resolving choice clears PendingChoice");
+            Assert.GreaterOrEqual(narr.SoftCurrency, 3, "Fight path yields soft reward");
+        }
+
+        [Test]
+        public void CapybaraGo_TenSteps_IncrementsRunId()
+        {
+            var slice = CreateSlice(IdleArchetype.CapybaraGo, 0);
+            _em.AddComponentData(slice, new IdleNarrativeState
+            {
+                RoomOrStep = 0, StokeCount = 0, ExploreUnlocked = 1, Wood = 0, SoftCurrency = 0, RunId = 1
+            });
+            var sys = _world.CreateSystem<IdleNarrativeActionSystem>();
+            for (int i = 0; i < 10; i++)
+                FireNarrative(sys, 1);
+
+            var narr = _em.GetComponentData<IdleNarrativeState>(slice);
+            Assert.AreEqual(10, narr.RoomOrStep);
+            Assert.AreEqual(2, narr.RunId, "Step 10 must bump RunId (cheap run beat)");
+            Assert.AreEqual(1, narr.PendingChoice, "Step 10 is also a %5 fork");
+        }
+
+        [Test]
+        public void CapybaraGo_LuckyFind_SetsPetId()
+        {
+            var slice = CreateSlice(IdleArchetype.CapybaraGo, 0);
+            _em.AddComponentData(slice, new IdleNarrativeState
+            {
+                RoomOrStep = 0, StokeCount = 0, ExploreUnlocked = 1, Wood = 0, SoftCurrency = 0,
+                RunId = 1, PetId = 0
+            });
+            double cpsBefore = _em.GetComponentData<IdleSliceState>(slice).PassiveRate;
+            var sys = _world.CreateSystem<IdleNarrativeActionSystem>();
+            FireNarrative(sys, 5);
+
+            var narr = _em.GetComponentData<IdleNarrativeState>(slice);
+            Assert.AreEqual(1, narr.PetId, "Lucky Find must stamp PetId (not flat click gold)");
+            Assert.AreEqual(5, narr.SoftCurrency, 0.001);
+            Assert.Greater(_em.GetComponentData<IdleSliceState>(slice).PassiveRate, cpsBefore);
+            FireNarrative(sys, 5);
+            Assert.AreEqual(2, _em.GetComponentData<IdleNarrativeState>(slice).PetId, "PetId cycles 1..3");
+        }
+
+        [Test]
         public void IdleHeroes_AfkChestSeconds_PersistsRoundTrip()
         {
             GameProgressData.ClearIdleSlice((int)IdleArchetype.IdleHeroes);

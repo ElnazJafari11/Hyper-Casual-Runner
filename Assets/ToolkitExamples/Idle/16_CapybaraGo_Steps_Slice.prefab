@@ -82,7 +82,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HyperCasualRunner.ECS.Authoring.IdleSliceBootstrap
   Archetype: 15
   DisplayName: Capybara Go!
-  HowToPlay: "Take Step unlocks auto-tiles \u2192 Next Step / auto-advance \u2192 lucky finds \u2192 milestone mult."
+  HowToPlay: "Take Step unlocks auto-tiles \u2192 run forks every 5 steps \u2192 Lucky Find pets \u2192 run advances every 10."
   StartingCurrency: 0
   ClickPower: 1
   GeneratorBaseCost: 15
