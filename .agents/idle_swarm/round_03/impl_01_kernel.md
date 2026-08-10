@@ -4,6 +4,8 @@
 **Sources:** `.agents/idle_swarm/round_03/review_01_kernel.md`  
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
+**Commit:** `bd06da8582a5f0a58e77fec523865aece1cffcb2` (local only — never push)  
+**Bootstrap call-site:** also present on `763a323` (concurrent prestige polish scooped working-tree D23/D25 bootstrap reorder before this commit; this commit lands `ApplyPersistedElapsed` + tests that the call-site requires)  
 **Push:** never
 
 ---
@@ -86,4 +88,4 @@ Play Mode relaunch AFK (D24): **UNVERIFIED** / deferred.
 
 **ROUTE:** Executor (plan = review_01 P0 items 1–2)  
 **VERIFIED:** IdleKernelCorrectnessTests 12/12 EditMode  
-**COMMIT:** local only — never push
+**COMMIT:** `bd06da8582a5f0a58e77fec523865aece1cffcb2` local only — never push
