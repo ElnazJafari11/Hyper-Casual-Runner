@@ -5,6 +5,7 @@
 **Repo:** `D:\Git\Hyper-Casual-Runner`  
 **Date:** 2026-08-10  
 **Mode:** Optional P2 only if cheap — else verify + document  
+**Commit:** `c66f7b3` (local only, no push)
 **Push:** never (local commit only)
 
 ---
