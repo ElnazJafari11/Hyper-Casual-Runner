@@ -1372,6 +1372,47 @@ namespace HyperCasualRunner.Tests
         }
 
         [Test]
+        public void CapybaraGo_RunPetChoice_SurvivePersistNowReload()
+        {
+            // R8 P2: PersistNow → destroy → attach must restore Capybara DNA (not hard-reset RunId=1).
+            int arch = (int)IdleArchetype.CapybaraGo;
+            GameProgressData.ClearIdleSlice(arch);
+
+            var boot = SpawnBootstrap(IdleArchetype.CapybaraGo);
+            var slice = boot.SliceEntity;
+            _em.SetComponentData(slice, new IdleNarrativeState
+            {
+                RoomOrStep = 12,
+                StokeCount = 1,
+                ExploreUnlocked = 1,
+                Wood = 0,
+                SoftCurrency = 8,
+                RunId = 3,
+                PetId = 2,
+                LastChoice = 1,
+                PendingChoice = 1
+            });
+            boot.PersistNow();
+            Object.DestroyImmediate(boot.gameObject);
+
+            var boot2 = SpawnBootstrap(IdleArchetype.CapybaraGo);
+            try
+            {
+                var narr = _em.GetComponentData<IdleNarrativeState>(boot2.SliceEntity);
+                Assert.AreEqual(3, narr.RunId, "RunId must survive PersistNow reload");
+                Assert.AreEqual(2, narr.PetId, "PetId must survive PersistNow reload");
+                Assert.AreEqual(1, narr.LastChoice, "LastChoice must survive PersistNow reload");
+                Assert.AreEqual(1, narr.PendingChoice, "PendingChoice must survive PersistNow reload");
+                Assert.AreEqual(12, narr.RoomOrStep, "RoomOrStep still restores with DNA");
+            }
+            finally
+            {
+                Object.DestroyImmediate(boot2.gameObject);
+                GameProgressData.ClearIdleSlice(arch);
+            }
+        }
+
+        [Test]
         public void IdleHeroes_AfkChestSeconds_PersistsRoundTrip()
         {
             GameProgressData.ClearIdleSlice((int)IdleArchetype.IdleHeroes);

@@ -37,6 +37,15 @@ namespace HyperCasualRunner
         public int GearSlot;
     }
 
+    /// <summary>R8 Capybara run/pet/choice DNA. Missing keys → 0 (cold RunId floor applied at attach).</summary>
+    public struct IdleCapybaraDnaPersist
+    {
+        public int RunId;
+        public int PetId;
+        public int LastChoice;
+        public int PendingChoice;
+    }
+
     public static class GameProgressData
     {
         private const string GoldKey = "HCR_TotalGold";
@@ -272,6 +281,24 @@ namespace HyperCasualRunner
                 HeroId = PlayerPrefs.GetInt(IdleKey(archetype, "GachaHeroId"), 0),
                 DupeCount = PlayerPrefs.GetInt(IdleKey(archetype, "GachaDupes"), 0),
                 GearSlot = PlayerPrefs.GetInt(IdleKey(archetype, "GachaGearSlot"), 0)
+            };
+
+        public static void SaveCapybaraDna(int archetype, in IdleCapybaraDnaPersist dna)
+        {
+            PlayerPrefs.SetInt(IdleKey(archetype, "NarrRun"), dna.RunId);
+            PlayerPrefs.SetInt(IdleKey(archetype, "NarrPet"), dna.PetId);
+            PlayerPrefs.SetInt(IdleKey(archetype, "NarrLastChoice"), dna.LastChoice);
+            PlayerPrefs.SetInt(IdleKey(archetype, "NarrPendingChoice"), dna.PendingChoice);
+            Save();
+        }
+
+        public static IdleCapybaraDnaPersist LoadCapybaraDna(int archetype) =>
+            new IdleCapybaraDnaPersist
+            {
+                RunId = PlayerPrefs.GetInt(IdleKey(archetype, "NarrRun"), 0),
+                PetId = PlayerPrefs.GetInt(IdleKey(archetype, "NarrPet"), 0),
+                LastChoice = PlayerPrefs.GetInt(IdleKey(archetype, "NarrLastChoice"), 0),
+                PendingChoice = PlayerPrefs.GetInt(IdleKey(archetype, "NarrPendingChoice"), 0)
             };
 
         /// <summary>Load cozy-only extras. Missing keys → zeros (safe for pre-D18 saves).</summary>
@@ -573,6 +600,10 @@ namespace HyperCasualRunner
             PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrStep"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrExplore"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrSoft"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrRun"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrPet"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrLastChoice"));
+            PlayerPrefs.DeleteKey(IdleKey(archetype, "NarrPendingChoice"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "AfkChest"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "Workers"));
             PlayerPrefs.DeleteKey(IdleKey(archetype, "Cats"));

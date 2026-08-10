@@ -50,6 +50,10 @@ namespace HyperCasualRunner.ECS.Authoring
         private double _loadedNarrSoftCurrency;
         private double _loadedNarrWood;
         private float _loadedAfkChestSeconds;
+        private int _loadedNarrRunId;
+        private int _loadedNarrPetId;
+        private int _loadedNarrLastChoice;
+        private int _loadedNarrPendingChoice;
 
         public Entity SliceEntity => _sliceEntity;
         public bool IsSpawned => _spawned && !_destroyed;
@@ -203,6 +207,10 @@ namespace HyperCasualRunner.ECS.Authoring
             _loadedNarrSoftCurrency = 0;
             _loadedNarrWood = 0;
             _loadedAfkChestSeconds = 0f;
+            _loadedNarrRunId = 0;
+            _loadedNarrPetId = 0;
+            _loadedNarrLastChoice = 0;
+            _loadedNarrPendingChoice = 0;
 
             if (LoadPersistedProgress &&
                 GameProgressData.TryLoadIdleSlice(
@@ -271,6 +279,11 @@ namespace HyperCasualRunner.ECS.Authoring
                 _loadedNarrStokeCount = cozy.NarrStokeCount;
                 _loadedNarrWood = cozy.NarrWood;
                 _loadedAfkChestSeconds = afkChest;
+                var capyDna = GameProgressData.LoadCapybaraDna((int)Archetype);
+                _loadedNarrRunId = capyDna.RunId;
+                _loadedNarrPetId = capyDna.PetId;
+                _loadedNarrLastChoice = capyDna.LastChoice;
+                _loadedNarrPendingChoice = capyDna.PendingChoice;
                 // Catch-up deferred until after AttachArchetypeExtras PassiveRate sync (D25).
                 _loadedFromPrefs = true;
             }
@@ -322,6 +335,16 @@ namespace HyperCasualRunner.ECS.Authoring
                 narrSoft = n.SoftCurrency;
                 narrStoke = n.StokeCount;
                 narrWood = n.Wood;
+                if (s.Archetype == IdleArchetype.CapybaraGo)
+                {
+                    GameProgressData.SaveCapybaraDna((int)s.Archetype, new IdleCapybaraDnaPersist
+                    {
+                        RunId = n.RunId,
+                        PetId = n.PetId,
+                        LastChoice = n.LastChoice,
+                        PendingChoice = n.PendingChoice
+                    });
+                }
             }
 
             // Melvor: node is online XP SoT mid-bar; sync slice before prefs write.
@@ -496,6 +519,19 @@ namespace HyperCasualRunner.ECS.Authoring
 
                 case IdleArchetype.ADarkRoom:
                 case IdleArchetype.CapybaraGo:
+                {
+                    // Capybara DNA: restore prefs when present; cold-start RunId=1 (ADR keeps 0).
+                    int runId = 0;
+                    int petId = 0;
+                    int lastChoice = 0;
+                    int pendingChoice = 0;
+                    if (Archetype == IdleArchetype.CapybaraGo)
+                    {
+                        runId = _loadedFromPrefs && _loadedNarrRunId > 0 ? _loadedNarrRunId : 1;
+                        petId = _loadedNarrPetId;
+                        lastChoice = _loadedNarrLastChoice;
+                        pendingChoice = _loadedNarrPendingChoice;
+                    }
                     em.AddComponentData(slice, new IdleNarrativeState
                     {
                         RoomOrStep = _loadedNarrRoomOrStep,
@@ -503,10 +539,13 @@ namespace HyperCasualRunner.ECS.Authoring
                         ExploreUnlocked = _loadedNarrExploreUnlocked,
                         Wood = _loadedNarrWood,
                         SoftCurrency = _loadedNarrSoftCurrency,
-                        // Capybara DNA cold-start: RunId=1; ADR leaves RunId=0 via same struct defaults.
-                        RunId = Archetype == IdleArchetype.CapybaraGo ? 1 : 0
+                        RunId = runId,
+                        PetId = petId,
+                        LastChoice = lastChoice,
+                        PendingChoice = pendingChoice
                     });
                     break;
+                }
 
                 case IdleArchetype.LegendOfMushroom:
                     em.AddComponentData(slice, new IdleGachaState
