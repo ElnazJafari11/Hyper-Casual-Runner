@@ -6,7 +6,7 @@ STATUS (do not confuse these):
   Fixture presence:  19/19  (named smoke per matrix title; IdleBatchA + IdleBatchBC + Kernel + Cosmetics + PrestigeFaction in AllSmoke)
   EditMode NUnit:    see tip Logs/IdleAllSmoke-Summary.txt (authoritative count; not verb closure)
   Matrix core verbs: ~17/19 OK — Antimatter + AFK Arena PARTIAL (see docs/idle-toolkit-progress.md)
-  Play Mode:         0/19   (needs Hyper-Casual-Runner open in Unity — MCP may be on another project)
+  Play Mode:         5/19   (Batch A 01/02/03/04/06 Playable 2026-08-16 on Hyper-Casual-Runner; B/C unchecked)
   Note: AllSmoke green ≠ full verb closure ≠ Play Mode.
 
 MENUS (do not mix these up):

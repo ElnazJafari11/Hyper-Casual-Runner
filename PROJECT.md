@@ -15,7 +15,7 @@
 | M3 | Coin Multiplier & Splitting Physics | Implementation of Coin Multiplier, Splitting Physics system, authoring component, baker, and slice integration (`14_MoneyRush_Coins`) | None | DONE |
 | M4 | Multi-Level Progression Loader & UI Integration | Implementation of `LevelProgressionSystem.cs`, `LevelSequenceComponent.cs`, seamless scene/prefab transitions, UI Toolkit meta-game integration, and persistence via `GameProgressData.cs` | M1, M2, M3 | DONE |
 | M5 | Automated Verification Suite & E2E Validation | Run `RunVerificationSuite` across all 21 slice prefabs in `Assets/ToolkitExamples/`, verify zero compilation errors, component bindings, and tier coverage | M4 | DONE |
-| M6 | Idle Mechanics Toolkit (matrix MVPs) | Shared idle kernel + 19 enum-gated matrix archetypes under `Assets/ToolkitExamples/Idle/` (not a piece-flag DSL yet); compose map `docs/idle-toolkit-compose.md`; progress `docs/idle-toolkit-progress.md` (EditMode 19/19, Play 0/19) | M5 | IN PROGRESS |
+| M6 | Idle Mechanics Toolkit (matrix MVPs) | Shared idle kernel + 19 enum-gated matrix archetypes under `Assets/ToolkitExamples/Idle/` (not a piece-flag DSL yet); compose map `docs/idle-toolkit-compose.md`; progress `docs/idle-toolkit-progress.md` (EditMode 19/19, Play 5/19 Batch A) | M5 | IN PROGRESS |
 
 ## Interface Contracts
 ### Level Progression ↔ Game Progress Data

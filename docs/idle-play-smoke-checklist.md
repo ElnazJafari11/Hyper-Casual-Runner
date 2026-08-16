@@ -8,7 +8,7 @@
 
 - EditMode fixtures: **19/19** present (`IdleBatchASmokeTests` + `IdleBatchBCSmokeTests`)
 - Matrix core-verb scorecard: **~17/19 OK** (Antimatter + AFK Arena PARTIAL) — see `docs/idle-toolkit-progress.md`; AllSmoke green ≠ verb closure
-- Play Mode: **0/19** until each row below is smoked in **this** project and `docs/idle-toolkit-progress.md` Play column is updated
+- Play Mode: **5/19** (Batch A 01/02/03/04/06 Playable on Hyper-Casual-Runner 2026-08-16). Batch B/C still unchecked.
 - Piece catalog: `docs/idle-toolkit-compose.md`
 - Menus: `IdleToolkit/MVP/…` (idle) vs `IdleToolkit/RunnerSlices/…` (21 runner slices)
 
@@ -24,11 +24,11 @@
 
 | Prefab | Expected HUD verbs | Core beat | Done? |
 |--------|--------------------|-----------|-------|
-| `01_CookieClicker_Generators_Slice` | Click Cookie → Buy Generator → Prestige | currency + gens + prestige | [ ] **BLOCKED** |
-| `02_ClickerHeroes_TapKill_Slice` | Tap / Attack → Buy Hero DPS → Prestige | zone / gold | [ ] |
-| `03_AdventureCapitalist_Managers_Slice` | Collect → Buy Business → Hire Manager → Angel Reset | manager automates | [ ] **BLOCKED** |
-| `04_UniversalPaperclips_Phase_Slice` | Make Paperclip → Buy Autoclipper → Phase Shift | phase prestige | [ ] **BLOCKED** |
-| `06_AntimatterDimensions_Layers_Slice` | Buy Dimension → Click Antimatter → Prestige Layer | owned + layer | [ ] |
+| `01_CookieClicker_Generators_Slice` | Click Cookie → Buy Generator → Prestige | currency + gens + prestige | [x] **Playable** 2026-08-16 |
+| `02_ClickerHeroes_TapKill_Slice` | Tap / Attack → Buy Hero DPS → Prestige | zone / gold | [x] **Playable** 2026-08-16 |
+| `03_AdventureCapitalist_Managers_Slice` | Collect → Buy Business → Hire Manager → Angel Reset | manager automates | [x] **Playable** 2026-08-16 |
+| `04_UniversalPaperclips_Phase_Slice` | Make Paperclip → Buy Autoclipper → Phase Shift | phase prestige | [x] **Playable** 2026-08-16 |
+| `06_AntimatterDimensions_Layers_Slice` | Buy Dimension → Click Antimatter → Prestige Layer | owned + layer | [x] **Playable** 2026-08-16 (matrix nested layers still PARTIAL) |
 
 Note: `05_ADarkRoom_*` is Batch B/C, not Batch A.
 
@@ -40,7 +40,9 @@ Note: `05_ADarkRoom_*` is Batch B/C, not Batch A.
 
 **R8-A4 (round_08 impl_05):** Prefabs **01 / 03 / 04** still **BLOCKED** — `doctor` on HCR: discovered `thepcgtoolkit@96e3a310` only; registered_sessions empty; HCR batchmode process present but **not** bridge-registered for Play. EditMode cite remains valid dedicated `Logs/IdleBatchA-impl05-r7.log` + Summary `23/23`. Receipt: `.agents/idle_swarm/round_08/impl_05_batchA.md`.
 
-**R9-A4 (round_09 impl_02):** Prefabs **01 / 03 / 04** still **BLOCKED** — `doctor` on HCR: discovered `thepcgtoolkit@96e3a310` only; registered_sessions empty; no interactive Hyper-Casual-Runner editor (TheCheckout batchmode ≠ HCR). EditMode cite remains valid dedicated `Logs/IdleBatchA-impl05-r7.log` + Summary `23/23` (do not cite R6 `impl07-r6.log`). Receipt: `.agents/idle_swarm/round_09/impl_02_batchA.md`.
+**R9-A4 (round_09 impl_02):** Prefabs **01 / 03 / 04** were **BLOCKED** — MCP only had `thepcgtoolkit`. Historical.
+
+**2026-08-16:** Opened HCR editor (`Hyper-Casual-Runner@7e41a209`, port 6400). Batch A **01 / 02 / 03 / 04 / 06** Playable — HUD `clicked` + `sim_pump` numeric receipts in `docs/idle-toolkit-progress.md`. TheQuacken left undriven.
 
 ## Batch B/C (optional)
 

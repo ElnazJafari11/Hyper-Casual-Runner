@@ -35,3 +35,6 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+
+# MCP session lock (per-editor lease; not source)
+.u3dmcp-project-lease

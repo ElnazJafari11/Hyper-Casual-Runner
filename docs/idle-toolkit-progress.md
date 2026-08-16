@@ -4,14 +4,14 @@ Branch: `antigravity/toolkit-persist`
 Matrix: `docs/idle_mechanics_matrix.md` (19 titles + candidate #20 Synergism deferred)  
 Compose: `docs/idle-toolkit-compose.md`
 
-## Evidence (latest — round_07 impl_01)
+## Evidence (latest — 2026-08-16 Play Batch A)
 
 | Check | Result |
 |-------|--------|
 | Prefabs `Assets/ToolkitExamples/Idle/*` | 19/19 present |
 | EditMode AllSmoke (`IdleBatchA` + `IdleBatchBC` + `IdleKernelCorrectness` + `CosmeticsShop` + `IdlePrestigeFactionBonusTests`) | **PASS 115/115** — tip `Logs/IdleAllSmoke-Summary.txt` + tip-writing log `Logs/IdleAllSmoke-impl01-r7b.log` (`pass=115 fail=0` `duration=10.9292972`). Historical: `IdleAllSmoke-impl03-r7.log` wrote prior 114 tip (`duration=7.2796769`) and is superseded; prestige `IdlePrestige-impl09-r5b.log` prior 103 tip (`duration=3.4890533`) also obsolete; tip 91 / progress 89 cites remain obsolete. |
 | Fixture presence (1 named smoke per matrix title) | **19/19** |
-| Play Mode (MCP Hyper-Casual-Runner) | UNVERIFIED — MCP still on `thepcgtoolkit` |
+| Play Mode (MCP `Hyper-Casual-Runner@7e41a209`) | **5/19 Playable** — Batch A HUD verbs on this project (01, 02, 03, 04, 06). Batch B/C still unchecked. |
 
 **Do not equate fixture / NUnit green with full matrix verb closure.** AllSmoke proves EditMode asserts; the scorecard below is the verb bar (round_05/06/07 review_09). AllSmoke green ≠ Play Mode. HUD smoke remains outside AllSmoke.
 
@@ -20,7 +20,19 @@ Compose: `docs/idle-toolkit-compose.md`
 | Fixture presence | **19/19** |
 | EditMode NUnit green (AllSmoke) | **115/115** (A+BC+Kernel+Cosmetics+PrestigeFaction; tip Summary is authoritative) |
 | Matrix core-verb + causal beat | **~17/19 OK** — Antimatter + AFK Arena remain PARTIAL (see scorecard) |
-| Play-mode verified | **0/19** |
+| Play-mode verified | **5/19** (Batch A only) |
+
+### Play Batch A receipts (2026-08-16, instance `Hyper-Casual-Runner@7e41a209`)
+
+HUD buttons invoked via UI Toolkit `clicked` on the live `IdleSliceUIController`, then `sim_pump` so ECS systems ran. Prefabs dropped into an untitled scene; persist keys cleared first.
+
+| # | Prefab | HUD verbs | End state |
+|---|--------|-----------|-----------|
+| 01 | Cookie Clicker | Click Cookie (20) → Buy Generator → Prestige | after buy: `cur=5.08 gens=1 cps=1`; after prestige: `cur=0 gens=0 prestige=1 mult=1.1` |
+| 02 | Clicker Heroes | Tap / Attack → Buy Hero DPS → Prestige | after buy: `gens=1 cps=1 HeroDps=2 zone=4`; after prestige: `cur=0 prestige=1 zone=1 level=1 mult=1.1` |
+| 03 | AdVenture Capitalist | Collect → Buy Business → Hire Manager → Angel Reset | after hire: `hired=1 IsHired cps=1`; after angel: `cur=0 gens=0 hired=0 prestige=1 mult=1.1` |
+| 04 | Universal Paperclips | Make Paperclip → Buy Autoclipper → Phase Shift | after buy: `gens=1 cps=1 cur≈30`; after phase: `cur=0 prestige=1 phase=1 mult=1.1` |
+| 06 | Antimatter Dimensions | Click Antimatter → Buy Dimension → Prestige Layer | after buy: `gens=1 cps=1 cur≈30`; after layer: `prestige=1 phase=1 band=Infinity`. Matrix nested eternity still PARTIAL. |
 
 ## Per-game EditMode verb status (round_04 review_09)
 
@@ -46,7 +58,7 @@ Compose: `docs/idle-toolkit-compose.md`
 | 18 | Neko Atsume | Place Food/Toys | OK — spend + attract; SurvivePersist CheckInCats; wall-clock AFK → CheckInCats |
 | 19 | Fallout Shelter | Assign Dwellers | OK — station + PendingClaim; SurvivePersist; station AFK → Pending |
 
-Still **out of scope** for “verb verified” marketing: Play Mode, prefab↔bootstrap wiring, multi-slice crosstalk stress, full Soul Eggs / nested eternity layers, AFK combat path.
+Still **out of scope** for “verb verified” marketing: Batch B/C Play, prefab↔bootstrap wiring, multi-slice crosstalk stress, full Soul Eggs / nested eternity layers, AFK combat path.
 
 ## Persistence
 
@@ -82,10 +94,10 @@ Checklist artifact: `docs/idle-play-smoke-checklist.md` (also written by that me
 
 ## Next
 
-1. Bridge MCP to Hyper-Casual-Runner → play-smoke → Play column.
+1. Play-smoke Batch B/C (14 remaining) on this same HCR editor.
 2. Optional: multi-slice TargetSlice for buy/narrative; AFK mid-gate claim twin; Antimatter nested layer / AFK combat product pick.
 
 ## Blockers
 
-- MCP instance is only `thepcgtoolkit` — Hyper-Casual-Runner editor not connected → Play Mode 0/19.
-- **Batch A Play 01/03/04 (R5–R9-A4):** BLOCKED — Cookie / AdvCap / Paperclips checklist rows stay unchecked; EditMode Batch A cite `23/23` (`Logs/IdleBatchA-Summary.txt`, `Logs/IdleBatchA-impl05-r7.log` — do not cite R6 `impl07-r6.log`). MCP `doctor` (R9): discovered `thepcgtoolkit@96e3a310` only; registered_sessions empty; no interactive HCR bridge — no Play. See `.agents/idle_swarm/round_09/impl_02_batchA.md`.
+- Batch A Play **unblocked** (2026-08-16) — `Hyper-Casual-Runner@7e41a209` on port 6400. Prior R5–R9 `thepcgtoolkit`-only cites are historical.
+- Batch B/C Play still **0/14**.
